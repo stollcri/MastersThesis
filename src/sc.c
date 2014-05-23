@@ -15,14 +15,17 @@ static void carve(char *filename)
 	int *imageVector;
 	int imageWidth = 0;
 	int imageHeight = 0;
-	
 	imageVector = readPNGFile(filename, &imageWidth, &imageHeight, LOADDOCUMENT_VERBOSE);
 	if (!imageVector || !imageWidth || !imageHeight) {
 		printf("Error loading PNG image.\n");
 		exit(1);
 	}
 
-	seamCarve(imageVector, imageWidth, imageHeight);
+	int *newImageVector;
+	newImageVector = seamCarve(imageVector, imageWidth, imageHeight);
+	
+	char fName[16] = "./tst/out.png";
+	write_png_file(newImageVector, imageWidth, imageHeight, fName);
 }
 
 int main(int argc, char const *argv[])
