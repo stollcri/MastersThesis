@@ -8,7 +8,7 @@
 #include "libpngHelper.c"
 #include "libSeamCarve.c"
 
-#define LOADDOCUMENT_VERBOSE 1
+#define LOADDOCUMENT_VERBOSE 0
 
 static void carve(char *filename)
 {
@@ -23,7 +23,7 @@ static void carve(char *filename)
 
 	int *newImageVector;
 	newImageVector = seamCarve(imageVector, imageWidth, imageHeight);
-	
+
 	char fName[16] = "./tst/out.png";
 	write_png_file(newImageVector, imageWidth, imageHeight, fName);
 }

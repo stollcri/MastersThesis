@@ -118,19 +118,24 @@ static int *readPNGFile(char *filename, int *imageWidth, int *imageHeight, int v
 			if ((rPixel == gPixel) && (gPixel == bPixel)) {
 				imagePixels[n] = rPixel;
 			} else {
-				if (rPixel > gPixel) {
-					if (rPixel > bPixel) {
-						imagePixels[n] = rPixel;
-					} else {
-						imagePixels[n] = bPixel;
-					}
-				} else {
-					if (gPixel > bPixel) {
-						imagePixels[n] = gPixel;
-					} else {
-						imagePixels[n] = bPixel;
-					}
-				}
+				// RGB_TO_GRAY_CIE_1931
+					imagePixels[n] = rPixel * 0.2126;
+					imagePixels[n] += gPixel * 0.7152;
+					imagePixels[n] += bPixel * 0.0722;
+				// RGB_TO_GRAY_LARGEST
+				// if (rPixel > gPixel) {
+				// 	if (rPixel > bPixel) {
+				// 		imagePixels[n] = rPixel;
+				// 	} else {
+				// 		imagePixels[n] = bPixel;
+				// 	}
+				// } else {
+				// 	if (gPixel > bPixel) {
+				// 		imagePixels[n] = gPixel;
+				// 	} else {
+				// 		imagePixels[n] = bPixel;
+				// 	}
+				// }
 			}
 		}
 	}

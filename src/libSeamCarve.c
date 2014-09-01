@@ -3,6 +3,9 @@
  * Christopher Stoll, 2014
  */
 
+#ifndef LIBSEAMCARVE_C
+#define LIBSEAMCARVE_C
+
 #include <stdio.h>
 #include <limits.h>
 
@@ -46,100 +49,179 @@ static inline int min3(int a, int b, int c)
 	}
 }
 
-static int energyE(int *imageVector, int imageWidth, int currentPixel)
+static int energyE(int *imageVector, int imageWidth, int imageHeight, int currentPixel)
 {
 	int pixelAbove = 0;
+	if (currentPixel > (imageWidth + imageWidth)) {
+		pixelAbove = currentPixel - imageWidth - imageWidth;
+	}
+	/* We can pull from two pixels above instead of summing one above and one below
+	int pixelBelow = 0;
 	if (currentPixel > imageWidth) {
 		pixelAbove = currentPixel - imageWidth;
 	}
-
-	int xDif = 0;
-	if (imageVector[pixelAbove] > imageVector[currentPixel]) {
-		xDif = imageVector[pixelAbove] - imageVector[currentPixel];
-	} else {
-		xDif = imageVector[currentPixel] - imageVector[pixelAbove];
+	if (currentPixel < (imageWidth * (imageHeight - 1))) {
+		pixelBelow = currentPixel + imageWidth;
 	}
+	*/
+
+	int yDif = 0;
+	if (imageVector[pixelAbove] > imageVector[currentPixel]) {
+		yDif = imageVector[pixelAbove] - imageVector[currentPixel];
+	} else {
+		yDif = imageVector[currentPixel] - imageVector[pixelAbove];
+	}
+	/*
+	int yDifA = 0;
+	if (imageVector[pixelAbove] > imageVector[currentPixel]) {
+		yDifA = imageVector[pixelAbove] - imageVector[currentPixel];
+	} else {
+		yDifA = imageVector[currentPixel] - imageVector[pixelAbove];
+	}
+	int yDifB = 0;
+	if (imageVector[pixelBelow] > imageVector[currentPixel]) {
+		yDifB = imageVector[pixelBelow] - imageVector[currentPixel];
+	} else {
+		yDifB = imageVector[currentPixel] - imageVector[pixelBelow];
+	}
+	int yDif = yDifA + yDifB;
+	*/
 
 	int pixelLeft = 0;
 	// TODO: fix this from rolling back to the other side
-	pixelLeft = currentPixel - 1;
-
-	int yDif = 0;
-	if (imageVector[pixelLeft] > imageVector[currentPixel]) {
-		yDif = imageVector[pixelLeft] - imageVector[currentPixel];
-	} else {
-		yDif = imageVector[currentPixel] - imageVector[pixelLeft];
+	pixelLeft = currentPixel - 2;
+	if (pixelLeft < 0) {
+		pixelLeft = 0;
 	}
 
-	// int fin = (xDif + yDif);
+	int xDif = 0;
+	if (imageVector[pixelLeft] > imageVector[currentPixel]) {
+		xDif = imageVector[pixelLeft] - imageVector[currentPixel];
+	} else {
+		xDif = imageVector[currentPixel] - imageVector[pixelLeft];
+	}
+
+	// int fin = (yDif + xDif);
 	// printf("%d ", fin);
-	return min((xDif + yDif), 255);
+	return min((yDif + xDif), 255);
 }
 
 static int *seamCarve(int *imageVector, int imageWidth, int imageHeight)
 {
 	int currentPixel = 0;
-	int pixelAbove = 0;
-	int aboveL = 0;
-	int aboveC = 0;
-	int aboveR = 0;
-	int newValue = 0;
-	int *newImageVector = (int*)malloc((unsigned long)imageHeight * (unsigned long)imageWidth * sizeof(int));
+	int *newImageEnergy = (int*)malloc((unsigned long)imageHeight * (unsigned long)imageWidth * sizeof(int));
 	int *newImageTraces = (int*)malloc((unsigned long)imageHeight * (unsigned long)imageWidth * sizeof(int));
+	int *newImageSeams = (int*)malloc((unsigned long)imageHeight * (unsigned long)imageWidth * sizeof(int));
 
 	for (int j = 0; j < imageHeight; ++j) {
 		for (int i = 0; i < imageWidth; ++i) {
 			currentPixel = (j * imageWidth) + i;
 			// printf("%d\n", currentPixel);
-			newImageVector[currentPixel] = energyE(imageVector, imageWidth, currentPixel);
+			// newImageEnergy[currentPixel] = imageVector[currentPixel];
+			newImageEnergy[currentPixel] = energyE(imageVector, imageWidth, imageHeight, currentPixel);
+			newImageSeams[currentPixel] = newImageEnergy[currentPixel];
 		}
 	}
 
-	// for (int j = 0; j < imageHeight; ++j) {
-	// 	for (int i = 0; i < imageWidth; ++i) {
-	// 		currentPixel = (j * imageWidth) + i;
+	int pixelAbove = 0;
+	int aboveL = 0;
+	int aboveC = 0;
+	int aboveR = 0;
+	int newValue = 0;
 
-	// 		// do not process the first row
-	// 		if (j > 0) {
-	// 			pixelAbove = currentPixel - imageWidth;
-	// 			// avoid falling of the ends
-	// 			if (i > 0) {
-	// 				if (i < imageWidth) {
-	// 					aboveL = newImageVector[pixelAbove - 1];
-	// 					aboveC = newImageVector[pixelAbove];
-	// 					aboveR = newImageVector[pixelAbove + 1];
-	// 				} else {
-	// 					aboveL = newImageVector[pixelAbove - 1];
-	// 					aboveC = newImageVector[pixelAbove];
-	// 					aboveR = INT_MAX;
-	// 				}
-	// 			} else {
-	// 				aboveL = INT_MAX;
-	// 				aboveC = newImageVector[pixelAbove];
-	// 				aboveR = newImageVector[pixelAbove + 1];
-	// 			}
+	for (int j = 0; j < imageHeight; ++j) {
+		for (int i = 0; i < imageWidth; ++i) {
+			currentPixel = (j * imageWidth) + i;
 
-	// 			// add the minimum above adjacent pixel to the current
-	// 			newValue = min3(aboveL, aboveC, aboveR);
-	// 			newImageVector[currentPixel] += newValue;
-	// 			//newImageVector[currentPixel] = min(newImageVector[currentPixel], 255);
-	// 			//printf("%3d ", newValue);
+			// do not process the first row
+			if (j > 0) {
+				pixelAbove = currentPixel - imageWidth;
+				// avoid falling of the ends
+				if (i > 0) {
+					if (i < imageWidth) {
+						aboveL = newImageSeams[pixelAbove - 1];
+						aboveC = newImageSeams[pixelAbove];
+						aboveR = newImageSeams[pixelAbove + 1];
+						newValue = min3(aboveL, aboveC, aboveR);
+					} else {
+						aboveL = newImageSeams[pixelAbove - 1];
+						aboveC = newImageSeams[pixelAbove];
+						aboveR = INT_MAX;
+						newValue = min(aboveL, aboveC);
+					}
+				} else {
+					aboveL = INT_MAX;
+					aboveC = newImageSeams[pixelAbove];
+					aboveR = newImageSeams[pixelAbove + 1];
+					newValue = min(aboveC, aboveR);
+				}
 
-	// 			// record the track we have followed
-	// 			if (newValue == aboveL) {
-	// 				newImageTraces[currentPixel] = TRACE_LEFT;
-	// 			} else if (newValue == aboveC) {
-	// 				newImageTraces[currentPixel] = TRACE_CENTER;
-	// 			} else {
-	// 				newImageTraces[currentPixel] = TRACE_RIGHT;
-	// 			}
-	// 		}
+				// add the minimum above adjacent pixel to the current
+				//printf("%d %d \n", newImageSeams[currentPixel], newValue);
+				newImageSeams[currentPixel] += newValue;
+				//newImageSeams[currentPixel] = min(newImageSeams[currentPixel], 255);
+				
+				//newImageEnergy[currentPixel] = min(newImageEnergy[currentPixel], 255);
+				//printf("%3d ", newValue);
+
+				// record the track we have followed
+				if (newValue == aboveL) {
+					newImageTraces[currentPixel] = TRACE_LEFT;
+				} else if (newValue == aboveC) {
+					newImageTraces[currentPixel] = TRACE_CENTER;
+				} else {
+					newImageTraces[currentPixel] = TRACE_RIGHT;
+				}
+			}
+		}
+	}
+
+	// TODO: find the minimum values along the bottom
+	int minValueLocation = 0;
+	int minValue = INT_MAX;
+
+	for (int i = (imageWidth * imageHeight); i > ((imageWidth * imageHeight) - imageWidth); --i) {
+		// if (newImageEnergy[i] <= minValue) {
+		if (newImageSeams[i] <= 5000) {
+			minValueLocation = i;
+			minValue = newImageSeams[minValueLocation];
+			//printf("%d %d \n", minValue, minValueLocation);
+
+			for (int j = imageHeight; j > 0; --j) {
+				//printf("%d %d \n", minValueLocation, newImageTraces[minValueLocation]);
+				newImageEnergy[minValueLocation] = 255;
+
+				if (newImageTraces[minValueLocation] == TRACE_LEFT) {
+					minValueLocation -= (imageWidth + 1);
+				} else if (newImageTraces[minValueLocation] == TRACE_CENTER) {
+					minValueLocation -= imageWidth;
+				} else if (newImageTraces[minValueLocation] == TRACE_RIGHT) {
+					minValueLocation -= (imageWidth - 1);
+				} else {
+					minValueLocation -= imageWidth;
+				}
+			}
+		}
+	}
+	
+	// TODO: backtrack to find the seams
+	// for (int i = imageHeight; i > 0; --i) {
+	// 	printf("%d %d \n", minValueLocation, newImageTraces[minValueLocation]);
+	// 	newImageEnergy[minValueLocation] = 255;
+
+	// 	if (newImageTraces[minValueLocation] == TRACE_LEFT) {
+	// 		minValueLocation -= (imageWidth + 1);
+	// 	} else if (newImageTraces[minValueLocation] == TRACE_CENTER) {
+	// 		minValueLocation -= imageWidth;
+	// 	} else if (newImageTraces[minValueLocation] == TRACE_RIGHT) {
+	// 		minValueLocation -= (imageWidth - 1);
+	// 	} else {
+	// 		minValueLocation -= imageWidth;
 	// 	}
 	// }
 
-	// TODO: find the minimum values along the bottom
-	// 
-	// TODO: backtrack to find the seams
-
-	return newImageVector;
+	//return newImageSeams;
+	return newImageEnergy;
 }
+
+#endif
