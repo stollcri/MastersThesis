@@ -51,19 +51,11 @@ static inline int min3(int a, int b, int c)
 
 static int energyE(int *imageVector, int imageWidth, int imageHeight, int currentPixel)
 {
+	// We can pull from two pixels above instead of summing one above and one below
 	int pixelAbove = 0;
 	if (currentPixel > (imageWidth + imageWidth)) {
 		pixelAbove = currentPixel - imageWidth - imageWidth;
 	}
-	/* We can pull from two pixels above instead of summing one above and one below
-	int pixelBelow = 0;
-	if (currentPixel > imageWidth) {
-		pixelAbove = currentPixel - imageWidth;
-	}
-	if (currentPixel < (imageWidth * (imageHeight - 1))) {
-		pixelBelow = currentPixel + imageWidth;
-	}
-	*/
 
 	int yDif = 0;
 	if (imageVector[pixelAbove] > imageVector[currentPixel]) {
@@ -71,21 +63,6 @@ static int energyE(int *imageVector, int imageWidth, int imageHeight, int curren
 	} else {
 		yDif = imageVector[currentPixel] - imageVector[pixelAbove];
 	}
-	/*
-	int yDifA = 0;
-	if (imageVector[pixelAbove] > imageVector[currentPixel]) {
-		yDifA = imageVector[pixelAbove] - imageVector[currentPixel];
-	} else {
-		yDifA = imageVector[currentPixel] - imageVector[pixelAbove];
-	}
-	int yDifB = 0;
-	if (imageVector[pixelBelow] > imageVector[currentPixel]) {
-		yDifB = imageVector[pixelBelow] - imageVector[currentPixel];
-	} else {
-		yDifB = imageVector[currentPixel] - imageVector[pixelBelow];
-	}
-	int yDif = yDifA + yDifB;
-	*/
 
 	int pixelLeft = 0;
 	// TODO: fix this from rolling back to the other side
