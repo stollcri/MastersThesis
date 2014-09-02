@@ -49,7 +49,8 @@ static inline int min3(int a, int b, int c)
 	}
 }
 
-static int energyE(int *imageVector, int imageWidth, int imageHeight, int currentPixel)
+// Simple energy function, basically a gradient magnitude calculation
+static int energySimple(int *imageVector, int imageWidth, int imageHeight, int currentPixel)
 {
 	// We can pull from two pixels above instead of summing one above and one below
 	int pixelAbove = 0;
@@ -80,7 +81,12 @@ static int energyE(int *imageVector, int imageWidth, int imageHeight, int curren
 
 	// int fin = (yDif + xDif);
 	// printf("%d ", fin);
-	return min((yDif + xDif), 255);
+	//return imageVector[currentPixel];
+	if ((yDif + xDif) > 0) {
+		return min((yDif + xDif), 255);
+	} else {
+		return 1;
+	}
 }
 
 static int *seamCarve(int *imageVector, int imageWidth, int imageHeight)
@@ -90,12 +96,14 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight)
 	int *newImageTraces = (int*)malloc((unsigned long)imageHeight * (unsigned long)imageWidth * sizeof(int));
 	int *newImageSeams = (int*)malloc((unsigned long)imageHeight * (unsigned long)imageWidth * sizeof(int));
 
+	// create an image of the original image's energies
 	for (int j = 0; j < imageHeight; ++j) {
 		for (int i = 0; i < imageWidth; ++i) {
 			currentPixel = (j * imageWidth) + i;
 			// printf("%d\n", currentPixel);
 			// newImageEnergy[currentPixel] = imageVector[currentPixel];
-			newImageEnergy[currentPixel] = energyE(imageVector, imageWidth, imageHeight, currentPixel);
+			newImageEnergy[currentPixel] = energySimple(imageVector, imageWidth, imageHeight, currentPixel);
+			newImageTraces[currentPixel] = TRACE_NONE;
 			newImageSeams[currentPixel] = newImageEnergy[currentPixel];
 		}
 	}
@@ -106,49 +114,51 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight)
 	int aboveR = 0;
 	int newValue = 0;
 
-	for (int j = 0; j < imageHeight; ++j) {
+	// do not process the first row, start with j=1
+	for (int j = 1; j < imageHeight; ++j) {
 		for (int i = 0; i < imageWidth; ++i) {
 			currentPixel = (j * imageWidth) + i;
 
-			// do not process the first row
-			if (j > 0) {
-				pixelAbove = currentPixel - imageWidth;
-				// avoid falling of the ends
-				if (i > 0) {
-					if (i < imageWidth) {
-						aboveL = newImageSeams[pixelAbove - 1];
-						aboveC = newImageSeams[pixelAbove];
-						aboveR = newImageSeams[pixelAbove + 1];
-						newValue = min3(aboveL, aboveC, aboveR);
-					} else {
-						aboveL = newImageSeams[pixelAbove - 1];
-						aboveC = newImageSeams[pixelAbove];
-						aboveR = INT_MAX;
-						newValue = min(aboveL, aboveC);
-					}
-				} else {
-					aboveL = INT_MAX;
+			pixelAbove = currentPixel - imageWidth;
+			// avoid falling of the ends
+			if (i > 0) {
+				if (i < imageWidth) {
+					aboveL = newImageSeams[pixelAbove - 1];
 					aboveC = newImageSeams[pixelAbove];
 					aboveR = newImageSeams[pixelAbove + 1];
-					newValue = min(aboveC, aboveR);
-				}
-
-				// add the minimum above adjacent pixel to the current
-				//printf("%d %d \n", newImageSeams[currentPixel], newValue);
-				newImageSeams[currentPixel] += newValue;
-				//newImageSeams[currentPixel] = min(newImageSeams[currentPixel], 255);
-				
-				//newImageEnergy[currentPixel] = min(newImageEnergy[currentPixel], 255);
-				//printf("%3d ", newValue);
-
-				// record the track we have followed
-				if (newValue == aboveL) {
-					newImageTraces[currentPixel] = TRACE_LEFT;
-				} else if (newValue == aboveC) {
-					newImageTraces[currentPixel] = TRACE_CENTER;
+					newValue = min3(aboveL, aboveC, aboveR);
 				} else {
-					newImageTraces[currentPixel] = TRACE_RIGHT;
+					aboveL = newImageSeams[pixelAbove - 1];
+					aboveC = newImageSeams[pixelAbove];
+					aboveR = INT_MAX;
+					newValue = min(aboveL, aboveC);
 				}
+			} else {
+				aboveL = INT_MAX;
+				aboveC = newImageSeams[pixelAbove];
+				aboveR = newImageSeams[pixelAbove + 1];
+				newValue = min(aboveC, aboveR);
+			}
+
+			if ((j<20) && (i<120)) {
+				printf("j: %d, i: %d == %d<%d>%d => %d + %d\n", j, i, aboveL, aboveC, aboveR, newImageSeams[currentPixel], newValue);
+			}
+			// add the minimum above adjacent pixel to the current
+			//printf("%d %d \n", newImageSeams[currentPixel], newValue);
+			//newImageSeams[currentPixel] -= 1;
+			newImageSeams[currentPixel] += newValue;
+			//newImageSeams[currentPixel] = min(newImageSeams[currentPixel], 255);
+			
+			//newImageEnergy[currentPixel] = min(newImageEnergy[currentPixel], 255);
+			//printf("%3d ", newValue);
+
+			// record the track we have followed
+			if (newValue == aboveC) {
+				newImageTraces[currentPixel] = TRACE_CENTER;
+			} else if (newValue == aboveL) {
+				newImageTraces[currentPixel] = TRACE_LEFT;
+			} else {
+				newImageTraces[currentPixel] = TRACE_RIGHT;
 			}
 		}
 	}
@@ -156,10 +166,9 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight)
 	// TODO: find the minimum values along the bottom
 	int minValueLocation = 0;
 	int minValue = INT_MAX;
-
-	for (int i = (imageWidth * imageHeight); i > ((imageWidth * imageHeight) - imageWidth); --i) {
+	for (int i = ((imageWidth * imageHeight) - 1); i > ((imageWidth * imageHeight) - imageWidth); --i) {
 		// if (newImageEnergy[i] <= minValue) {
-		if (newImageSeams[i] <= 5000) {
+		if (newImageSeams[i] <= 5200) {
 			minValueLocation = i;
 			minValue = newImageSeams[minValueLocation];
 			//printf("%d %d \n", minValue, minValueLocation);
