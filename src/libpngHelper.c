@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <png.h>
+#include <math.h>
 
 #define PNG_BYTES_TO_CHECK 4
 
@@ -105,6 +106,13 @@ static int *readPNGFile(char *filename, int *imageWidth, int *imageHeight, int v
 	int bPixel = 0;
 	int gPixel = 0;
 	//int aPixel = 0;
+	
+	double greyPixel = 0.0;
+	double radianShift = 3.14159265;
+	double radianRange = 3.14159265;
+	double radianPixel = 0;
+	double scaledPixel = 0;
+
 	for(int y = 0; y < height; ++y) {
 		png_bytep row = row_pointers[y];
 		for(int x = 0; x < width; ++x) {
@@ -115,28 +123,34 @@ static int *readPNGFile(char *filename, int *imageWidth, int *imageHeight, int v
 			//aPixel = (int)pixel[3];
 
 			n = (y * width) + x;
-			if ((rPixel == gPixel) && (gPixel == bPixel)) {
-				imagePixels[n] = rPixel;
-			} else {
-				// RGB_TO_GRAY_CIE_1931
-					imagePixels[n] = rPixel * 0.2126;
-					imagePixels[n] += gPixel * 0.7152;
-					imagePixels[n] += bPixel * 0.0722;
-				// RGB_TO_GRAY_LARGEST
-				// if (rPixel > gPixel) {
-				// 	if (rPixel > bPixel) {
-				// 		imagePixels[n] = rPixel;
-				// 	} else {
-				// 		imagePixels[n] = bPixel;
-				// 	}
-				// } else {
-				// 	if (gPixel > bPixel) {
-				// 		imagePixels[n] = gPixel;
-				// 	} else {
-				// 		imagePixels[n] = bPixel;
-				// 	}
-				// }
-			}
+			
+			greyPixel = rPixel * 0.2126;
+			greyPixel += gPixel * 0.7152;
+			greyPixel += bPixel * 0.0722;
+
+			radianPixel = greyPixel / 256 * radianRange + radianShift;
+			scaledPixel = 128 * (cos(radianPixel) + 1.0);
+
+			imagePixels[n] = (int)scaledPixel;
+
+			// RGB_TO_GRAY_CIE_1931
+			// imagePixels[n] = rPixel * 0.2126;
+			// imagePixels[n] += gPixel * 0.7152;
+			// imagePixels[n] += bPixel * 0.0722;
+			// RGB_TO_GRAY_LARGEST
+			// if (rPixel > gPixel) {
+			// 	if (rPixel > bPixel) {
+			// 		imagePixels[n] = rPixel;
+			// 	} else {
+			// 		imagePixels[n] = bPixel;
+			// 	}
+			// } else {
+			// 	if (gPixel > bPixel) {
+			// 		imagePixels[n] = gPixel;
+			// 	} else {
+			// 		imagePixels[n] = bPixel;
+			// 	}
+			// }
 		}
 	}
 
