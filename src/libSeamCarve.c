@@ -142,16 +142,20 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight)
 	for (int j = 0; j < imageHeight; ++j) {
 		for (int i = 0; i < imageWidth; ++i) {
 			currentPixel = (j * imageWidth) + i;
+			// mutable copy of the original image, to return the original image with seams shown
 			newImage[currentPixel] = imageVector[currentPixel];
+			// original energies of the original image, to return the energies with seams shown
 			newImageEnergy[currentPixel] = findEnergiesSimple(imageVector, imageWidth, imageHeight, currentPixel);
-			newImageTraces[currentPixel] = TRACE_NONE;
+			// top down energy seam data of the original image
 			newImageSeams[currentPixel] = newImageEnergy[currentPixel];
+			// traces through the original image (LCR directions to speed backtracking)
+			newImageTraces[currentPixel] = TRACE_NONE;
 		}
 	}
 
 	findSeams(newImageSeams, newImageTraces, imageWidth, imageHeight);
 
-	// TODO: find the minimum values along the bottom
+	// find the minimum seam energy in the bottom row
 	int minValue = INT_MAX;
 	int minValueLocation = INT_MAX;
 	for (int i = ((imageWidth * imageHeight) - 1); i > ((imageWidth * imageHeight) - imageWidth - 1); --i) {
@@ -163,6 +167,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight)
 		//newImage[minValueLocation] = 92;
 	}
 
+	// from the minimum energy in the bottom row backtrack up the image
 	for (int j = imageHeight; j > 0; --j) {
 		newImageEnergy[minValueLocation] = 255;
 		newImage[minValueLocation] = 0;
