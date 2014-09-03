@@ -79,9 +79,6 @@ static int findEnergiesSimple(int *imageVector, int imageWidth, int imageHeight,
 		xDif = imageVector[currentPixel] - imageVector[pixelLeft];
 	}
 
-	// int fin = (yDif + xDif);
-	// printf("%d ", fin);
-	//return imageVector[currentPixel];
 	return min((yDif + xDif), 255);
 }
 
@@ -119,15 +116,7 @@ static void findSeams(int *imageSeams, int *imageTraces, int imageWidth, int ima
 				aboveR = imageSeams[pixelAbove + 1];
 				newValue = min(aboveC, aboveR);
 			}
-
-			// add the minimum above adjacent pixel to the current
-			//printf("%d %d \n", imageSeams[currentPixel], newValue);
-			//imageSeams[currentPixel] -= 1;
 			imageSeams[currentPixel] += newValue;
-			//imageSeams[currentPixel] = min(imageSeams[currentPixel], 255);
-			
-			//newImageEnergy[currentPixel] = min(newImageEnergy[currentPixel], 255);
-			//printf("%3d ", newValue);
 
 			// record the track we have followed
 			if (newValue == aboveC) {
@@ -153,8 +142,6 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight)
 	for (int j = 0; j < imageHeight; ++j) {
 		for (int i = 0; i < imageWidth; ++i) {
 			currentPixel = (j * imageWidth) + i;
-			// printf("%d\n", currentPixel);
-			// newImageEnergy[currentPixel] = imageVector[currentPixel];
 			newImage[currentPixel] = imageVector[currentPixel];
 			newImageEnergy[currentPixel] = findEnergiesSimple(imageVector, imageWidth, imageHeight, currentPixel);
 			newImageTraces[currentPixel] = TRACE_NONE;
@@ -165,61 +152,34 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight)
 	findSeams(newImageSeams, newImageTraces, imageWidth, imageHeight);
 
 	// TODO: find the minimum values along the bottom
-	int minSpot = INT_MAX;
-	for (int i = ((imageWidth * imageHeight) - 1); i > ((imageWidth * imageHeight) - imageWidth); --i) {
-		if (newImageEnergy[i] < minSpot) {
-			minSpot = i;
+	int minValue = INT_MAX;
+	int minValueLocation = INT_MAX;
+	for (int i = ((imageWidth * imageHeight) - 1); i > ((imageWidth * imageHeight) - imageWidth - 1); --i) {
+		if (newImageEnergy[i] < minValue) {
+			minValue = newImageEnergy[i];
+			minValueLocation = i;
+		}
+		// below only shows when the above condition is "<=" -- bug? compiler optimization?
+		//newImage[minValueLocation] = 92;
+	}
+
+	for (int j = imageHeight; j > 0; --j) {
+		newImageEnergy[minValueLocation] = 255;
+		newImage[minValueLocation] = 0;
+
+		if (newImageTraces[minValueLocation] == TRACE_LEFT) {
+			minValueLocation -= (imageWidth + 1);
+		} else if (newImageTraces[minValueLocation] == TRACE_CENTER) {
+			minValueLocation -= imageWidth;
+		} else if (newImageTraces[minValueLocation] == TRACE_RIGHT) {
+			minValueLocation -= (imageWidth - 1);
+		} else {
+			minValueLocation -= imageWidth;
 		}
 	}
 
-	int minValueLocation = minSpot;
-	int minValue = INT_MAX;
-	//for (int i = ((imageWidth * imageHeight) - 1); i > ((imageWidth * imageHeight) - imageWidth); --i) {
-		// if (newImageEnergy[i] <= minValue) {
-		//if (newImageSeams[i] <= 8200) {
-			//minValueLocation = i;
-			minValue = newImageSeams[minValueLocation];
-			//printf("%d %d \n", minValue, minValueLocation);
-
-			for (int j = imageHeight; j > 0; --j) {
-				//printf("%d %d \n", minValueLocation, newImageTraces[minValueLocation]);
-				newImageEnergy[minValueLocation] = 255;
-				newImage[minValueLocation] = 0;
-
-				if (newImageTraces[minValueLocation] == TRACE_LEFT) {
-					minValueLocation -= (imageWidth + 1);
-				} else if (newImageTraces[minValueLocation] == TRACE_CENTER) {
-					minValueLocation -= imageWidth;
-				} else if (newImageTraces[minValueLocation] == TRACE_RIGHT) {
-					minValueLocation -= (imageWidth - 1);
-				} else {
-					minValueLocation -= imageWidth;
-				}
-
-				//newImageSeams[minValueLocation] = INT_MAX;
-			}
-		//}
-		//findSeams(newImageSeams, newImageTraces, imageWidth, imageHeight);
-	//}
-	
-	// TODO: backtrack to find the seams
-	// for (int i = imageHeight; i > 0; --i) {
-	// 	printf("%d %d \n", minValueLocation, newImageTraces[minValueLocation]);
-	// 	newImageEnergy[minValueLocation] = 255;
-
-	// 	if (newImageTraces[minValueLocation] == TRACE_LEFT) {
-	// 		minValueLocation -= (imageWidth + 1);
-	// 	} else if (newImageTraces[minValueLocation] == TRACE_CENTER) {
-	// 		minValueLocation -= imageWidth;
-	// 	} else if (newImageTraces[minValueLocation] == TRACE_RIGHT) {
-	// 		minValueLocation -= (imageWidth - 1);
-	// 	} else {
-	// 		minValueLocation -= imageWidth;
-	// 	}
-	// }
-
 	return newImage;
-	//return newImageSeams;
+	return newImageSeams;
 	return newImageEnergy;
 }
 
