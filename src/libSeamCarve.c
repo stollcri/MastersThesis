@@ -159,8 +159,8 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight)
 	int minValue = INT_MAX;
 	int minValueLocation = INT_MAX;
 	for (int i = ((imageWidth * imageHeight) - 1); i > ((imageWidth * imageHeight) - imageWidth - 1); --i) {
-		if (newImageEnergy[i] < minValue) {
-			minValue = newImageEnergy[i];
+		if (newImageSeams[i] < minValue) {
+			minValue = newImageSeams[i];
 			minValueLocation = i;
 		}
 		// below only shows when the above condition is "<=" -- bug? compiler optimization?
