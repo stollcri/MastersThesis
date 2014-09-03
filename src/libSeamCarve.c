@@ -97,8 +97,9 @@ static void findSeams(int *imageSeams, int *imageTraces, int imageWidth, int ima
 			currentPixel = (j * imageWidth) + i;
 
 			pixelAbove = currentPixel - imageWidth;
-			// avoid falling of the ends
+			// avoid falling off the left end
 			if (i > 0) {
+				// avoid falling off the right end
 				if (i < imageWidth) {
 					aboveL = imageSeams[pixelAbove - 1];
 					aboveC = imageSeams[pixelAbove];
