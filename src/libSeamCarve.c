@@ -54,8 +54,8 @@ static int findEnergiesSimple(int *imageVector, int imageWidth, int imageHeight,
 {
 	// We can pull from two pixels above instead of summing one above and one below
 	int pixelAbove = 0;
-	if (currentPixel > (imageWidth)) {
-		pixelAbove = currentPixel - imageWidth;
+	if (currentPixel > (imageWidth + imageWidth)) {
+		pixelAbove = currentPixel - imageWidth - imageWidth;
 	}
 
 	int yDif = 0;
@@ -67,7 +67,7 @@ static int findEnergiesSimple(int *imageVector, int imageWidth, int imageHeight,
 
 	int pixelLeft = 0;
 	// TODO: fix this from rolling back to the other side
-	pixelLeft = currentPixel - 1;
+	pixelLeft = currentPixel - 2;
 	if (pixelLeft < 0) {
 		pixelLeft = 0;
 	}
@@ -165,19 +165,26 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight)
 	findSeams(newImageSeams, newImageTraces, imageWidth, imageHeight);
 
 	// TODO: find the minimum values along the bottom
-	int minValueLocation = 0;
-	int minValue = INT_MAX;
+	int minSpot = INT_MAX;
 	for (int i = ((imageWidth * imageHeight) - 1); i > ((imageWidth * imageHeight) - imageWidth); --i) {
+		if (newImageEnergy[i] < minSpot) {
+			minSpot = i;
+		}
+	}
+
+	int minValueLocation = minSpot;
+	int minValue = INT_MAX;
+	//for (int i = ((imageWidth * imageHeight) - 1); i > ((imageWidth * imageHeight) - imageWidth); --i) {
 		// if (newImageEnergy[i] <= minValue) {
-		if (newImageSeams[i] <= 5200) {
-			minValueLocation = i;
+		//if (newImageSeams[i] <= 8200) {
+			//minValueLocation = i;
 			minValue = newImageSeams[minValueLocation];
 			//printf("%d %d \n", minValue, minValueLocation);
 
 			for (int j = imageHeight; j > 0; --j) {
 				//printf("%d %d \n", minValueLocation, newImageTraces[minValueLocation]);
 				newImageEnergy[minValueLocation] = 255;
-				//newImage[minValueLocation] = 255;
+				newImage[minValueLocation] = 0;
 
 				if (newImageTraces[minValueLocation] == TRACE_LEFT) {
 					minValueLocation -= (imageWidth + 1);
@@ -191,9 +198,9 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight)
 
 				//newImageSeams[minValueLocation] = INT_MAX;
 			}
-		}
+		//}
 		//findSeams(newImageSeams, newImageTraces, imageWidth, imageHeight);
-	}
+	//}
 	
 	// TODO: backtrack to find the seams
 	// for (int i = imageHeight; i > 0; --i) {
