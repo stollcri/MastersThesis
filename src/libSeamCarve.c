@@ -157,6 +157,11 @@ static void findSeamsVertical(int *imageSeams, int *imageTraces, int imageWidth,
 		//newImage[minValueLocation] = 92;
 	}
 
+	int aboveL = 0;
+	int aboveC = 0;
+	int aboveR = 0;
+	int currentMin = 0;
+
 	int lastEndingPixel = 0;
 	int seamColor = 0;
 	for (int k = ((imageWidth * imageHeight) - imageWidth - 1); k < ((imageWidth * imageHeight) - 1); ++k) {
@@ -168,6 +173,22 @@ static void findSeamsVertical(int *imageSeams, int *imageTraces, int imageWidth,
 				//newImageEnergy[minValueLocation] = 255;
 				imageOrig[minValueLocation] = seamColor;
 
+				// new
+				aboveL = imageSeams[minValueLocation - imageWidth - 1];
+				aboveC = imageSeams[minValueLocation - imageWidth];
+				aboveR = imageSeams[minValueLocation - imageWidth + 1];
+				currentMin = min3(aboveL, aboveC, aboveR);
+				if (currentMin == aboveC) {
+					minValueLocation -= imageWidth;
+				} else if (currentMin == aboveL) {
+					minValueLocation -= (imageWidth + 1);
+				} else if (currentMin == aboveR) {
+					minValueLocation -= (imageWidth - 1);
+				} else {
+					minValueLocation -= imageWidth;
+				}
+
+				/*
 				if (imageTraces[minValueLocation] == TRACE_LEFT) {
 					minValueLocation -= (imageWidth + 1);
 				} else if (imageTraces[minValueLocation] == TRACE_CENTER) {
@@ -177,6 +198,7 @@ static void findSeamsVertical(int *imageSeams, int *imageTraces, int imageWidth,
 				} else {
 					minValueLocation -= imageWidth;
 				}
+				*/
 			}
 
 			if (minValueLocation > (lastEndingPixel + 1)) {
@@ -264,6 +286,11 @@ static void findSeamsHorizontal(int *imageSeams, int *imageTraces, int imageWidt
 		//newImage[minValueLocation] = 92;
 	}
 
+	int leftT = 0;
+	int leftM = 0;
+	int leftB = 0;
+	int currentMin = 0;
+
 	int lastEndingPixel = 0;
 	int seamColor = 0;
 	for (int k = imageWidth; k < (imageWidth * imageHeight); k += imageWidth) {
@@ -275,6 +302,22 @@ static void findSeamsHorizontal(int *imageSeams, int *imageTraces, int imageWidt
 				//newImageEnergy[minValueLocation] = 255;
 				imageOrig[minValueLocation] = seamColor;
 
+				// new
+				leftT = imageSeams[minValueLocation - imageWidth - 1];
+				leftM = imageSeams[minValueLocation - imageWidth];
+				leftB = imageSeams[minValueLocation - imageWidth + 1];
+				currentMin = min3(leftT, leftM, leftB);
+				if (currentMin == leftM) {
+					minValueLocation -= 1;
+				} else if (currentMin == leftT) {
+					minValueLocation -= (imageWidth + 1);
+				} else if (currentMin == leftB) {
+					minValueLocation -= (imageWidth - 1);
+				} else {
+					minValueLocation -= 1;
+				}
+
+				/*
 				if (imageTraces[minValueLocation] == TRACE_TOP) {
 					minValueLocation -= (imageWidth + 1);
 				} else if (imageTraces[minValueLocation] == TRACE_MIDDLE) {
@@ -284,6 +327,7 @@ static void findSeamsHorizontal(int *imageSeams, int *imageTraces, int imageWidt
 				} else {
 					minValueLocation -= 1;
 				}
+				*/
 			}
 
 			if (minValueLocation > (lastEndingPixel + 1)) {
