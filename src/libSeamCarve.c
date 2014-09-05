@@ -290,6 +290,8 @@ static void findSeamsHorizontal(int *imageSeams, int *imageTraces, int imageWidt
 	int leftM = 0;
 	int leftB = 0;
 	int currentMin = 0;
+	int countGoT = 0;
+	int countGoB = 0;
 
 	int lastEndingPixel = 0;
 	int seamColor = 0;
@@ -307,15 +309,39 @@ static void findSeamsHorizontal(int *imageSeams, int *imageTraces, int imageWidt
 				leftM = imageSeams[minValueLocation - imageWidth];
 				leftB = imageSeams[minValueLocation - imageWidth + 1];
 				currentMin = min3(leftT, leftM, leftB);
-				if (currentMin == leftM) {
-					minValueLocation -= 1;
-				} else if (currentMin == leftT) {
-					minValueLocation -= (imageWidth + 1);
-				} else if (currentMin == leftB) {
-					minValueLocation -= (imageWidth - 1);
-				} else {
-					minValueLocation -= 1;
+				// attempt to make the seam go back down if it was forced up and ice versa
+				if (countGoT == countGoB) {
+					if (currentMin == leftM) {
+						minValueLocation -= 1;
+					} else if (currentMin == leftT) {
+						minValueLocation -= (imageWidth + 1);
+						++countGoT;
+					} else if (currentMin == leftB) {
+						minValueLocation -= (imageWidth - 1);
+						++countGoB;
+					}
+				} else if (countGoT > countGoB) {
+					if (currentMin == leftB) {
+						minValueLocation -= (imageWidth - 1);
+						++countGoB;
+					} else if (currentMin == leftM) {
+						minValueLocation -= 1;
+					} else {
+						minValueLocation -= (imageWidth + 1);
+						++countGoT;
+					}
+				} else if (countGoT < countGoB) {
+					if (currentMin == leftT) {
+						minValueLocation -= (imageWidth + 1);
+						++countGoT;
+					} else if (currentMin == leftM) {
+						minValueLocation -= 1;
+					} else {
+						minValueLocation -= (imageWidth - 1);
+						++countGoB;
+					}
 				}
+
 
 				/*
 				if (imageTraces[minValueLocation] == TRACE_TOP) {
@@ -367,8 +393,8 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight)
 		}
 	}
 
-	fillSeamMatrixVertical(newImageSeams, newImageTraces, imageWidth, imageHeight);
 	fillSeamMatrixHorizontal(newImageSeams2, newImageTraces2, imageWidth, imageHeight);
+	//fillSeamMatrixVertical(newImageSeams, newImageTraces, imageWidth, imageHeight);
 
 	for (int j = 0; j < imageHeight; ++j) {
 		for (int i = 0; i < imageWidth; ++i) {
@@ -383,8 +409,8 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight)
 		}
 	}
 
-	findSeamsVertical(newImageSeams, newImageTraces, imageWidth, imageHeight, newImage);
 	findSeamsHorizontal(newImageSeams2, newImageTraces2, imageWidth, imageHeight, newImage);
+	//findSeamsVertical(newImageSeams, newImageTraces, imageWidth, imageHeight, newImage);
 
 	return newImage;
 	return newImageSeams2;
