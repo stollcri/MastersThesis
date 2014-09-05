@@ -53,7 +53,7 @@ static inline int min3(int a, int b, int c)
 }
 
 // Simple energy function, basically a gradient magnitude calculation
-static int findEnergiesSimple(int *imageVector, int imageWidth, int imageHeight, int currentPixel)
+static int getPixelEnergySimple(int *imageVector, int imageWidth, int imageHeight, int currentPixel)
 {
 	// We can pull from two pixels above instead of summing one above and one below
 	int pixelAbove = 0;
@@ -85,8 +85,9 @@ static int findEnergiesSimple(int *imageVector, int imageWidth, int imageHeight,
 	return min((yDif + xDif), 255);
 }
 
-static void findVerticalSeamPath(int *imageSeams, int *imageTraces, int imageWidth, int currentPixel, int currentCol)
+static int setPixelPathVertical(int *imageSeams, int imageWidth, int currentPixel, int currentCol)
 {
+	int returnValue = TRACE_NONE;
 	int pixelAbove = 0;
 	int aboveL = 0;
 	int aboveC = 0;
@@ -118,25 +119,30 @@ static void findVerticalSeamPath(int *imageSeams, int *imageTraces, int imageWid
 
 	// record the track we have followed
 	if (newValue == aboveC) {
-		imageTraces[currentPixel] = TRACE_CENTER;
+		returnValue =  TRACE_CENTER;
 	} else if (newValue == aboveL) {
-		imageTraces[currentPixel] = TRACE_LEFT;
+		returnValue =  TRACE_LEFT;
 	} else {
-		imageTraces[currentPixel] = TRACE_RIGHT;
+		returnValue =  TRACE_RIGHT;
 	}
+
+	return returnValue;
 }
 
-static void findVerticalSeams(int *imageSeams, int *imageTraces, int imageWidth, int imageHeight, int *imageOrig)
+static void fillSeamMatrixVertical(int *imageSeams, int *imageTraces, int imageWidth, int imageHeight)
 {
 	int currentPixel = 0;
 	// do not process the first row, start with j=1
 	for (int j = 1; j < imageHeight; ++j) {
 		for (int i = 0; i < imageWidth; ++i) {
 			currentPixel = (j * imageWidth) + i;
-			findVerticalSeamPath(imageSeams, imageTraces, imageWidth, currentPixel, i);
+			imageTraces[currentPixel] = setPixelPathVertical(imageSeams, imageWidth, currentPixel, i);
 		}
 	}
+}
 
+static void findSeamsVertical(int *imageSeams, int *imageTraces, int imageWidth, int imageHeight, int *imageOrig)
+{
 	// find the minimum seam energy in the bottom row
 	int minValue = INT_MAX;
 	int minValueLocation = INT_MAX;
@@ -181,8 +187,10 @@ static void findVerticalSeams(int *imageSeams, int *imageTraces, int imageWidth,
 	}
 }
 
-static void findHorizontalSeamPath(int *imageSeams, int *imageTraces, int imageWidth, int imageHeight, int currentPixel, int currentCol)
+static int setPixelPathHorizontal(int *imageSeams, int imageWidth, int imageHeight, int currentPixel, int currentCol)
 {
+	int returnValue = TRACE_NONE;
+
 	// avoid falling off the right
 	if (currentCol < imageWidth) {
 		int pixelLeft = 0;
@@ -216,16 +224,18 @@ static void findHorizontalSeamPath(int *imageSeams, int *imageTraces, int imageW
 
 		// record the track we have followed
 		if (newValue == leftM) {
-			imageTraces[currentPixel] = TRACE_MIDDLE;
+			returnValue =  TRACE_MIDDLE;
 		} else if (newValue == leftT) {
-			imageTraces[currentPixel] = TRACE_TOP;
+			returnValue =  TRACE_TOP;
 		} else {
-			imageTraces[currentPixel] = TRACE_BOTTOM;
+			returnValue =  TRACE_BOTTOM;
 		}
 	}
+	
+	return returnValue;
 }
 
-static void findHorizontalSeams(int *imageSeams, int *imageTraces, int imageWidth, int imageHeight, int *imageOrig)
+static void fillSeamMatrixHorizontal(int *imageSeams, int *imageTraces, int imageWidth, int imageHeight)
 {
 	int currentPixel = 0;
 	// do not process the first row, start with j=1
@@ -233,10 +243,13 @@ static void findHorizontalSeams(int *imageSeams, int *imageTraces, int imageWidt
 	for (int i = 0; i < imageWidth; ++i) {
 		for (int j = 1; j < imageHeight; ++j) {
 			currentPixel = (j * imageWidth) + i;
-			findHorizontalSeamPath(imageSeams, imageTraces, imageWidth, imageHeight, currentPixel, i);
+			imageTraces[currentPixel] = setPixelPathHorizontal(imageSeams, imageWidth, imageHeight, currentPixel, i);
 		}
 	}
+}
 
+static void findSeamsHorizontal(int *imageSeams, int *imageTraces, int imageWidth, int imageHeight, int *imageOrig)
+{
 	// find the minimum seam energy in the right column
 	int minValue = INT_MAX;
 	int minValueLocation = INT_MAX;
@@ -269,7 +282,7 @@ static void findHorizontalSeams(int *imageSeams, int *imageTraces, int imageWidt
 				} else if (imageTraces[minValueLocation] == TRACE_BOTTOM) {
 					minValueLocation -= (imageWidth - 1);
 				} else {
-					minValueLocation += imageWidth;
+					minValueLocation -= 1;
 				}
 			}
 
@@ -286,8 +299,12 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight)
 	int currentPixel = 0;
 	int *newImage = (int*)malloc((unsigned long)imageHeight * (unsigned long)imageWidth * sizeof(int));
 	int *newImageEnergy = (int*)malloc((unsigned long)imageHeight * (unsigned long)imageWidth * sizeof(int));
+	
 	int *newImageTraces = (int*)malloc((unsigned long)imageHeight * (unsigned long)imageWidth * sizeof(int));
+	int *newImageTraces2 = (int*)malloc((unsigned long)imageHeight * (unsigned long)imageWidth * sizeof(int));
+	
 	int *newImageSeams = (int*)malloc((unsigned long)imageHeight * (unsigned long)imageWidth * sizeof(int));
+	int *newImageSeams2 = (int*)malloc((unsigned long)imageHeight * (unsigned long)imageWidth * sizeof(int));
 
 	// create an image of the original image's energies
 	for (int j = 0; j < imageHeight; ++j) {
@@ -296,20 +313,37 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight)
 			// mutable copy of the original image, to return the original image with seams shown
 			newImage[currentPixel] = imageVector[currentPixel];
 			// original energies of the original image, to return the energies with seams shown
-			newImageEnergy[currentPixel] = findEnergiesSimple(imageVector, imageWidth, imageHeight, currentPixel);
+			newImageEnergy[currentPixel] = getPixelEnergySimple(imageVector, imageWidth, imageHeight, currentPixel);
 			// top down energy seam data of the original image
 			newImageSeams[currentPixel] = newImageEnergy[currentPixel];
+			newImageSeams2[currentPixel] = newImageEnergy[currentPixel];
 			// traces through the original image (LCR directions to speed backtracking)
 			newImageTraces[currentPixel] = TRACE_NONE;
+			newImageTraces2[currentPixel] = TRACE_NONE;
 		}
 	}
 
-	findHorizontalSeams(newImageSeams, newImageTraces, imageWidth, imageHeight, newImage);
-	findVerticalSeams(newImageSeams, newImageTraces, imageWidth, imageHeight, newImage);
-	//findHorizontalSeams(newImageSeams, newImageTraces, imageWidth, imageHeight, newImage);
+	fillSeamMatrixVertical(newImageSeams, newImageTraces, imageWidth, imageHeight);
+	fillSeamMatrixHorizontal(newImageSeams2, newImageTraces2, imageWidth, imageHeight);
+
+	for (int j = 0; j < imageHeight; ++j) {
+		for (int i = 0; i < imageWidth; ++i) {
+			currentPixel = (j * imageWidth) + i;
+			if ((newImageSeams[currentPixel] == 0) || (newImageSeams2[currentPixel] == 0)) {
+				newImageSeams[currentPixel] = 0;
+				newImageSeams2[currentPixel] = 0;
+			} else {
+				newImageSeams[currentPixel] = ((newImageSeams[currentPixel] + newImageSeams2[currentPixel]) / 2);
+				newImageSeams2[currentPixel] = newImageSeams[currentPixel];
+			}
+		}
+	}
+
+	findSeamsVertical(newImageSeams, newImageTraces, imageWidth, imageHeight, newImage);
+	findSeamsHorizontal(newImageSeams2, newImageTraces2, imageWidth, imageHeight, newImage);
 
 	return newImage;
-	//return newImageSeams;
+	return newImageSeams2;
 	return newImageEnergy;
 }
 
