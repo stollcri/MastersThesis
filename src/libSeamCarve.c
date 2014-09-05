@@ -13,6 +13,9 @@
 #define TRACE_LEFT 1
 #define TRACE_CENTER 2
 #define TRACE_RIGHT 3
+#define TRACE_TOP 4
+#define TRACE_MIDDLE 5
+#define TRACE_BOTTOM 6
 
 static inline int max(int a, int b)
 {
@@ -66,7 +69,7 @@ static int findEnergiesSimple(int *imageVector, int imageWidth, int imageHeight,
 	}
 
 	int pixelLeft = 0;
-	// TODO: fix this from rolling back to the other side
+	// TODO: fix this from rolling back to the other side?
 	pixelLeft = currentPixel - 2;
 	if (pixelLeft < 0) {
 		pixelLeft = 0;
@@ -82,7 +85,7 @@ static int findEnergiesSimple(int *imageVector, int imageWidth, int imageHeight,
 	return min((yDif + xDif), 255);
 }
 
-static void findSeamDirection(int *imageSeams, int *imageTraces, int imageWidth, int currentPixel, int currentCol)
+static void findVerticalSeamPath(int *imageSeams, int *imageTraces, int imageWidth, int currentPixel, int currentCol)
 {
 	int pixelAbove = 0;
 	int aboveL = 0;
@@ -123,14 +126,157 @@ static void findSeamDirection(int *imageSeams, int *imageTraces, int imageWidth,
 	}
 }
 
-static void findSeams(int *imageSeams, int *imageTraces, int imageWidth, int imageHeight)
+static void findVerticalSeams(int *imageSeams, int *imageTraces, int imageWidth, int imageHeight, int *imageOrig)
 {
 	int currentPixel = 0;
 	// do not process the first row, start with j=1
 	for (int j = 1; j < imageHeight; ++j) {
 		for (int i = 0; i < imageWidth; ++i) {
 			currentPixel = (j * imageWidth) + i;
-			findSeamDirection(imageSeams, imageTraces, imageWidth, currentPixel, i);
+			findVerticalSeamPath(imageSeams, imageTraces, imageWidth, currentPixel, i);
+		}
+	}
+
+	// find the minimum seam energy in the bottom row
+	int minValue = INT_MAX;
+	int minValueLocation = INT_MAX;
+	for (int i = ((imageWidth * imageHeight) - 1); i > ((imageWidth * imageHeight) - imageWidth - 1); --i) {
+		if (imageSeams[i] < minValue) {
+			minValue = imageSeams[i];
+			minValueLocation = i;
+		}
+		// TODO: break if min value is zero
+		// 
+		// below only shows when the above condition is "<=" -- bug? compiler optimization?
+		//newImage[minValueLocation] = 92;
+	}
+
+	int lastEndingPixel = 0;
+	int seamColor = 0;
+	for (int k = ((imageWidth * imageHeight) - imageWidth - 1); k < ((imageWidth * imageHeight) - 1); ++k) {
+		if (imageSeams[k] <= minValue) {
+			minValueLocation = k;
+
+			// from the minimum energy in the bottom row backtrack up the image
+			for (int j = imageHeight; j >= 0; --j) {
+				//newImageEnergy[minValueLocation] = 255;
+				imageOrig[minValueLocation] = seamColor;
+
+				if (imageTraces[minValueLocation] == TRACE_LEFT) {
+					minValueLocation -= (imageWidth + 1);
+				} else if (imageTraces[minValueLocation] == TRACE_CENTER) {
+					minValueLocation -= imageWidth;
+				} else if (imageTraces[minValueLocation] == TRACE_RIGHT) {
+					minValueLocation -= (imageWidth - 1);
+				} else {
+					minValueLocation -= imageWidth;
+				}
+			}
+
+			if (minValueLocation > (lastEndingPixel + 1)) {
+				seamColor += 64;
+			}
+			lastEndingPixel = minValueLocation;
+		}
+	}
+}
+
+static void findHorizontalSeamPath(int *imageSeams, int *imageTraces, int imageWidth, int imageHeight, int currentPixel, int currentCol)
+{
+	// avoid falling off the right
+	if (currentCol < imageWidth) {
+		int pixelLeft = 0;
+		int leftT = 0;
+		int leftM = 0;
+		int leftB = 0;
+		int newValue = 0;
+
+		pixelLeft = currentPixel - 1;
+		// avoid falling off the top
+		if (currentPixel > imageWidth) {
+			// avoid falling off the bottom
+			if (currentPixel < ((imageWidth * imageHeight) - imageWidth)) {
+				leftT = imageSeams[pixelLeft - imageWidth];
+				leftM = imageSeams[pixelLeft];
+				leftB = imageSeams[pixelLeft + imageWidth];
+				newValue = min3(leftT, leftM, leftB);
+			} else {
+				leftT = imageSeams[pixelLeft - imageWidth];
+				leftM = imageSeams[pixelLeft];
+				leftB = INT_MAX;
+				newValue = min(leftT, leftM);
+			}
+		} else {
+			leftT = INT_MAX;
+			leftM = imageSeams[pixelLeft];
+			leftB = imageSeams[pixelLeft + imageWidth];
+			newValue = min(leftM, leftB);
+		}
+		imageSeams[currentPixel] += newValue;
+
+		// record the track we have followed
+		if (newValue == leftM) {
+			imageTraces[currentPixel] = TRACE_MIDDLE;
+		} else if (newValue == leftT) {
+			imageTraces[currentPixel] = TRACE_TOP;
+		} else {
+			imageTraces[currentPixel] = TRACE_BOTTOM;
+		}
+	}
+}
+
+static void findHorizontalSeams(int *imageSeams, int *imageTraces, int imageWidth, int imageHeight, int *imageOrig)
+{
+	int currentPixel = 0;
+	// do not process the first row, start with j=1
+	// must be in reverse order from verticle seam, calulate colums as we move across (top down, left to right)
+	for (int i = 0; i < imageWidth; ++i) {
+		for (int j = 1; j < imageHeight; ++j) {
+			currentPixel = (j * imageWidth) + i;
+			findHorizontalSeamPath(imageSeams, imageTraces, imageWidth, imageHeight, currentPixel, i);
+		}
+	}
+
+	// find the minimum seam energy in the right column
+	int minValue = INT_MAX;
+	int minValueLocation = INT_MAX;
+	for (int i = imageWidth; i < (imageWidth * imageHeight); i += imageWidth) {
+		if (imageSeams[i] < minValue) {
+			minValue = imageSeams[i];
+			minValueLocation = i;
+		}
+		// TODO: break if min value is zero
+		// 
+		// below only shows when the above condition is "<=" -- bug? compiler optimization?
+		//newImage[minValueLocation] = 92;
+	}
+
+	int lastEndingPixel = 0;
+	int seamColor = 0;
+	for (int k = imageWidth; k < (imageWidth * imageHeight); k += imageWidth) {
+		if (imageSeams[k] <= minValue) {
+			minValueLocation = k;
+
+			// from the minimum energy in the bottom row backtrack up the image
+			for (int j = imageWidth; j > 0; --j) {
+				//newImageEnergy[minValueLocation] = 255;
+				imageOrig[minValueLocation] = seamColor;
+
+				if (imageTraces[minValueLocation] == TRACE_TOP) {
+					minValueLocation -= (imageWidth + 1);
+				} else if (imageTraces[minValueLocation] == TRACE_MIDDLE) {
+					minValueLocation -= 1;
+				} else if (imageTraces[minValueLocation] == TRACE_BOTTOM) {
+					minValueLocation -= (imageWidth - 1);
+				} else {
+					minValueLocation += imageWidth;
+				}
+			}
+
+			if (minValueLocation > (lastEndingPixel + 1)) {
+				seamColor += 64;
+			}
+			lastEndingPixel = minValueLocation;
 		}
 	}
 }
@@ -158,41 +304,12 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight)
 		}
 	}
 
-	findSeams(newImageSeams, newImageTraces, imageWidth, imageHeight);
-
-	int minValue = INT_MAX;
-	int minValueLocation = INT_MAX;
-
-	// find the minimum seam energy in the bottom row
-	minValue = INT_MAX;
-	minValueLocation = INT_MAX;
-	for (int i = ((imageWidth * imageHeight) - 1); i > ((imageWidth * imageHeight) - imageWidth - 1); --i) {
-		if (newImageSeams[i] < minValue) {
-			minValue = newImageSeams[i];
-			minValueLocation = i;
-		}
-		// below only shows when the above condition is "<=" -- bug? compiler optimization?
-		//newImage[minValueLocation] = 92;
-	}
-
-	// from the minimum energy in the bottom row backtrack up the image
-	for (int j = imageHeight; j >= 0; --j) {
-		newImageEnergy[minValueLocation] = 255;
-		newImage[minValueLocation] = 0;
-
-		if (newImageTraces[minValueLocation] == TRACE_LEFT) {
-			minValueLocation -= (imageWidth + 1);
-		} else if (newImageTraces[minValueLocation] == TRACE_CENTER) {
-			minValueLocation -= imageWidth;
-		} else if (newImageTraces[minValueLocation] == TRACE_RIGHT) {
-			minValueLocation -= (imageWidth - 1);
-		} else {
-			minValueLocation -= imageWidth;
-		}
-	}
+	findHorizontalSeams(newImageSeams, newImageTraces, imageWidth, imageHeight, newImage);
+	findVerticalSeams(newImageSeams, newImageTraces, imageWidth, imageHeight, newImage);
+	//findHorizontalSeams(newImageSeams, newImageTraces, imageWidth, imageHeight, newImage);
 
 	return newImage;
-	return newImageSeams;
+	//return newImageSeams;
 	return newImageEnergy;
 }
 
