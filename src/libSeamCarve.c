@@ -178,14 +178,36 @@ static void findSeamsVertical(int *imageSeams, int *imageTraces, int imageWidth,
 				aboveC = imageSeams[minValueLocation - imageWidth];
 				aboveR = imageSeams[minValueLocation - imageWidth + 1];
 				currentMin = min3(aboveL, aboveC, aboveR);
-				if (currentMin == aboveC) {
-					minValueLocation -= imageWidth;
-				} else if (currentMin == aboveL) {
-					minValueLocation -= (imageWidth + 1);
-				} else if (currentMin == aboveR) {
-					minValueLocation -= (imageWidth - 1);
-				} else {
-					minValueLocation -= imageWidth;
+				if (countGoL == countGoR) {
+					if (currentMin == aboveC) {
+						minValueLocation -= imageWidth;
+					} else if (currentMin == aboveL) {
+						minValueLocation -= (imageWidth + 1);
+						++countGoL;
+					} else if (currentMin == aboveR) {
+						minValueLocation -= (imageWidth - 1);
+						++countGoR;
+					}
+				} else if (countGoL > countGoR) {
+					if (currentMin == aboveR) {
+						minValueLocation -= (imageWidth - 1);
+						++countGoR;
+					} else if (currentMin == aboveC) {
+						minValueLocation -= imageWidth;
+					} else if (currentMin == aboveL) {
+						minValueLocation -= (imageWidth + 1);
+						++countGoL;
+					}
+				} else if (countGoL < countGoR) {
+					if (currentMin == aboveL) {
+						minValueLocation -= (imageWidth + 1);
+						++countGoL;
+					} else if (currentMin == aboveC) {
+						minValueLocation -= imageWidth;
+					} else if (currentMin == aboveR) {
+						minValueLocation -= (imageWidth - 1);
+						++countGoR;
+					}
 				}
 
 				/*
