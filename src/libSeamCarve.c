@@ -53,12 +53,12 @@ static inline int min3(int a, int b, int c)
 }
 
 // Simple energy function, basically a gradient magnitude calculation
-static int getPixelEnergySimple(int *imageVector, int imageWidth, int imageHeight, int currentPixel)
+static int getPixelEnergySimple(int *imageVector, int imageWidth, int imageHeight, int currentPixel, int gradientSize)
 {
 	// We can pull from two pixels above instead of summing one above and one below
 	int pixelAbove = 0;
-	if (currentPixel > (imageWidth + imageWidth + imageWidth + imageWidth)) {
-		pixelAbove = currentPixel - imageWidth - imageWidth - imageWidth - imageWidth;
+	if (currentPixel > (imageWidth * gradientSize)) {
+		pixelAbove = currentPixel - (imageWidth * gradientSize);
 	}
 
 	int yDif = 0;
@@ -70,7 +70,7 @@ static int getPixelEnergySimple(int *imageVector, int imageWidth, int imageHeigh
 
 	int pixelLeft = 0;
 	// TODO: fix this from rolling back to the other side?
-	pixelLeft = currentPixel - 4;
+	pixelLeft = currentPixel - gradientSize;
 	if (pixelLeft < 0) {
 		pixelLeft = 0;
 	}
@@ -362,7 +362,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight)
 			// mutable copy of the original image, to return the original image with seams shown
 			newImage[currentPixel] = imageVector[currentPixel];
 			// original energies of the original image, to return the energies with seams shown
-			newImageEnergy[currentPixel] = getPixelEnergySimple(imageVector, imageWidth, imageHeight, currentPixel);
+			newImageEnergy[currentPixel] = getPixelEnergySimple(imageVector, imageWidth, imageHeight, currentPixel, 4);
 			// top down energy seam data of the original image
 			newImageSeams[currentPixel] = newImageEnergy[currentPixel];
 			newImageSeams2[currentPixel] = newImageEnergy[currentPixel];
