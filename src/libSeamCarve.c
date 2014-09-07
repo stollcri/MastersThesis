@@ -152,19 +152,30 @@ static void findSeamsVertical(int *imageSeams, int imageWidth, int imageHeight, 
 	int countGoL = 0;
 	int countGoR = 0;
 
+	int columnDeviation = 0;
+	int startingColumn = 0;
+	int *lastPath = (int*)malloc((unsigned long)imageHeight * sizeof(int));
+
 	int lastEndingPixel = 0;
-	int seamColor = 0;
-	for (int k = ((imageWidth * imageHeight) - imageWidth - 1); k < ((imageWidth * imageHeight) - 1); ++k) {
+	int seamColor = 192;
+	int seamBagan = 0;
+	for (int k = ((imageWidth * imageHeight) - 1 - imageWidth); k < ((imageWidth * imageHeight) - 1); ++k) {
 		if (imageSeams[k] <= minValue) {
 			minValueLocation = k;
 
+			startingColumn = (minValueLocation + 1) % imageWidth;
+
 			countGoL = 0;
 			countGoR = 0;
+			columnDeviation = 0;
 
 			// from the minimum energy in the bottom row backtrack up the image
-			for (int j = imageHeight; j >= 0; --j) {
+			for (int j = imageHeight; j > 0; --j) {
 				//newImageEnergy[minValueLocation] = 255;
-				imageOrig[minValueLocation] = seamColor;
+				//imageOrig[minValueLocation] = seamColor;
+				
+				columnDeviation += startingColumn - ((minValueLocation + 1) % imageWidth);
+				lastPath[j] = minValueLocation;
 
 				// new
 				aboveL = imageSeams[minValueLocation - imageWidth - 1];
@@ -204,10 +215,35 @@ static void findSeamsVertical(int *imageSeams, int imageWidth, int imageHeight, 
 				}
 			}
 
-			//if ((countGoL > 0) || (countGoR > 0)) {
-			if (minValueLocation > (lastEndingPixel + 1)) {
-				seamColor += 64;
-			}
+			//if (columnDeviation != 0) {
+			//if ((countGoL > countGoR) || (countGoR > countGoL)) {
+			//if (minValueLocation > (lastEndingPixel + 1)) {
+				//seamColor += 64;
+				if (columnDeviation > 0) {
+				//if (seamBagan == 0) {
+					if (seamBagan == 0) {
+						int currentPixel = 0;
+						for (int j = imageHeight; j > 0; --j) {
+							currentPixel = lastPath[j];
+							imageOrig[currentPixel] = 0;
+						}
+
+						seamBagan = 1;
+						seamColor = 0;
+					}
+				} else {
+					if (seamBagan == 1) {
+						int currentPixel = 0;
+						for (int j = imageHeight; j > 0; --j) {
+							currentPixel = lastPath[j];
+							imageOrig[currentPixel] = 192;
+						}
+
+						seamBagan = 0;
+						seamColor = 192;
+					}
+				}
+			//}
 			lastEndingPixel = minValueLocation;
 		}
 	}
@@ -294,6 +330,7 @@ static void findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight
 			countGoB = 0;
 
 			// from the minimum energy in the bottom row backtrack up the image
+			// TODO: Change base condition below to > instead of >=
 			for (int j = imageWidth; j >= 0; --j) {
 				//newImageEnergy[minValueLocation] = 255;
 				imageOrig[minValueLocation] = seamColor;
@@ -390,7 +427,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight)
 	//findSeamsHorizontal(newImageSeams2, imageWidth, imageHeight, newImage);
 
 	return newImage;
-	return newImageSeams2;
+	//return newImageSeams2;
 	return newImageEnergy;
 }
 
