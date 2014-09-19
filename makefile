@@ -12,7 +12,7 @@ sc:
 	${CC} ${CFLAGS} -o ./bin/sc ./src/sc.c
 
 test:
-	./bin/sc ./tst/RightsOfManB.png
+	./bin/sc ./tst/BPD-01.png
 
 clean:
 	-rm ./bin/*

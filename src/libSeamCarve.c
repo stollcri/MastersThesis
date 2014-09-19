@@ -321,7 +321,9 @@ static void findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight
 	int countGoB = 0;
 
 	int rowDeviation = 0;
+	int lastRowDeviation = 0;
 	int startingRow = 0;
+	int *thisPath = (int*)malloc((unsigned long)imageHeight * sizeof(int));
 	int *lastPath = (int*)malloc((unsigned long)imageHeight * sizeof(int));
 
 	int lastEndingPixel = 0;
@@ -346,7 +348,8 @@ static void findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight
 				//imageOrig[minValueLocation] = seamColor;
 				
 				//rowDeviation += (countGoT - countGoB);
-				lastPath[j] = minValueLocation;
+				lastPath[j] = thisPath[j];
+				thisPath[j] = minValueLocation;
 				// if ((startingRow == 2) && (j <= 4000000)) {
 				// 	printf("%d %d %d | %d - %d = %d \n", j, countGoT, countGoB, startingRow, (countGoT - countGoB + 1), rowDeviation);
 				// }
@@ -395,57 +398,84 @@ static void findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight
 				}
 			}
 
-			//if ((countGoT > 0) || (countGoB > 0)) {
-			// if (minValueLocation > (lastEndingPixel + imageWidth)) {
-			// 	seamColor += 64;
-			// }
-			printf("%d\n", rowDeviation);
-			
-				if ((rowDeviation < 0) || (rowDeviation > 0)) {
-					//seamColor += 64;
-					//if (seamBagan == 0) {
-						//seamBagan = 1;
-						if (rowDeviation < 0) {
-							seamBagan = 1;
-							seamColor = 192;
-						} else {
-							if (seamBagan >= 1) {
-								seamBagan = 0;
-								seamColor = 32;
-							}
-						}
-					// } else {
-					// 	seamColor = 0;
-					// }
-					if (seamBagan == 1) {
-						currentPixel = 0;
-						for (int j = imageWidth; j >= 0; --j) {
-							currentPixel = lastPath[j];
-							imageOrig[currentPixel] = seamColor;
-						}
+			/*
+			if ((minValueLocation > 0) && (rowDeviation < -2)) {
+				//seamBagan = 1;
+				//seamColor = 32;
+
+				if (seamBagan >= 1) {
+					if (seamBagan > 2) {
+						seamBagan = 0;
+						seamColor = 192;
+					} else {
+						seamBagan += 1;
 					}
 				} else {
-					//seamColor += 4;
-					// if (seamBagan == 1) {
-					// 	int currentPixel = 0;
-					// 	for (int j = imageWidth; j >= 0; --j) {
-					// 		currentPixel = lastPath[j];
-					// 		//imageOrig[currentPixel] = 192;
-					// 	}
-
-					// 	seamBagan = 0;
-					// 	seamColor = 255;
-					// }
-					seamBagan = 0;
+					seamBagan += 1;
+					seamColor = 32;
 				}
-			lastEndingPixel = minValueLocation;
-			
-			/*
-			for (int j = imageWidth; j >= 0; --j) {
-				currentPixel = lastPath[j];
-				imageOrig[currentPixel] = rowDeviation;
+			} else {
+				//seamBagan = 0;
+				//seamColor = 92;
+				if (seamBagan >= 1) {
+					seamBagan += 1;
+				}
+			}
+
+			printf("%d \t %d - %d = %d \t %d\n", rowDeviation, minValueLocation, lastEndingPixel, (minValueLocation - lastEndingPixel), seamBagan);
+			if (seamBagan >= 1) {
+				currentPixel = 0;
+				for (int j = imageWidth; j >= 0; --j) {
+					currentPixel = thisPath[j];
+					imageOrig[currentPixel] = seamColor;
+				}
 			}
 			*/
+		
+			//if ((lastRowDeviation < 0) && (rowDeviation > 0)) {
+			if ((lastRowDeviation < 10) && (rowDeviation > 10)) {
+				if (seamBagan < 1) {
+					seamBagan += 1;
+					for (int j = imageWidth; j >= 0; --j) {
+						currentPixel = lastPath[j];
+						imageOrig[currentPixel] = 128;
+					}
+
+					// for (int j = imageWidth; j >= 0; --j) {
+					// 	currentPixel = thisPath[j];
+					// 	imageOrig[currentPixel] = 32;
+					// }
+
+					printf("%d \t %d \t %d \t BEGIN \n", lastRowDeviation, rowDeviation, seamBagan);
+				} else {
+					printf("%d \t %d \t %d \t SKP \n", lastRowDeviation, rowDeviation, seamBagan);
+				}
+			} else {
+				if (seamBagan >= 1) {
+					if (((lastRowDeviation == 0 ) && (rowDeviation == 0 )) || ((lastRowDeviation > 0) && (rowDeviation < 0))) {
+					//if (lastRowDeviation < rowDeviation) {
+						if (seamBagan > 2) {
+							seamBagan = 0;
+							for (int j = imageWidth; j >= 0; --j) {
+								currentPixel = thisPath[j];
+								imageOrig[currentPixel] = 0;
+							}
+
+							printf("%d \t %d \t %d \t END \n", lastRowDeviation, rowDeviation, seamBagan);
+						} else {
+							printf("%d \t %d \t %d \t GAP \n", lastRowDeviation, rowDeviation, seamBagan);
+						}
+					} else {
+						seamBagan += 1;
+						printf("%d \t %d \t %d \t RUN \n", lastRowDeviation, rowDeviation, seamBagan);
+					}
+				} else {
+					printf("%d \t %d \t %d \t --- \n", lastRowDeviation, rowDeviation, seamBagan);
+				}
+			}
+			lastRowDeviation = rowDeviation;
+
+			lastEndingPixel = minValueLocation;
 		}
 	}
 }
