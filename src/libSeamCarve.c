@@ -327,7 +327,8 @@ static void findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight
 	int lastEndingPixel = 0;
 	int seamColor = 0;
 	int seamBagan = 0;
-	for (int k = imageWidth; k <= (imageWidth * imageHeight); k += imageWidth) {
+	int currentPixel = 0;
+	for (int k = imageWidth; k < (imageWidth * imageHeight); k += imageWidth) {
 		if (imageSeams[k] <= minValue) {
 			minValueLocation = k;
 
@@ -341,9 +342,10 @@ static void findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight
 			// TODO: Change base condition below to > instead of >=
 			for (int j = imageWidth; j >= 0; --j) {
 				//newImageEnergy[minValueLocation] = 255;
-				imageOrig[minValueLocation] = seamColor;
 				
-				rowDeviation += (countGoT - countGoB);
+				//imageOrig[minValueLocation] = seamColor;
+				
+				//rowDeviation += (countGoT - countGoB);
 				lastPath[j] = minValueLocation;
 				// if ((startingRow == 2) && (j <= 4000000)) {
 				// 	printf("%d %d %d | %d - %d = %d \n", j, countGoT, countGoB, startingRow, (countGoT - countGoB + 1), rowDeviation);
@@ -385,39 +387,65 @@ static void findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight
 						++countGoB;
 					}
 				}
+
+				if (countGoT > countGoB) {
+					rowDeviation -= 1;
+				} else if (countGoT < countGoB) {
+					rowDeviation += 1;
+				}
 			}
 
 			//if ((countGoT > 0) || (countGoB > 0)) {
 			// if (minValueLocation > (lastEndingPixel + imageWidth)) {
 			// 	seamColor += 64;
 			// }
-				if (rowDeviation != 0) {
-					seamColor += 64;
-				//if (seamBagan == 0) {
-					if (seamBagan == 0) {
-						int currentPixel = 0;
+			printf("%d\n", rowDeviation);
+			
+				if ((rowDeviation < 0) || (rowDeviation > 0)) {
+					//seamColor += 64;
+					//if (seamBagan == 0) {
+						//seamBagan = 1;
+						if (rowDeviation < 0) {
+							seamBagan = 1;
+							seamColor = 192;
+						} else {
+							if (seamBagan >= 1) {
+								seamBagan = 0;
+								seamColor = 32;
+							}
+						}
+					// } else {
+					// 	seamColor = 0;
+					// }
+					if (seamBagan == 1) {
+						currentPixel = 0;
 						for (int j = imageWidth; j >= 0; --j) {
 							currentPixel = lastPath[j];
-							//imageOrig[currentPixel] = 0;
+							imageOrig[currentPixel] = seamColor;
 						}
-
-						seamBagan = 1;
-						seamColor = 32;
 					}
 				} else {
 					//seamColor += 4;
-					if (seamBagan == 1) {
-						int currentPixel = 0;
-						for (int j = imageWidth; j >= 0; --j) {
-							currentPixel = lastPath[j];
-							//imageOrig[currentPixel] = 192;
-						}
+					// if (seamBagan == 1) {
+					// 	int currentPixel = 0;
+					// 	for (int j = imageWidth; j >= 0; --j) {
+					// 		currentPixel = lastPath[j];
+					// 		//imageOrig[currentPixel] = 192;
+					// 	}
 
-						seamBagan = 0;
-						seamColor = 192;
-					}
+					// 	seamBagan = 0;
+					// 	seamColor = 255;
+					// }
+					seamBagan = 0;
 				}
 			lastEndingPixel = minValueLocation;
+			
+			/*
+			for (int j = imageWidth; j >= 0; --j) {
+				currentPixel = lastPath[j];
+				imageOrig[currentPixel] = rowDeviation;
+			}
+			*/
 		}
 	}
 }
