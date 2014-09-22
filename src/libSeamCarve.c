@@ -452,8 +452,7 @@ static void findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight
 			}
 
 			//if ((lastRowDeviation < 0) && (rowDeviation > 0)) {
-			// skip first line
-			if ((k > imageWidth) && (lastRowDeviationFix <= zeroPathWeight) && (rowDeviationFix >= zeroPathWeight)) {
+			if ((lastRowDeviationFix <= zeroPathWeight) && (rowDeviationFix >= zeroPathWeight)) {
 				if (seamBagan < 1) {
 					seamBagan += 1;
 					for (int j = (imageWidth - 1); j >= 0; --j) {
