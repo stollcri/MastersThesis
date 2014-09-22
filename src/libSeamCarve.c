@@ -320,8 +320,15 @@ static void findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight
 	int countGoT = 0;
 	int countGoB = 0;
 
+	// zero path weight (when a seam has zero weight) is +/- 1% (of image width)
+	int zeroPathWeight = imageWidth / 100;
+	// the minimum to prevent a text line (seam gap) from ending
+	int minLineContinue = zeroPathWeight * 5;
+
 	int rowDeviation = 0;
 	int lastRowDeviation = 0;
+	int rowDeviationFix = 0;
+	int lastRowDeviationFix = 0;
 	int startingRow = 0;
 	int *thisPath = (int*)malloc((unsigned long)imageHeight * sizeof(int));
 	int *lastPath = (int*)malloc((unsigned long)imageHeight * sizeof(int));
@@ -432,8 +439,21 @@ static void findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight
 			}
 			*/
 		
+			if (lastRowDeviation < 0) {
+				lastRowDeviationFix = lastRowDeviation * -1;
+			} else {
+				lastRowDeviationFix = lastRowDeviation;
+			}
+
+			if (rowDeviation < 0) {
+				rowDeviationFix = rowDeviation * -1;
+			} else {
+				rowDeviationFix = rowDeviation;
+			}
+
 			//if ((lastRowDeviation < 0) && (rowDeviation > 0)) {
-			if ((lastRowDeviation < 10) && (rowDeviation > 10)) {
+			// skip first line
+			if ((k > imageWidth) && (lastRowDeviationFix <= zeroPathWeight) && (rowDeviationFix > zeroPathWeight)) {
 				if (seamBagan < 1) {
 					seamBagan += 1;
 					for (int j = imageWidth; j >= 0; --j) {
@@ -446,31 +466,32 @@ static void findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight
 					// 	imageOrig[currentPixel] = 32;
 					// }
 
-					printf("%d \t %d \t %d \t BEGIN \n", lastRowDeviation, rowDeviation, seamBagan);
+					printf("%d \t %d \t %d \t BEGIN \n", lastRowDeviationFix, rowDeviationFix, seamBagan);
 				} else {
-					printf("%d \t %d \t %d \t SKP \n", lastRowDeviation, rowDeviation, seamBagan);
+					printf("%d \t %d \t %d \t SKP \n", lastRowDeviationFix, rowDeviationFix, seamBagan);
 				}
 			} else {
 				if (seamBagan >= 1) {
-					if (((lastRowDeviation == 0 ) && (rowDeviation == 0 )) || ((lastRowDeviation > 0) && (rowDeviation < 0))) {
-					//if (lastRowDeviation < rowDeviation) {
-						if (seamBagan > 2) {
+					if (rowDeviationFix <= minLineContinue) {
+					//if (((lastRowDeviationFix == 0 ) && (rowDeviationFix == 0 )) || ((lastRowDeviationFix > 0) && (rowDeviationFix < 0))) {
+					//if (lastRowDeviationFix < rowDeviationFix) {
+						if (seamBagan > zeroPathWeight) {
 							seamBagan = 0;
 							for (int j = imageWidth; j >= 0; --j) {
 								currentPixel = thisPath[j];
 								imageOrig[currentPixel] = 0;
 							}
 
-							printf("%d \t %d \t %d \t END \n", lastRowDeviation, rowDeviation, seamBagan);
+							printf("%d \t %d \t %d \t END \n", lastRowDeviationFix, rowDeviationFix, seamBagan);
 						} else {
-							printf("%d \t %d \t %d \t GAP \n", lastRowDeviation, rowDeviation, seamBagan);
+							printf("%d \t %d \t %d \t GAP \n", lastRowDeviationFix, rowDeviationFix, seamBagan);
 						}
 					} else {
 						seamBagan += 1;
-						printf("%d \t %d \t %d \t RUN \n", lastRowDeviation, rowDeviation, seamBagan);
+						printf("%d \t %d \t %d \t RUN \n", lastRowDeviationFix, rowDeviationFix, seamBagan);
 					}
 				} else {
-					printf("%d \t %d \t %d \t --- \n", lastRowDeviation, rowDeviation, seamBagan);
+					printf("%d \t %d \t %d \t --- \n", lastRowDeviationFix, rowDeviationFix, seamBagan);
 				}
 			}
 			lastRowDeviation = rowDeviation;
