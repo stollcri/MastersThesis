@@ -361,9 +361,9 @@ static void findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight
 				// 	printf("%d %d %d | %d - %d = %d \n", j, countGoT, countGoB, startingRow, (countGoT - countGoB + 1), rowDeviation);
 				// }
 
-				leftT = imageSeams[minValueLocation - imageWidth - 1];
-				leftM = imageSeams[minValueLocation - imageWidth];
-				leftB = imageSeams[minValueLocation - imageWidth + 1];
+				leftT = imageSeams[minValueLocation - 1 - imageWidth];
+				leftM = imageSeams[minValueLocation - 1];
+				leftB = imageSeams[minValueLocation - 1 + imageWidth];
 				currentMin = min3(leftT, leftM, leftB);
 				// attempt to make the seam go back down if it was forced up and ice versa
 				if (countGoT == countGoB) {
