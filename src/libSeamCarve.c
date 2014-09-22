@@ -484,7 +484,17 @@ static void findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight
 
 							printf("%d \t %d \t %d \t END \n", lastRowDeviationFix, rowDeviationFix, seamBagan);
 						} else {
-							printf("%d \t %d \t %d \t GAP \n", lastRowDeviationFix, rowDeviationFix, seamBagan);
+							if ((rowDeviationFix <= 0) && (lastRowDeviationFix <= 0)) {
+								seamBagan = 0;
+								for (int j = imageWidth; j >= 0; --j) {
+									currentPixel = thisPath[j];
+									imageOrig[currentPixel] = 0;
+								}
+								
+								printf("%d \t %d \t %d \t HALT \n", lastRowDeviationFix, rowDeviationFix, seamBagan);
+							} else {
+								printf("%d \t %d \t %d \t GAP \n", lastRowDeviationFix, rowDeviationFix, seamBagan);
+							}
 						}
 					} else {
 						seamBagan += 1;
