@@ -337,7 +337,7 @@ static void findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight
 	int seamColor = 0;
 	int seamBagan = 0;
 	int currentPixel = 0;
-	for (int k = imageWidth; k < (imageWidth * imageHeight); k += imageWidth) {
+	for (int k = (imageWidth - 1); k < ((imageWidth * imageHeight) - 1); k += imageWidth) {
 		if (imageSeams[k] <= minValue) {
 			minValueLocation = k;
 
@@ -349,7 +349,7 @@ static void findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight
 
 			// from the minimum energy in the bottom row backtrack up the image
 			// TODO: Change base condition below to > instead of >=
-			for (int j = imageWidth; j >= 0; --j) {
+			for (int j = (imageWidth - 1); j >= 0; --j) {
 				//newImageEnergy[minValueLocation] = 255;
 				
 				//imageOrig[minValueLocation] = seamColor;
@@ -456,7 +456,7 @@ static void findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight
 			if ((k > imageWidth) && (lastRowDeviationFix <= zeroPathWeight) && (rowDeviationFix >= zeroPathWeight)) {
 				if (seamBagan < 1) {
 					seamBagan += 1;
-					for (int j = imageWidth; j >= 0; --j) {
+					for (int j = (imageWidth - 1); j >= 0; --j) {
 						currentPixel = lastPath[j];
 						imageOrig[currentPixel] = 128;
 					}
@@ -477,7 +477,7 @@ static void findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight
 					//if (lastRowDeviationFix < rowDeviationFix) {
 						if (seamBagan > zeroPathWeight) {
 							seamBagan = 0;
-							for (int j = imageWidth; j >= 0; --j) {
+							for (int j = (imageWidth - 1); j >= 0; --j) {
 								currentPixel = thisPath[j];
 								imageOrig[currentPixel] = 0;
 							}
@@ -486,11 +486,11 @@ static void findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight
 						} else {
 							if ((rowDeviationFix <= 0) && (lastRowDeviationFix <= 0)) {
 								seamBagan = 0;
-								for (int j = imageWidth; j >= 0; --j) {
+								for (int j = (imageWidth - 1); j >= 0; --j) {
 									currentPixel = thisPath[j];
 									imageOrig[currentPixel] = 0;
 								}
-								
+
 								printf("%d \t %d \t %d \t HALT \n", lastRowDeviationFix, rowDeviationFix, seamBagan);
 							} else {
 								printf("%d \t %d \t %d \t GAP \n", lastRowDeviationFix, rowDeviationFix, seamBagan);
