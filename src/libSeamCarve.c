@@ -330,8 +330,8 @@ static void findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight
 	int rowDeviationFix = 0;
 	int lastRowDeviationFix = 0;
 	int startingRow = 0;
-	int *thisPath = (int*)malloc((unsigned long)imageHeight * sizeof(int));
-	int *lastPath = (int*)malloc((unsigned long)imageHeight * sizeof(int));
+	int *thisPath = (int*)malloc((unsigned long)imageWidth * sizeof(int));
+	int *lastPath = (int*)malloc((unsigned long)imageWidth * sizeof(int));
 
 	int lastEndingPixel = 0;
 	int seamColor = 0;
