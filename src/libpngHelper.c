@@ -105,7 +105,7 @@ static int *readPNGFile(char *filename, int *imageWidth, int *imageHeight, int v
 	int rPixel = 0;
 	int bPixel = 0;
 	int gPixel = 0;
-	//int aPixel = 0;
+	int aPixel = 0;
 	
 	double greyPixel = 0.0;
 	double radianShift = 3.14159265;
@@ -120,13 +120,17 @@ static int *readPNGFile(char *filename, int *imageWidth, int *imageHeight, int v
 			rPixel = (int)pixel[0];
 			gPixel = (int)pixel[1];
 			bPixel = (int)pixel[2];
-			//aPixel = (int)pixel[3];
-
+			aPixel = (int)pixel[3];
+			
 			n = (y * width) + x;
 			
-			greyPixel = rPixel * 0.2126;
-			greyPixel += gPixel * 0.7152;
-			greyPixel += bPixel * 0.0722;
+			if (aPixel >= 64) {
+				greyPixel = rPixel * 0.2126;
+				greyPixel += gPixel * 0.7152;
+				greyPixel += bPixel * 0.0722;
+			} else {
+				greyPixel = 255;
+			}
 
 			radianPixel = greyPixel / 256 * radianRange + radianShift;
 			scaledPixel = 128 * (cos(radianPixel) + 1.0);
