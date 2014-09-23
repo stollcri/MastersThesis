@@ -327,6 +327,8 @@ static void findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight
 	int lastRowDeviation = 0; // last row's net deviation from being stright
 	int rowDeviationABS = 0; // absolute value of the current row's deviation
 	int lastRowDeviationABS = 0; // absolute value of last row's deviation
+	int totalDeviation = 0;
+	int totalDeviationABS = 0;
 	int *thisPath = (int*)malloc((unsigned long)imageWidth * sizeof(int));
 
 	// a seam is considered to have zero weight when it is less than this value
@@ -433,13 +435,17 @@ static void findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight
 						imageOrig[currentPixel] = 128;
 					}
 
-					printf("%d \t %d \t %d \t BEGIN \n", lastRowDeviationABS, rowDeviationABS, textLineDepth);
+					totalDeviation = 0;
+					totalDeviationABS = 0;
+					printf("%d\t%d\t%d\t%d\t%d\t BEGIN \n", lastRowDeviation, lastRowDeviationABS, rowDeviation, rowDeviationABS, textLineDepth);
 				
 				// 
 				// Already in a text line, so just keep going
 				// 
 				} else {
-					printf("%d \t %d \t %d \t SKP \n", lastRowDeviationABS, rowDeviationABS, textLineDepth);
+					totalDeviation += rowDeviation;
+					totalDeviationABS += rowDeviationABS;
+					printf("%d\t%d\t%d\t%d\t%d\t SKP \n", lastRowDeviation, lastRowDeviationABS, rowDeviation, rowDeviationABS, textLineDepth);
 				}
 
 			// 
@@ -465,7 +471,7 @@ static void findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight
 								imageOrig[currentPixel] = 0;
 							}
 
-							printf("%d \t %d \t %d \t END \n", lastRowDeviationABS, rowDeviationABS, textLineDepth);
+							printf("%d\t%d\t%d\t%d\t%d\t END (%d / %d) \n", lastRowDeviation, lastRowDeviationABS, rowDeviation, rowDeviationABS, textLineDepth, totalDeviation, totalDeviationABS);
 						
 						// 
 						// The text line does not have the required minimum number of image seam lines
@@ -481,13 +487,15 @@ static void findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight
 									imageOrig[currentPixel] = 0;
 								}
 
-								printf("%d \t %d \t %d \t HALT \n", lastRowDeviationABS, rowDeviationABS, textLineDepth);
+								printf("%d\t%d\t%d\t%d\t%d\t HALT \n", lastRowDeviation, lastRowDeviationABS, rowDeviation, rowDeviationABS, textLineDepth);
 
 							// 
 							// Assume we are at the begining of a jagged text line, keep going
 							// 
 							} else {
-								printf("%d \t %d \t %d \t GAP \n", lastRowDeviationABS, rowDeviationABS, textLineDepth);
+								totalDeviation += rowDeviation;
+								totalDeviationABS += rowDeviationABS;
+								printf("%d\t%d\t%d\t%d\t%d\t GAP \n", lastRowDeviation, lastRowDeviationABS, rowDeviation, rowDeviationABS, textLineDepth);
 							}
 						}
 
@@ -496,14 +504,22 @@ static void findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight
 					// 
 					} else {
 						textLineDepth += 1;
-						printf("%d \t %d \t %d \t RUN \n", lastRowDeviationABS, rowDeviationABS, textLineDepth);
+						totalDeviation += rowDeviation;
+						totalDeviationABS += rowDeviationABS;
+						printf("%d\t%d\t%d\t%d\t%d\t RUN \n", lastRowDeviation, lastRowDeviationABS, rowDeviation, rowDeviationABS, textLineDepth);
+
+						// TODO: Remove, DEBUG only
+						for (int j = (imageWidth - 1); j >= 0; --j) {
+									currentPixel = thisPath[j];
+									imageOrig[currentPixel] = 64;
+								}
 					}
 				
 				// 
 				// Not presently in a text line, just ignore and move on
 				// 
 				} else {
-					printf("%d \t %d \t %d \t --- \n", lastRowDeviationABS, rowDeviationABS, textLineDepth);
+					printf("%d\t%d\t%d\t%d\t%d\t --- \n", lastRowDeviation, lastRowDeviationABS, rowDeviation, rowDeviationABS, textLineDepth);
 				}
 			}
 
