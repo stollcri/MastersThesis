@@ -329,6 +329,7 @@ static void findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight
 	int lastRowDeviationABS = 0; // absolute value of last row's deviation
 	int totalDeviation = 0;
 	int totalDeviationABS = 0;
+	double tmp = 0.0;
 	int *thisPath = (int*)malloc((unsigned long)imageWidth * sizeof(int));
 
 	// a seam is considered to have zero weight when it is less than this value
@@ -471,7 +472,8 @@ static void findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight
 								imageOrig[currentPixel] = 0;
 							}
 
-							printf("%d\t%d\t%d\t%d\t%d\t END (%d / %d) \n", lastRowDeviation, lastRowDeviationABS, rowDeviation, rowDeviationABS, textLineDepth, totalDeviation, totalDeviationABS);
+							tmp = (double)totalDeviation / (double)totalDeviationABS;
+							printf("%d\t%d\t%d\t%d\t%d\t END (%d / %d = %f) \n", lastRowDeviation, lastRowDeviationABS, rowDeviation, rowDeviationABS, textLineDepth, totalDeviation, totalDeviationABS, tmp);
 						
 						// 
 						// The text line does not have the required minimum number of image seam lines
