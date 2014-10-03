@@ -19,7 +19,7 @@ static void carve(char *sourceFile, char *resultFile, int verbose)
 	int imageHeight = 0;
 	imageVector = readPNGFile(sourceFile, &imageWidth, &imageHeight, verbose);
 	if (!imageVector || !imageWidth || !imageHeight) {
-		printf("Error loading PNG image.\n");
+		fprintf(stderr, "Error loading PNG image.\n");
 		exit(1);
 	}
 
@@ -81,6 +81,7 @@ int main(int argc, char const *argv[])
 		carve(sourceFile, resultFile, verboseFlag);
 	} else {
 		fprintf(stderr, "Error reading file %s\n", sourceFile);
+		return 1;
 	}
 
 	return 0;
