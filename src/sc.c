@@ -40,6 +40,13 @@ int main(int argc, char const *argv[])
 
 	int c;
 	opterr = 0;
+	/*
+	 * Currently accepted arguments:
+	 *  s -- takes a parameter, but does nothing with it (TODO: remove)
+	 *  v -- verbose mode
+	 *  source_file -- the PNG image file to open
+	 *  result_file -- the PNG file to save results to
+	 */
 	while ((c = getopt (argc, argumentVector, "s:v")) != -1) {
 		switch (c) {
 			case 's':
@@ -51,7 +58,7 @@ int main(int argc, char const *argv[])
 			case '?':
 				printf(PROGRAM_NAME " v" PROGRAM_VERS "\n");
 				printf(PROGRAM_COPY "\n\n");
-				printf("usage: sc [-v] source_file result_file\n");
+				printf("usage: sc [-v] source_PNG_file result_PNG_file\n");
 				return 1;
 			default:
 				fprintf(stderr, "Unexpected argument character code: %c (0x%04x)\n", (char)c, c);
@@ -59,6 +66,7 @@ int main(int argc, char const *argv[])
 	}
 
 	int index;
+	// Look at unnamed arguments to get source and result file names
 	for (index = optind; index < argc; index++) {
 		if (!sourceFile) {
 			sourceFile = (char*)argv[index];
@@ -69,6 +77,7 @@ int main(int argc, char const *argv[])
 		}
 	}
 
+	// Make sure we have source and result files
 	if (!sourceFile) {
 		fprintf(stderr, "Required argument missing: source_file\n");
 		return 1;
@@ -77,6 +86,7 @@ int main(int argc, char const *argv[])
 		return 1;
 	}
 
+	// Go ahead if the source file exists
 	if (access(sourceFile, R_OK) != -1) {
 		carve(sourceFile, resultFile, verboseFlag);
 	} else {
