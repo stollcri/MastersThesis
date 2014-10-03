@@ -8,14 +8,16 @@
 #include "libpngHelper.c"
 #include "libSeamCarve.c"
 
-#define LOADDOCUMENT_VERBOSE 0
+#define PROGRAM_NAME "Seam Carving Tests"
+#define PROGRAM_VERS "0.0"
+#define PROGRAM_COPY "Copyright 2014, Chrisotpher Stoll"
 
-static void carve(char *filename)
+static void carve(char *sourceFile, char *resultFile, int verbose)
 {
 	int *imageVector;
 	int imageWidth = 0;
 	int imageHeight = 0;
-	imageVector = readPNGFile(filename, &imageWidth, &imageHeight, LOADDOCUMENT_VERBOSE);
+	imageVector = readPNGFile(sourceFile, &imageWidth, &imageHeight, verbose);
 	if (!imageVector || !imageWidth || !imageHeight) {
 		printf("Error loading PNG image.\n");
 		exit(1);
@@ -24,21 +26,62 @@ static void carve(char *filename)
 	int *newImageVector;
 	newImageVector = seamCarve(imageVector, imageWidth, imageHeight);
 
-	char fName[16] = "./tst/out.png";
-	write_png_file(newImageVector, imageWidth, imageHeight, fName);
+	write_png_file(newImageVector, imageWidth, imageHeight, resultFile);
 }
 
 int main(int argc, char const *argv[])
 {
-	if (argc > 1) {
-		char *filename = (char*)argv[1];
-		if (access(filename, R_OK) != -1) {
-			carve(filename);
-		} else {
-			printf("Error reading file %s\n", argv[1]);
+	char **argumentVector = (char**)argv;
+
+	char *svalue = 0;
+	int verboseFlag = 0;
+	char *sourceFile = 0;
+	char *resultFile = 0;
+
+	int c;
+	opterr = 0;
+	while ((c = getopt (argc, argumentVector, "s:v")) != -1) {
+		switch (c) {
+			case 's':
+				svalue = optarg;
+				break;
+			case 'v':
+				verboseFlag = 1;
+				break;
+			case '?':
+				printf(PROGRAM_NAME " v" PROGRAM_VERS "\n");
+				printf(PROGRAM_COPY "\n\n");
+				printf("usage: sc [-v] source_file result_file\n");
+				return 1;
+			default:
+				fprintf(stderr, "Unexpected argument character code: %c (0x%04x)\n", (char)c, c);
 		}
-	} else {
-		printf("Usage:\n");
-		printf(" %s filename\n", argv[0]);
 	}
+
+	int index;
+	for (index = optind; index < argc; index++) {
+		if (!sourceFile) {
+			sourceFile = (char*)argv[index];
+		} else if (!resultFile) {
+			resultFile = (char*)argv[index];
+		} else {
+			fprintf(stderr, "Argument ignored: %s\n", argv[index]);
+		}
+	}
+
+	if (!sourceFile) {
+		fprintf(stderr, "Required argument missing: source_file\n");
+		return 1;
+	} else if (!resultFile) {
+		fprintf(stderr, "Required argument missing: result_file\n");
+		return 1;
+	}
+
+	if (access(sourceFile, R_OK) != -1) {
+		carve(sourceFile, resultFile, verboseFlag);
+	} else {
+		fprintf(stderr, "Error reading file %s\n", sourceFile);
+	}
+
+	return 0;
 }
