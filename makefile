@@ -1,6 +1,7 @@
 CC = cc
 CFLAGS = -I/usr/local/include/libpng16 -L/usr/local/lib -lpng16
 CFLAGS_FULL = -Weverything -I/usr/local/include/libpng16 -L/usr/local/lib -lpng16
+CFLAGS_SYNTAX = -fsyntax-only -Weverything -I/usr/local/include/libpng16 -L/usr/local/lib -lpng16
 
 default: all
 

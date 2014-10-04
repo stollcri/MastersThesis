@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <limits.h>
+#include "libResize.c"
 
 #define TRACE_NONE 0
 #define TRACE_LEFT 1
@@ -553,33 +554,40 @@ static void findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight
 
 static int *seamCarve(int *imageVector, int imageWidth, int imageHeight)
 {
-	int currentPixel = 0;
-	int *newImage = (int*)malloc((unsigned long)imageHeight * (unsigned long)imageWidth * sizeof(int));
-	int *newImageEnergy = (int*)malloc((unsigned long)imageHeight * (unsigned long)imageWidth * sizeof(int));
+	int smallImageWidth = 160;
+	int smallImageHeight = 120;
+	int *smallImage = (int*)malloc((unsigned long)smallImageHeight * (unsigned long)smallImageWidth * sizeof(int));
+	scaleBilinearBW(imageVector, imageWidth, imageHeight, smallImage, smallImageWidth, smallImageHeight);
+	//return smallImage;
 	
-	int *newImageSeams = (int*)malloc((unsigned long)imageHeight * (unsigned long)imageWidth * sizeof(int));
-	int *newImageSeams2 = (int*)malloc((unsigned long)imageHeight * (unsigned long)imageWidth * sizeof(int));
+	int *newImage = (int*)malloc((unsigned long)smallImageWidth * (unsigned long)smallImageHeight * sizeof(int));
+	int *newImageEnergy = (int*)malloc((unsigned long)smallImageWidth * (unsigned long)smallImageHeight * sizeof(int));
+	
+	int *newImageSeams = (int*)malloc((unsigned long)smallImageWidth * (unsigned long)smallImageHeight * sizeof(int));
+	int *newImageSeams2 = (int*)malloc((unsigned long)smallImageWidth * (unsigned long)smallImageHeight * sizeof(int));
+	
+	int currentPixel = 0;
 
 	// create an image of the original image's energies
-	for (int j = 0; j < imageHeight; ++j) {
-		for (int i = 0; i < imageWidth; ++i) {
-			currentPixel = (j * imageWidth) + i;
+	for (int j = 0; j < smallImageHeight; ++j) {
+		for (int i = 0; i < smallImageWidth; ++i) {
+			currentPixel = (j * smallImageWidth) + i;
 			// mutable copy of the original image, to return the original image with seams shown
-			newImage[currentPixel] = imageVector[currentPixel];
+			newImage[currentPixel] = smallImage[currentPixel];
 			// original energies of the original image, to return the energies with seams shown
-			newImageEnergy[currentPixel] = getPixelEnergySimple(imageVector, imageWidth, imageHeight, currentPixel, 1);
+			newImageEnergy[currentPixel] = getPixelEnergySimple(smallImage, smallImageWidth, smallImageHeight, currentPixel, 1);
 			// top down energy seam data of the original image
 			newImageSeams[currentPixel] = newImageEnergy[currentPixel];
 			newImageSeams2[currentPixel] = newImageEnergy[currentPixel];
 		}
 	}
 
-	//fillSeamMatrixVertical(newImageSeams, imageWidth, imageHeight);
-	fillSeamMatrixHorizontal(newImageSeams2, imageWidth, imageHeight);
+	//fillSeamMatrixVertical(newImageSeams, smallImageWidth, smallImageHeight);
+	fillSeamMatrixHorizontal(newImageSeams2, smallImageWidth, smallImageHeight);
 
-	// for (int j = 0; j < imageHeight; ++j) {
-	// 	for (int i = 0; i < imageWidth; ++i) {
-	// 		currentPixel = (j * imageWidth) + i;
+	// for (int j = 0; j < smallImageHeight; ++j) {
+	// 	for (int i = 0; i < smallImageWidth; ++i) {
+	// 		currentPixel = (j * smallImageWidth) + i;
 	// 		if ((newImageSeams[currentPixel] == 0) || (newImageSeams2[currentPixel] == 0)) {
 	// 			newImageSeams[currentPixel] = 0;
 	// 			newImageSeams2[currentPixel] = 0;
@@ -590,9 +598,9 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight)
 	// 	}
 	// }
 
-	//findSeamsHorizontal(newImageSeams2, imageWidth, imageHeight, newImage);
-	//findSeamsVertical(newImageSeams, imageWidth, imageHeight, newImage);
-	findSeamsHorizontal(newImageSeams2, imageWidth, imageHeight, newImage);
+	//findSeamsHorizontal(newImageSeams2, smallImageWidth, smallImageHeight, newImage);
+	//findSeamsVertical(newImageSeams, smallImageWidth, smallImageHeight, newImage);
+	findSeamsHorizontal(newImageSeams2, smallImageWidth, smallImageHeight, newImage);
 
 	return newImage;
 	//return newImageSeams2;

@@ -26,7 +26,8 @@ static void carve(char *sourceFile, char *resultFile, int verbose)
 	int *newImageVector;
 	newImageVector = seamCarve(imageVector, imageWidth, imageHeight);
 
-	write_png_file(newImageVector, imageWidth, imageHeight, resultFile);
+	write_png_file(newImageVector, 160, 120, resultFile);
+	//write_png_file(newImageVector, imageWidth, imageHeight, resultFile);
 }
 
 int main(int argc, char const *argv[])
