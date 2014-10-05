@@ -26,7 +26,6 @@ static void scaleBilinearBW(int *srcImgVector, int srcImgWidth, int srcImgHeight
 	const double dblDstH = (double)dstImgHeight;
 	const double scaleX = dblSrcW / dblDstW;
 	const double scaleY = dblSrcH / dblDstH;
-	printf("\nscaleX: %f \t scaleY: %f\n", scaleX, scaleY);
 
 	double dblX = 0;
 	double dblY = 0;
