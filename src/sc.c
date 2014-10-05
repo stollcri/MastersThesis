@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include "libpngHelper.c"
 #include "libSeamCarve.c"
+#include "libResize.c"
 
 #define PROGRAM_NAME "Seam Carving Tests"
 #define PROGRAM_VERS "0.0"
@@ -26,7 +27,10 @@ static void carve(char *sourceFile, char *resultFile, int verbose)
 	int *newImageVector;
 	newImageVector = seamCarve(imageVector, imageWidth, imageHeight);
 
-	write_png_file(newImageVector, 160, 120, resultFile);
+	double imageScale = 0.25;
+	int newWidth = getScaledSize(imageWidth, imageScale);
+	int newHeight = getScaledSize(imageHeight, imageScale);
+	write_png_file(newImageVector, newWidth, newHeight, resultFile);
 	//write_png_file(newImageVector, imageWidth, imageHeight, resultFile);
 }
 

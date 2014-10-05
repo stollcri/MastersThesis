@@ -554,10 +554,11 @@ static void findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight
 
 static int *seamCarve(int *imageVector, int imageWidth, int imageHeight)
 {
-	int smallImageWidth = 160;
-	int smallImageHeight = 120;
+	double imageScale = 0.25;
+	int smallImageWidth = getScaledSize(imageWidth, imageScale);
+	int smallImageHeight = getScaledSize(imageHeight, imageScale);
 	int *smallImage = (int*)malloc((unsigned long)smallImageHeight * (unsigned long)smallImageWidth * sizeof(int));
-	scaleBilinearBW(imageVector, imageWidth, imageHeight, smallImage, smallImageWidth, smallImageHeight);
+	resize(imageVector, imageWidth, imageHeight, smallImage, smallImageWidth, smallImageHeight);
 	//return smallImage;
 	
 	int *newImage = (int*)malloc((unsigned long)smallImageWidth * (unsigned long)smallImageHeight * sizeof(int));

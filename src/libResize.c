@@ -79,4 +79,23 @@ static void scaleBilinearBW(int *srcImgVector, int srcImgWidth, int srcImgHeight
 	}
 }
 
+static void resize(int *srcImgVector, int srcImgWidth, int srcImgHeight, int *dstImgVector, int dstImgWidth, int dstImgHeight)
+{
+	scaleBilinearBW(srcImgVector, srcImgWidth, srcImgHeight, dstImgVector, dstImgWidth, dstImgHeight);
+}
+
+static int getScaledSize(int srcSize, double scalePercentage)
+{
+	double srcSizeDbl = (double)srcSize;
+	double resultSizeDbl = srcSizeDbl * scalePercentage;
+	return (int)resultSizeDbl;
+}
+
+static void scale(int *srcImgVector, int srcImgWidth, int srcImgHeight, double scalePercentage, int *dstImgVector)
+{
+	int dstImgWidth = getScaledSize(srcImgWidth, scalePercentage);
+	int dstImgHeight = getScaledSize(srcImgHeight, scalePercentage);
+	scaleBilinearBW(srcImgVector, srcImgWidth, srcImgHeight, dstImgVector, dstImgWidth, dstImgHeight);
+}
+
 #endif
