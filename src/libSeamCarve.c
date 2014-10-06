@@ -733,6 +733,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight)
 	resize(imageVector, imageWidth, imageHeight, smallImage, smallImageWidth, smallImageHeight);
 	
 	int *newImage = (int*)malloc((unsigned long)smallImageWidth * (unsigned long)smallImageHeight * sizeof(int));
+	int *newImage2 = (int*)malloc((unsigned long)smallImageWidth * (unsigned long)smallImageHeight * sizeof(int));
 	int *newImageEnergy = (int*)malloc((unsigned long)smallImageWidth * (unsigned long)smallImageHeight * sizeof(int));
 	
 	int *newImageSeams = (int*)malloc((unsigned long)smallImageWidth * (unsigned long)smallImageHeight * sizeof(int));
@@ -746,6 +747,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight)
 			currentPixel = (j * smallImageWidth) + i;
 			// mutable copy of the original image, to return the original image with seams shown
 			newImage[currentPixel] = smallImage[currentPixel];
+			newImage2[currentPixel] = smallImage[currentPixel];
 			// original energies of the original image, to return the energies with seams shown
 			newImageEnergy[currentPixel] = getPixelEnergySimple(smallImage, smallImageWidth, smallImageHeight, currentPixel, 1);
 			// top down energy seam data of the original image
@@ -758,10 +760,17 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight)
 	fillSeamMatrixHorizontal(newImageSeams2, smallImageWidth, smallImageHeight);
 
 	int verticalSeamCost = findSeamsVertical(newImageSeams, smallImageWidth, smallImageHeight, newImage);
-	int horizontalSeamCost = findSeamsHorizontal(newImageSeams2, smallImageWidth, smallImageHeight, newImage);
+	int horizontalSeamCost = findSeamsHorizontal(newImageSeams2, smallImageWidth, smallImageHeight, newImage2);
 	printf("Sum traversal cost of all seams: vertical = %d, horizontal = %d\n", verticalSeamCost, horizontalSeamCost);
 
-	return newImage;
+	if (horizontalSeamCost < verticalSeamCost) {
+		return newImage2;
+	} else {
+		return newImage;
+	}
+
+	//return newImage;
+	//return newImage2;
 	//return smallImage;
 	//return newImageSeams;
 	//return newImageSeams2;
