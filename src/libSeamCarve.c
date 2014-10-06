@@ -186,8 +186,6 @@ static int findSeamsVertical(int *imageSeams, int imageWidth, int imageHeight, i
 	// the minimum deviation to prevent a text line (seam gap) from ending
 	int minLineContinue = imageSeamZeroValue * 1; //2; // (TODO: improve heuristic)
 
-	printf("imageSeamZeroValue: %d, minLineContinue: %d\n", imageSeamZeroValue, minLineContinue);
-
 	int textLineDepth = 0; // how far we are into a recognized text line
 	int currentPixel = 0; // used for drawing begining and ending seam
 
@@ -513,8 +511,6 @@ static int findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight,
 	int imageSeamZeroValue = imageWidth / 50; // 2% of the image width (TODO: improve heuristic)
 	// the minimum deviation to prevent a text line (seam gap) from ending
 	int minLineContinue = imageSeamZeroValue * 1; //2; // (TODO: improve heuristic)
-
-	printf("imageSeamZeroValue: %d, minLineContinue: %d\n", imageSeamZeroValue, minLineContinue);
 
 	int textLineDepth = 0; // how far we are into a recognized text line
 	int currentPixel = 0; // used for drawing begining and ending seam
