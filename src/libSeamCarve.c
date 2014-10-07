@@ -11,14 +11,6 @@
 #include "libWrappers.c"
 #include "libResize.c"
 
-#define TRACE_NONE 0
-#define TRACE_LEFT 1
-#define TRACE_CENTER 2
-#define TRACE_RIGHT 3
-#define TRACE_TOP 4
-#define TRACE_MIDDLE 5
-#define TRACE_BOTTOM 6
-
 static inline int max(int a, int b)
 {
 	if (a > b) {
@@ -320,6 +312,7 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 				
 				// 
 				// Already in a text line, so just keep going
+				// TODO: Consider making this the end of a text line
 				// 
 				} else {
 					if (seamDeviation < 0) {
