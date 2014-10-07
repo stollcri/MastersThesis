@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <limits.h>
+#include "libWrappers.c"
 #include "libResize.c"
 
 #define TRACE_NONE 0
@@ -177,7 +178,7 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 	int negDeviationCount = 0;
 	int posDeviationCount = 0;
 	double tmp = 0.0;
-	int *thisPath = (int*)malloc((unsigned long)imageWidth * sizeof(int));
+	int *thisPath = (int*)xmalloc((unsigned long)imageWidth * sizeof(int));
 
 	// a seam is considered to have zero weight when it is less than this value
 	// we raise it based upon the size of the image to help ignore dust and speckles
@@ -521,15 +522,15 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight)
 	double imageScale = 0.25;
 	int smallImageWidth = getScaledSize(imageWidth, imageScale);
 	int smallImageHeight = getScaledSize(imageHeight, imageScale);
-	int *smallImage = (int*)malloc((unsigned long)smallImageHeight * (unsigned long)smallImageWidth * sizeof(int));
+	int *smallImage = (int*)xmalloc((unsigned long)smallImageHeight * (unsigned long)smallImageWidth * sizeof(int));
 	resize(imageVector, imageWidth, imageHeight, smallImage, smallImageWidth, smallImageHeight);
 	
-	int *newImage = (int*)malloc((unsigned long)smallImageWidth * (unsigned long)smallImageHeight * sizeof(int));
-	int *newImage2 = (int*)malloc((unsigned long)smallImageWidth * (unsigned long)smallImageHeight * sizeof(int));
-	int *newImageEnergy = (int*)malloc((unsigned long)smallImageWidth * (unsigned long)smallImageHeight * sizeof(int));
+	int *newImage = (int*)xmalloc((unsigned long)smallImageWidth * (unsigned long)smallImageHeight * sizeof(int));
+	int *newImage2 = (int*)xmalloc((unsigned long)smallImageWidth * (unsigned long)smallImageHeight * sizeof(int));
+	int *newImageEnergy = (int*)xmalloc((unsigned long)smallImageWidth * (unsigned long)smallImageHeight * sizeof(int));
 	
-	int *newImageSeams = (int*)malloc((unsigned long)smallImageWidth * (unsigned long)smallImageHeight * sizeof(int));
-	int *newImageSeams2 = (int*)malloc((unsigned long)smallImageWidth * (unsigned long)smallImageHeight * sizeof(int));
+	int *newImageSeams = (int*)xmalloc((unsigned long)smallImageWidth * (unsigned long)smallImageHeight * sizeof(int));
+	int *newImageSeams2 = (int*)xmalloc((unsigned long)smallImageWidth * (unsigned long)smallImageHeight * sizeof(int));
 	
 	int currentPixel = 0;
 
@@ -554,6 +555,11 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight)
 	int verticalSeamCost = findSeamsVertical(newImageSeams, smallImageWidth, smallImageHeight, newImage);
 	int horizontalSeamCost = findSeamsHorizontal(newImageSeams2, smallImageWidth, smallImageHeight, newImage2);
 	printf("Sum traversal cost of all seams: vertical = %d, horizontal = %d\n", verticalSeamCost, horizontalSeamCost);
+
+	free(smallImage);
+	free(newImageEnergy);
+	free(newImageSeams);
+	free(newImageSeams2);
 
 	if (horizontalSeamCost < verticalSeamCost) {
 		return newImage2;
