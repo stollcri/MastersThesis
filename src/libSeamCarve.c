@@ -86,6 +86,334 @@ static int getPixelEnergySimple(int *imageVector, int imageWidth, int imageHeigh
 	return min((yDif + xDif), 255);
 }
 
+static void printSeam(int *seamPath, int *image, int imageWidth, int imageHeight, int direction, int grayScale)
+{
+	// TODO: create macro definition
+	int directionVertical = 0;
+	int directionHorizontal = 1;
+	if ((direction != directionVertical) && (direction != directionHorizontal)) {
+		return;
+	}
+
+	int currentPixel = 0;
+	if (direction == directionVertical) {
+		for (int j = imageHeight; j > 0; --j) {
+			currentPixel = seamPath[j];
+			image[currentPixel] = grayScale;
+		}
+	} else {
+		for (int j = (imageWidth - 1); j >= 0; --j) {
+			currentPixel = seamPath[j];
+			image[currentPixel] = grayScale;
+		}
+	}
+}
+
+//static int findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight, int *imageOrig)
+static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imageOrig, int direction)
+{
+	// TODO: create macro definition
+	int directionVertical = 0;
+	int directionHorizontal = 1;
+	if ((direction != directionVertical) && (direction != directionHorizontal)) {
+		return -1;
+	}
+	int loopBeg = 0;
+	int loopEnd = 0;
+	int loopInc = 0;
+	int innerLoopBeg = 0;
+	int innerLoopEnd = 0;
+	int innerLoopInc = 0;
+
+	// the return value of the function, the sum traversal cost of all seams
+	int totalSeamValue = 0;
+	int minValue = INT_MAX;
+	int minValueLocation = INT_MAX;
+
+	// loop conditions depend upon the direction
+	if (direction == directionVertical) {
+		for (int i = ((imageWidth * imageHeight) - 1); i > ((imageWidth * imageHeight) - imageWidth - 1); --i) {
+			totalSeamValue += imageSeams[i]; 
+			
+			if (imageSeams[i] < minValue) {
+				minValue = imageSeams[i];
+				minValueLocation = i;
+			}
+			// TODO: break if min value is zero?
+		}
+	} else {
+		for (int i = imageWidth; i < (imageWidth * imageHeight); i += imageWidth) {
+			totalSeamValue += imageSeams[i]; 
+			
+			if (imageSeams[i] < minValue) {
+				minValue = imageSeams[i];
+				minValueLocation = i;
+			}
+			// TODO: break if min value is zero?
+		}
+	}
+
+	int nextPixelR = 0; // next pixel to the right
+	int nextPixelC = 0; // next pixel to the center
+	int nextPixelL = 0; // next pixel to the left
+	int currentMin = 0; // the minimum of nextPixelR, nextPixelC, and nextPixelL
+	int countGoR = 0; // how many times the seam diverged upward
+	int countGoL = 0; // how many times the seam diverged downward
+	
+	int nextPixelDistR = 0; // memory distance to the next pixel to the right
+	int nextPixelDistC = 0; // memory distance to the next pixel to the center
+	int nextPixelDistL = 0; // memory distance to the next pixel to the left
+
+	// the deviation variables record a seam's net divergence from being straight
+	//  if a seam's average y position is above its starting line, then the deviation is negative
+	//  if a seam's average y position is below its starting line, then the deviation is positive
+	//  if a seam's average y position is the same as its starting line, then the deviation is 0
+	//  (the sign was arbitrarily choosen and does not matter latter, the ABS will be taken)
+	//  ( ^^^ TODO: so, maybe we can simplify the deviation calculation ^^^ )
+	int seamDeviation = 0; // current row's net deviation from being stright
+	int seamDeviationABS = 0; // absolute value of the current row's deviation
+	int lastSeamDeviation = 0; // last row's net deviation from being stright
+	int lastSeamDeviationABS = 0; // absolute value of last row's deviation
+	int negDeviationCount = 0;
+	int posDeviationCount = 0;
+	double tmp = 0.0;
+	int *thisPath = (int*)malloc((unsigned long)imageWidth * sizeof(int));
+
+	// a seam is considered to have zero weight when it is less than this value
+	// we raise it based upon the size of the image to help ignore dust and speckles
+	int imageSeamZeroValue = imageWidth / 50; // 2% of the image width (TODO: improve heuristic)
+	// the minimum deviation to prevent a text line (seam gap) from ending
+	int minLineContinue = imageSeamZeroValue * 1; //2; // (TODO: improve heuristic)
+
+	int textLineDepth = 0; // how far we are into a recognized text line
+
+	// loop conditions depend upon the direction
+	if (direction == directionVertical) {
+		loopBeg = (imageWidth * imageHeight) - 1 - imageWidth;
+		loopEnd = (imageWidth * imageHeight) - 1;
+		loopInc = 1;
+
+		innerLoopBeg = imageHeight;
+		innerLoopEnd = 1;
+		innerLoopInc = -1;
+
+		// also set the next pixel distances
+		nextPixelDistR = imageWidth - 1;
+		nextPixelDistC = imageWidth;
+		nextPixelDistL = imageWidth + 1;
+	} else {
+		loopBeg = imageWidth - 1;
+		loopEnd = (imageWidth * imageHeight) - 1;
+		loopInc = imageWidth;
+
+		innerLoopBeg = (imageWidth - 1);
+		innerLoopEnd = 0;
+		innerLoopInc = -1;
+
+		// also set the next pixel distances
+		nextPixelDistR = imageWidth + 1;
+		nextPixelDistC = 1;
+		nextPixelDistL = (imageWidth - 1) * -1;
+	}
+
+	// for every pixel in the left-most column of the image
+	for (int k = loopBeg; k < loopEnd; k += loopInc) {
+		// process seams with the lowest weights
+		if (imageSeams[k] <= minValue) {
+			// start from the left-most column
+			minValueLocation = k;
+
+			countGoR = 0;
+			countGoL = 0;
+			seamDeviation = 0;
+
+			// move right-to-left across the image
+			for (int j = innerLoopBeg; j >= innerLoopEnd; j += innerLoopInc) {
+				// add pixel to the current path
+				thisPath[j] = minValueLocation;
+
+				// get the possible next pixles
+				if (direction == directionVertical) {
+					nextPixelR = imageSeams[minValueLocation - imageWidth + 1];
+					nextPixelC = imageSeams[minValueLocation - imageWidth];
+					nextPixelL = imageSeams[minValueLocation - imageWidth - 1];
+				} else {
+					nextPixelR = imageSeams[minValueLocation - 1 - imageWidth];
+					nextPixelC = imageSeams[minValueLocation - 1];
+					nextPixelL = imageSeams[minValueLocation - 1 + imageWidth];
+				}
+				// use the minimum of the possible pixels
+				currentMin = min3(nextPixelR, nextPixelC, nextPixelL);
+
+				// attempt to make the seam go back down if it was forced up and ice versa
+				// the goal is to end on the same line which the seam started on, this
+				// minimizes crazy diagonal seams which cut out important information
+				if (countGoR == countGoL) {
+					if (currentMin == nextPixelC) {
+						minValueLocation -= nextPixelDistC;
+					} else if (currentMin == nextPixelR) {
+						minValueLocation -= nextPixelDistR;
+						++countGoR;
+					} else if (currentMin == nextPixelL) {
+						minValueLocation -= nextPixelDistL;
+						++countGoL;
+					}
+				} else if (countGoR > countGoL) {
+					if (currentMin == nextPixelL) {
+						minValueLocation -= nextPixelDistL;
+						++countGoL;
+					} else if (currentMin == nextPixelC) {
+						minValueLocation -= nextPixelDistC;
+					} else if (currentMin == nextPixelR) {
+						minValueLocation -= nextPixelDistR;
+						++countGoR;
+					}
+				} else if (countGoR < countGoL) {
+					if (currentMin == nextPixelR) {
+						minValueLocation -= nextPixelDistR;
+						++countGoR;
+					} else if (currentMin == nextPixelC) {
+						minValueLocation -= nextPixelDistC;
+					} else if (currentMin == nextPixelL) {
+						minValueLocation -= nextPixelDistL;
+						++countGoL;
+					}
+				}
+
+				// increment the deviation counter according to this pixels deviation
+				if (countGoR > countGoL) {
+					seamDeviation -= 1;
+				} else if (countGoR < countGoL) {
+					seamDeviation += 1;
+				}
+			}
+		
+			// finf the absolute value of the deviation
+			if (lastSeamDeviation < 0) {
+				lastSeamDeviationABS = lastSeamDeviation * -1;
+			} else {
+				lastSeamDeviationABS = lastSeamDeviation;
+			}
+
+			// finf the absolute value of the deviation
+			if (seamDeviation < 0) {
+				seamDeviationABS = seamDeviation * -1;
+			} else {
+				seamDeviationABS = seamDeviation;
+			}
+
+			// 
+			// This is the begining of a new text line
+			// 
+			if ((lastSeamDeviationABS <= imageSeamZeroValue) && (seamDeviationABS > imageSeamZeroValue)) {
+				// 
+				// Not presently in a text line
+				// 
+				if (textLineDepth < 1) {
+					textLineDepth += 1;
+					printSeam(thisPath, imageOrig, imageWidth, imageHeight, direction, 128);
+
+					negDeviationCount = 0;
+					posDeviationCount = 0;
+					// printf("%d\t%d\t%d\t%d\t%d\t BEGIN \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
+				
+				// 
+				// Already in a text line, so just keep going
+				// 
+				} else {
+					if (seamDeviation < 0) {
+						negDeviationCount += 1;
+					} else {
+						posDeviationCount += 1;
+					}
+					// printf("%d\t%d\t%d\t%d\t%d\t SKP \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
+
+					// TODO: Remove, DEBUG only
+					printSeam(thisPath, imageOrig, imageWidth, imageHeight, direction, 68);
+				}
+
+			// 
+			// This is not the begining of a new text line
+			// 
+			} else {
+				// 
+				// Already in a text line
+				// 
+				if (textLineDepth >= 1) {
+					// 
+					// The current seam is a straight line
+					// or the last seam's deviation was less than required to keep the text line going
+					// 
+					if ((seamDeviationABS <= 0) || (lastSeamDeviationABS < minLineContinue)) {
+						// 
+						// The text line has the required minimum number of image seam lines
+						// 
+						if (textLineDepth > imageSeamZeroValue) {
+							textLineDepth = 0;
+							printSeam(thisPath, imageOrig, imageWidth, imageHeight, direction, 0);
+
+							tmp = (double)negDeviationCount / ((double)negDeviationCount + (double)posDeviationCount);
+							// printf("%d\t%d\t%d\t%d\t%d\t END (%d / %d = %f) \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth, negDeviationCount, posDeviationCount, tmp);
+						
+						// 
+						// The text line does not have the required minimum number of image seam lines
+						// 
+						} else {
+							// 
+							// However, this seam and the last one was straight, so halt out of this text line
+							// 
+							if ((seamDeviationABS <= 0) && (lastSeamDeviationABS <= 0)) {
+								textLineDepth = 0;
+								printSeam(thisPath, imageOrig, imageWidth, imageHeight, direction, 0);
+
+								// printf("%d\t%d\t%d\t%d\t%d\t HALT \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
+
+							// 
+							// Assume we are at the begining of a jagged text line, keep going
+							// 
+							} else {
+								if (seamDeviation < 0) {
+									negDeviationCount += 1;
+								} else {
+									posDeviationCount += 1;
+								}
+								// printf("%d\t%d\t%d\t%d\t%d\t GAP \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
+
+								// TODO: Remove, DEBUG only
+								printSeam(thisPath, imageOrig, imageWidth, imageHeight, direction, 72);
+							}
+						}
+
+					// 
+					// Already in a text line, so just keep going
+					// 
+					} else {
+						textLineDepth += 1;
+						if (seamDeviation < 0) {
+							negDeviationCount += 1;
+						} else {
+							posDeviationCount += 1;
+						}
+						// printf("%d\t%d\t%d\t%d\t%d\t RUN \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
+
+						// TODO: Remove, DEBUG only
+						printSeam(thisPath, imageOrig, imageWidth, imageHeight, direction, 64);
+					}
+				
+				// 
+				// Not presently in a text line, just ignore and move on
+				// 
+				} else {
+					// printf("%d\t%d\t%d\t%d\t%d\t --- \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
+				}
+			}
+
+			lastSeamDeviation = seamDeviation;
+		}
+	}
+	return totalSeamValue;
+}
+
 static void setPixelPathVertical(int *imageSeams, int imageWidth, int currentPixel, int currentCol)
 {
 	int pixelAbove = 0;
@@ -130,292 +458,9 @@ static void fillSeamMatrixVertical(int *imageSeams, int imageWidth, int imageHei
 	}
 }
 
-/*
- * WARNING
- * 
- * This function was simply copied from FindSeamsHorizontal and modified to work for vertical seams
- * 
- * TODO: findSeamsVertical and findSeamsHorizontal do the same thing in perpendicular directions,
- * 		so we should find a way to combine the logic of these two functions
- */
-
 static int findSeamsVertical(int *imageSeams, int imageWidth, int imageHeight, int *imageOrig)
 {
-	// the return value of the function, the sum traversal cost of all seams
-	int totalSeamValue = 0;
-
-	// find the minimum seam energy in the right-most column
-	int minValue = INT_MAX;
-	int minValueLocation = INT_MAX;
-	// for (int i = imageWidth; i < (imageWidth * imageHeight); i += imageWidth) {
-	for (int i = ((imageWidth * imageHeight) - 1); i > ((imageWidth * imageHeight) - imageWidth - 1); --i) {
-		totalSeamValue += imageSeams[i]; 
-		
-		if (imageSeams[i] < minValue) {
-			minValue = imageSeams[i];
-			minValueLocation = i;
-		}
-		// TODO: break if min value is zero?
-	}
-
-	int aboveR = 0; // pixel to the left and above one line
-	int aboveC = 0; // pixel to the left
-	int aboveL = 0; // pixel to the left and below one line
-	int currentMin = 0; // the minimum of aboveR, aboveC, and aboveL
-	int countGoR = 0; // how many times the seam diverged upward
-	int countGoL = 0; // how many times the seam diverged downward
-
-	// the deviation variables record a seam's net divergence from being straight
-	//  if a seam's average y position is above its starting line, then the deviation is negative
-	//  if a seam's average y position is below its starting line, then the deviation is positive
-	//  if a seam's average y position is the same as its starting line, then the deviation is 0
-	//  (the sign was arbitrarily choosen and does not matter latter, the ABS will be taken)
-	//  ( ^^^ TODO: so, maybe we can simplify the deviation calculation ^^^ )
-	int colDeviation = 0; // current row's net deviation from being stright
-	int lastColDeviation = 0; // last row's net deviation from being stright
-	int colDeviationABS = 0; // absolute value of the current row's deviation
-	int lastColDeviationABS = 0; // absolute value of last row's deviation
-	int negDeviationCount = 0;
-	int posDeviationCount = 0;
-	double tmp = 0.0;
-	int *thisPath = (int*)malloc((unsigned long)imageWidth * sizeof(int));
-
-	// a seam is considered to have zero weight when it is less than this value
-	// we raise it based upon the size of the image to help ignore dust and speckles
-	int imageSeamZeroValue = imageWidth / 50; // 2% of the image width (TODO: improve heuristic)
-	// the minimum deviation to prevent a text line (seam gap) from ending
-	int minLineContinue = imageSeamZeroValue * 1; //2; // (TODO: improve heuristic)
-
-	int textLineDepth = 0; // how far we are into a recognized text line
-	int currentPixel = 0; // used for drawing begining and ending seam
-
-	// for every pixel in the left-most column of the image
-	//for (int k = (imageWidth - 1); k < ((imageWidth * imageHeight) - 1); k += imageWidth) {
-	for (int k = ((imageWidth * imageHeight) - 1 - imageWidth); k < ((imageWidth * imageHeight) - 1); ++k) {
-		// process seams with the lowest weights
-		if (imageSeams[k] <= minValue) {
-			// start from the left-most column
-			minValueLocation = k;
-
-			countGoR = 0;
-			countGoL = 0;
-			colDeviation = 0;
-
-			// move right-to-left across the image
-			//for (int j = (imageWidth - 1); j >= 0; --j) {
-			for (int j = imageHeight; j > 0; --j) {
-				// add pixel to the current path
-				thisPath[j] = minValueLocation;
-
-				// do we go above-left, left, or below-left?
-				//aboveR = imageSeams[minValueLocation - 1 - imageWidth];
-				aboveR = imageSeams[minValueLocation - imageWidth + 1];
-				//aboveC = imageSeams[minValueLocation - 1];
-				aboveC = imageSeams[minValueLocation - imageWidth];
-				//aboveL = imageSeams[minValueLocation - 1 + imageWidth];
-				aboveL = imageSeams[minValueLocation - imageWidth - 1];
-				currentMin = min3(aboveR, aboveC, aboveL);
-
-				// attempt to make the seam go back down if it was forced up and ice versa
-				// the goal is to end on the same line which the seam started on, this
-				// minimizes crazy diagonal seams which cut out important information
-				if (countGoR == countGoL) {
-					if (currentMin == aboveC) {
-						//minValueLocation -= 1;
-						minValueLocation -= imageWidth;
-					} else if (currentMin == aboveR) {
-						//minValueLocation -= (imageWidth + 1);
-						minValueLocation -= (imageWidth - 1);
-						++countGoR;
-					} else if (currentMin == aboveL) {
-						//minValueLocation += (imageWidth - 1);
-						minValueLocation -= (imageWidth + 1);
-						++countGoL;
-					}
-				} else if (countGoR > countGoL) {
-					if (currentMin == aboveL) {
-						//minValueLocation += (imageWidth - 1);
-						minValueLocation -= (imageWidth + 1);
-						++countGoL;
-					} else if (currentMin == aboveC) {
-						//minValueLocation -= 1;
-						minValueLocation -= imageWidth;
-					} else {
-						//minValueLocation -= (imageWidth + 1);
-						minValueLocation -= (imageWidth - 1);
-						++countGoR;
-					}
-				} else if (countGoR < countGoL) {
-					if (currentMin == aboveR) {
-						//minValueLocation -= (imageWidth + 1);
-						minValueLocation -= (imageWidth - 1);
-						++countGoR;
-					} else if (currentMin == aboveC) {
-						//minValueLocation -= 1;
-						minValueLocation -= imageWidth;
-					} else {
-						//minValueLocation += (imageWidth - 1);
-						minValueLocation -= (imageWidth + 1);
-						++countGoL;
-					}
-				}
-
-				// increment the deviation counter according to this pixels deviation
-				if (countGoR > countGoL) {
-					colDeviation -= 1;
-				} else if (countGoR < countGoL) {
-					colDeviation += 1;
-				}
-			}
-		
-			// finf the absolute value of the deviation
-			if (lastColDeviation < 0) {
-				lastColDeviationABS = lastColDeviation * -1;
-			} else {
-				lastColDeviationABS = lastColDeviation;
-			}
-
-			// finf the absolute value of the deviation
-			if (colDeviation < 0) {
-				colDeviationABS = colDeviation * -1;
-			} else {
-				colDeviationABS = colDeviation;
-			}
-
-			// 
-			// This is the begining of a new text line
-			// 
-			if ((lastColDeviationABS <= imageSeamZeroValue) && (colDeviationABS > imageSeamZeroValue)) {
-				// 
-				// Not presently in a text line
-				// 
-				if (textLineDepth < 1) {
-					textLineDepth += 1;
-					//for (int j = (imageWidth - 1); j >= 0; --j) {
-					for (int j = imageHeight; j > 0; --j) {
-						currentPixel = thisPath[j];
-						imageOrig[currentPixel] = 128;
-					}
-
-					negDeviationCount = 0;
-					posDeviationCount = 0;
-					// printf("%d\t%d\t%d\t%d\t%d\t BEGIN \n", lastColDeviation, lastColDeviationABS, colDeviation, colDeviationABS, textLineDepth);
-				
-				// 
-				// Already in a text line, so just keep going
-				// 
-				} else {
-					if (colDeviation < 0) {
-						negDeviationCount += 1;
-					} else {
-						posDeviationCount += 1;
-					}
-					// printf("%d\t%d\t%d\t%d\t%d\t SKP \n", lastColDeviation, lastColDeviationABS, colDeviation, colDeviationABS, textLineDepth);
-
-					// TODO: Remove, DEBUG only
-					//for (int j = (imageWidth - 1); j >= 0; --j) {
-					for (int j = imageHeight; j > 0; --j) {
-						currentPixel = thisPath[j];
-						imageOrig[currentPixel] = 68;
-					}
-				}
-
-			// 
-			// This is not the begining of a new text line
-			// 
-			} else {
-				// 
-				// Already in a text line
-				// 
-				if (textLineDepth >= 1) {
-					// 
-					// The current seam is a straight line
-					// or the last seam's deviation was less than required to keep the text line going
-					// 
-					if ((colDeviationABS <= 0) || (lastColDeviationABS < minLineContinue)) {
-						// 
-						// The text line has the required minimum number of image seam lines
-						// 
-						if (textLineDepth > imageSeamZeroValue) {
-							textLineDepth = 0;
-							//for (int j = (imageWidth - 1); j >= 0; --j) {
-							for (int j = imageHeight; j > 0; --j) {
-								currentPixel = thisPath[j];
-								imageOrig[currentPixel] = 0;
-							}
-
-							tmp = (double)negDeviationCount / ((double)negDeviationCount + (double)posDeviationCount);
-							// printf("%d\t%d\t%d\t%d\t%d\t END (%d / %d = %f) \n", lastColDeviation, lastColDeviationABS, colDeviation, colDeviationABS, textLineDepth, negDeviationCount, posDeviationCount, tmp);
-						
-						// 
-						// The text line does not have the required minimum number of image seam lines
-						// 
-						} else {
-							// 
-							// However, this seam and the last one was straight, so halt out of this text line
-							// 
-							if ((colDeviationABS <= 0) && (lastColDeviationABS <= 0)) {
-								textLineDepth = 0;
-								//for (int j = (imageWidth - 1); j >= 0; --j) {
-								for (int j = imageHeight; j > 0; --j) {
-									currentPixel = thisPath[j];
-									imageOrig[currentPixel] = 0;
-								}
-
-								// printf("%d\t%d\t%d\t%d\t%d\t HALT \n", lastColDeviation, lastColDeviationABS, colDeviation, colDeviationABS, textLineDepth);
-
-							// 
-							// Assume we are at the begining of a jagged text line, keep going
-							// 
-							} else {
-								if (colDeviation < 0) {
-									negDeviationCount += 1;
-								} else {
-									posDeviationCount += 1;
-								}
-								// printf("%d\t%d\t%d\t%d\t%d\t GAP \n", lastColDeviation, lastColDeviationABS, colDeviation, colDeviationABS, textLineDepth);
-
-								// TODO: Remove, DEBUG only
-								//for (int j = (imageWidth - 1); j >= 0; --j) {
-								for (int j = imageHeight; j > 0; --j) {
-									currentPixel = thisPath[j];
-									imageOrig[currentPixel] = 72;
-								}
-							}
-						}
-
-					// 
-					// Already in a text line, so just keep going
-					// 
-					} else {
-						textLineDepth += 1;
-						if (colDeviation < 0) {
-							negDeviationCount += 1;
-						} else {
-							posDeviationCount += 1;
-						}
-						// printf("%d\t%d\t%d\t%d\t%d\t RUN \n", lastColDeviation, lastColDeviationABS, colDeviation, colDeviationABS, textLineDepth);
-
-						// TODO: Remove, DEBUG only
-						//for (int j = (imageWidth - 1); j >= 0; --j) {
-						for (int j = imageHeight; j > 0; --j) {
-							currentPixel = thisPath[j];
-							imageOrig[currentPixel] = 64;
-						}
-					}
-				
-				// 
-				// Not presently in a text line, just ignore and move on
-				// 
-				} else {
-					// printf("%d\t%d\t%d\t%d\t%d\t --- \n", lastColDeviation, lastColDeviationABS, colDeviation, colDeviationABS, textLineDepth);
-				}
-			}
-
-			lastColDeviation = colDeviation;
-		}
-	}
-	return totalSeamValue;
+	return findSeams(imageSeams, imageWidth, imageHeight, imageOrig, 0);
 }
 
 static void setPixelPathHorizontal(int *imageSeams, int imageWidth, int imageHeight, int currentPixel, int currentCol)
@@ -468,260 +513,7 @@ static void fillSeamMatrixHorizontal(int *imageSeams, int imageWidth, int imageH
 
 static int findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight, int *imageOrig)
 {
-	// the return value of the function, the sum traversal cost of all seams
-	int totalSeamValue = 0;
-
-	// find the minimum seam energy in the right-most column
-	int minValue = INT_MAX;
-	int minValueLocation = INT_MAX;
-	for (int i = imageWidth; i < (imageWidth * imageHeight); i += imageWidth) {
-		totalSeamValue += imageSeams[i]; 
-		
-		if (imageSeams[i] < minValue) {
-			minValue = imageSeams[i];
-			minValueLocation = i;
-		}
-		// TODO: break if min value is zero?
-	}
-
-	int leftT = 0; // pixel to the left and above one line
-	int leftM = 0; // pixel to the left
-	int leftB = 0; // pixel to the left and below one line
-	int currentMin = 0; // the minimum of leftT, leftM, and leftB
-	int countGoT = 0; // how many times the seam diverged upward
-	int countGoB = 0; // how many times the seam diverged downward
-
-	// the deviation variables record a seam's net divergence from being straight
-	//  if a seam's average y position is above its starting line, then the deviation is negative
-	//  if a seam's average y position is below its starting line, then the deviation is positive
-	//  if a seam's average y position is the same as its starting line, then the deviation is 0
-	//  (the sign was arbitrarily choosen and does not matter latter, the ABS will be taken)
-	//  ( ^^^ TODO: so, maybe we can simplify the deviation calculation ^^^ )
-	int rowDeviation = 0; // current row's net deviation from being stright
-	int lastRowDeviation = 0; // last row's net deviation from being stright
-	int rowDeviationABS = 0; // absolute value of the current row's deviation
-	int lastRowDeviationABS = 0; // absolute value of last row's deviation
-	int negDeviationCount = 0;
-	int posDeviationCount = 0;
-	double tmp = 0.0;
-	int *thisPath = (int*)malloc((unsigned long)imageWidth * sizeof(int));
-
-	// a seam is considered to have zero weight when it is less than this value
-	// we raise it based upon the size of the image to help ignore dust and speckles
-	int imageSeamZeroValue = imageWidth / 50; // 2% of the image width (TODO: improve heuristic)
-	// the minimum deviation to prevent a text line (seam gap) from ending
-	int minLineContinue = imageSeamZeroValue * 1; //2; // (TODO: improve heuristic)
-
-	int textLineDepth = 0; // how far we are into a recognized text line
-	int currentPixel = 0; // used for drawing begining and ending seam
-
-	// for every pixel in the left-most column of the image
-	for (int k = (imageWidth - 1); k < ((imageWidth * imageHeight) - 1); k += imageWidth) {
-		// process seams with the lowest weights
-		if (imageSeams[k] <= minValue) {
-			// start from the left-most column
-			minValueLocation = k;
-
-			countGoT = 0;
-			countGoB = 0;
-			rowDeviation = 0;
-
-			// move right-to-left across the image
-			for (int j = (imageWidth - 1); j >= 0; --j) {
-				// add pixel to the current path
-				thisPath[j] = minValueLocation;
-
-				// do we go above-left, left, or below-left?
-				leftT = imageSeams[minValueLocation - 1 - imageWidth];
-				leftM = imageSeams[minValueLocation - 1];
-				leftB = imageSeams[minValueLocation - 1 + imageWidth];
-				currentMin = min3(leftT, leftM, leftB);
-
-				// attempt to make the seam go back down if it was forced up and ice versa
-				// the goal is to end on the same line which the seam started on, this
-				// minimizes crazy diagonal seams which cut out important information
-				if (countGoT == countGoB) {
-					if (currentMin == leftM) {
-						minValueLocation -= 1;
-					} else if (currentMin == leftT) {
-						minValueLocation -= (imageWidth + 1);
-						++countGoT;
-					} else if (currentMin == leftB) {
-						minValueLocation += (imageWidth - 1);
-						++countGoB;
-					}
-				} else if (countGoT > countGoB) {
-					if (currentMin == leftB) {
-						minValueLocation += (imageWidth - 1);
-						++countGoB;
-					} else if (currentMin == leftM) {
-						minValueLocation -= 1;
-					} else {
-						minValueLocation -= (imageWidth + 1);
-						++countGoT;
-					}
-				} else if (countGoT < countGoB) {
-					if (currentMin == leftT) {
-						minValueLocation -= (imageWidth + 1);
-						++countGoT;
-					} else if (currentMin == leftM) {
-						minValueLocation -= 1;
-					} else {
-						minValueLocation += (imageWidth - 1);
-						++countGoB;
-					}
-				}
-
-				// increment the deviation counter according to this pixels deviation
-				if (countGoT > countGoB) {
-					rowDeviation -= 1;
-				} else if (countGoT < countGoB) {
-					rowDeviation += 1;
-				}
-			}
-		
-			// finf the absolute value of the deviation
-			if (lastRowDeviation < 0) {
-				lastRowDeviationABS = lastRowDeviation * -1;
-			} else {
-				lastRowDeviationABS = lastRowDeviation;
-			}
-
-			// finf the absolute value of the deviation
-			if (rowDeviation < 0) {
-				rowDeviationABS = rowDeviation * -1;
-			} else {
-				rowDeviationABS = rowDeviation;
-			}
-
-			// 
-			// This is the begining of a new text line
-			// 
-			if ((lastRowDeviationABS <= imageSeamZeroValue) && (rowDeviationABS > imageSeamZeroValue)) {
-				// 
-				// Not presently in a text line
-				// 
-				if (textLineDepth < 1) {
-					textLineDepth += 1;
-					for (int j = (imageWidth - 1); j >= 0; --j) {
-						currentPixel = thisPath[j];
-						imageOrig[currentPixel] = 128;
-					}
-
-					negDeviationCount = 0;
-					posDeviationCount = 0;
-					// printf("%d\t%d\t%d\t%d\t%d\t BEGIN \n", lastRowDeviation, lastRowDeviationABS, rowDeviation, rowDeviationABS, textLineDepth);
-				
-				// 
-				// Already in a text line, so just keep going
-				// 
-				} else {
-					if (rowDeviation < 0) {
-						negDeviationCount += 1;
-					} else {
-						posDeviationCount += 1;
-					}
-					// printf("%d\t%d\t%d\t%d\t%d\t SKP \n", lastRowDeviation, lastRowDeviationABS, rowDeviation, rowDeviationABS, textLineDepth);
-
-					// TODO: Remove, DEBUG only
-					for (int j = (imageWidth - 1); j >= 0; --j) {
-						currentPixel = thisPath[j];
-						imageOrig[currentPixel] = 68;
-					}
-				}
-
-			// 
-			// This is not the begining of a new text line
-			// 
-			} else {
-				// 
-				// Already in a text line
-				// 
-				if (textLineDepth >= 1) {
-					// 
-					// The current seam is a straight line
-					// or the last seam's deviation was less than required to keep the text line going
-					// 
-					if ((rowDeviationABS <= 0) || (lastRowDeviationABS < minLineContinue)) {
-						// 
-						// The text line has the required minimum number of image seam lines
-						// 
-						if (textLineDepth > imageSeamZeroValue) {
-							textLineDepth = 0;
-							for (int j = (imageWidth - 1); j >= 0; --j) {
-								currentPixel = thisPath[j];
-								imageOrig[currentPixel] = 0;
-							}
-
-							tmp = (double)negDeviationCount / ((double)negDeviationCount + (double)posDeviationCount);
-							// printf("%d\t%d\t%d\t%d\t%d\t END (%d / %d = %f) \n", lastRowDeviation, lastRowDeviationABS, rowDeviation, rowDeviationABS, textLineDepth, negDeviationCount, posDeviationCount, tmp);
-						
-						// 
-						// The text line does not have the required minimum number of image seam lines
-						// 
-						} else {
-							// 
-							// However, this seam and the last one was straight, so halt out of this text line
-							// 
-							if ((rowDeviationABS <= 0) && (lastRowDeviationABS <= 0)) {
-								textLineDepth = 0;
-								for (int j = (imageWidth - 1); j >= 0; --j) {
-									currentPixel = thisPath[j];
-									imageOrig[currentPixel] = 0;
-								}
-
-								// printf("%d\t%d\t%d\t%d\t%d\t HALT \n", lastRowDeviation, lastRowDeviationABS, rowDeviation, rowDeviationABS, textLineDepth);
-
-							// 
-							// Assume we are at the begining of a jagged text line, keep going
-							// 
-							} else {
-								if (rowDeviation < 0) {
-									negDeviationCount += 1;
-								} else {
-									posDeviationCount += 1;
-								}
-								// printf("%d\t%d\t%d\t%d\t%d\t GAP \n", lastRowDeviation, lastRowDeviationABS, rowDeviation, rowDeviationABS, textLineDepth);
-
-								// TODO: Remove, DEBUG only
-								for (int j = (imageWidth - 1); j >= 0; --j) {
-									currentPixel = thisPath[j];
-									imageOrig[currentPixel] = 72;
-								}
-							}
-						}
-
-					// 
-					// Already in a text line, so just keep going
-					// 
-					} else {
-						textLineDepth += 1;
-						if (rowDeviation < 0) {
-							negDeviationCount += 1;
-						} else {
-							posDeviationCount += 1;
-						}
-						// printf("%d\t%d\t%d\t%d\t%d\t RUN \n", lastRowDeviation, lastRowDeviationABS, rowDeviation, rowDeviationABS, textLineDepth);
-
-						// TODO: Remove, DEBUG only
-						for (int j = (imageWidth - 1); j >= 0; --j) {
-							currentPixel = thisPath[j];
-							imageOrig[currentPixel] = 64;
-						}
-					}
-				
-				// 
-				// Not presently in a text line, just ignore and move on
-				// 
-				} else {
-					// printf("%d\t%d\t%d\t%d\t%d\t --- \n", lastRowDeviation, lastRowDeviationABS, rowDeviation, rowDeviationABS, textLineDepth);
-				}
-			}
-
-			lastRowDeviation = rowDeviation;
-		}
-	}
-	return totalSeamValue;
+	return findSeams(imageSeams, imageWidth, imageHeight, imageOrig, 1);
 }
 
 static int *seamCarve(int *imageVector, int imageWidth, int imageHeight)
