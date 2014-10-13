@@ -167,9 +167,6 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 	int seamDeviationABS = 0; // absolute value of the current row's deviation
 	int lastSeamDeviation = 0; // last row's net deviation from being stright
 	int lastSeamDeviationABS = 0; // absolute value of last row's deviation
-	int negDeviationCount = 0;
-	int posDeviationCount = 0;
-	double tmp = 0.0;
 	int *thisPath = (int*)xmalloc((unsigned long)imageWidth * sizeof(int));
 
 	// a seam is considered to have zero weight when it is less than this value
@@ -346,9 +343,6 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 					textLineDepth += 1;
 					printSeam(thisPath, imageOrig, imageWidth, imageHeight, direction, 128);
 
-					negDeviationCount = 0;
-					posDeviationCount = 0;
-
 					// printf("BEG: %d, %d\n", tmp_deviationEnded, tmp_deviationBegan);
 					infoAreaXmin = tmp_deviationEnded;
 					infoAreaXmax = tmp_deviationBegan;
@@ -359,12 +353,6 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 				// TODO: Consider making this the end of a text line
 				// 
 				} else {
-					if (seamDeviation < 0) {
-						negDeviationCount += 1;
-					} else {
-						posDeviationCount += 1;
-					}
-
 					// printf("SKP: %d, %d\n", tmp_deviationEnded, tmp_deviationBegan);
 					if ((infoAreaXmin == 0) || ((tmp_deviationEnded % imageSize) < (infoAreaXmin % imageSize))) {
 						infoAreaXmin = tmp_deviationEnded;
@@ -399,8 +387,7 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 							textLineDepth = 0;
 							printSeam(thisPath, imageOrig, imageWidth, imageHeight, direction, 0);
 
-							tmp = (double)negDeviationCount / ((double)negDeviationCount + (double)posDeviationCount);
-							// printf("%d\t%d\t%d\t%d\t%d\t END (%d / %d = %f) \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth, negDeviationCount, posDeviationCount, tmp);
+							// printf("%d\t%d\t%d\t%d\t%d\t END \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
 							
 							printf("min: %d, mix: %d\n", infoAreaXmin, infoAreaXmax);
 							if (infoAreaXmin != 0) {
@@ -437,12 +424,6 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 							// Assume we are at the begining of a jagged text line, keep going
 							// 
 							} else {
-								if (seamDeviation < 0) {
-									negDeviationCount += 1;
-								} else {
-									posDeviationCount += 1;
-								}
-
 								// printf("GAP: %d, %d\n", tmp_deviationEnded, tmp_deviationBegan);
 								if ((infoAreaXmin == 0) || ((tmp_deviationEnded % imageSize) < (infoAreaXmin % imageSize))) {
 									infoAreaXmin = tmp_deviationEnded;
@@ -463,12 +444,7 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 					// 
 					} else {
 						textLineDepth += 1;
-						if (seamDeviation < 0) {
-							negDeviationCount += 1;
-						} else {
-							posDeviationCount += 1;
-						}
-
+						
 						// printf("RUN: %d, %d (%d, %d)\n", tmp_deviationEnded, tmp_deviationBegan, infoAreaXmin, infoAreaXmax);
 						if ((infoAreaXmin == 0) || ((tmp_deviationEnded % imageSize) < (infoAreaXmin % imageSize))) {
 							infoAreaXmin = tmp_deviationEnded;
