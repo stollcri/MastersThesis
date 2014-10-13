@@ -209,7 +209,7 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 		nextPixelDistL = (imageWidth - 1) * -1;
 	}
 
-	// for every pixel in the left-most column of the image
+	// for every pixel in the right-most or bottom-most column of the image
 	for (int k = loopBeg; k < loopEnd; k += loopInc) {
 		// process seams with the lowest weights
 		if (imageSeams[k] <= minValue) {
