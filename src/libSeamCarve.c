@@ -196,7 +196,7 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 		nextPixelDistL = imageWidth + 1;
 	} else {
 		loopBeg = imageWidth - 1;
-		loopEnd = (imageWidth * imageHeight) - 1;
+		loopEnd = (imageWidth * imageHeight) - 0;//1;
 		loopInc = imageWidth;
 
 		innerLoopBeg = (imageWidth - 1);
@@ -233,7 +233,11 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 				} else {
 					nextPixelR = imageSeams[minValueLocation - 1 - imageWidth];
 					nextPixelC = imageSeams[minValueLocation - 1];
-					nextPixelL = imageSeams[minValueLocation - 1 + imageWidth];
+					if ((k + 1) != loopEnd) {
+						nextPixelL = imageSeams[minValueLocation - 1 + imageWidth];
+					} else {
+						nextPixelL = INT_MAX;
+					}
 				}
 				// use the minimum of the possible pixels
 				currentMin = min3(nextPixelR, nextPixelC, nextPixelL);
