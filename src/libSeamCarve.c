@@ -619,23 +619,23 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight)
 		}
 	}
 
-	fillSeamMatrixVertical(newImageSeams, smallImageWidth, smallImageHeight);
+	//fillSeamMatrixVertical(newImageSeams, smallImageWidth, smallImageHeight);
 	fillSeamMatrixHorizontal(newImageSeams2, smallImageWidth, smallImageHeight);
 
-	int verticalSeamCost = findSeamsVertical(newImageSeams, smallImageWidth, smallImageHeight, newImage);
+	//int verticalSeamCost = findSeamsVertical(newImageSeams, smallImageWidth, smallImageHeight, newImage);
 	int horizontalSeamCost = findSeamsHorizontal(newImageSeams2, smallImageWidth, smallImageHeight, newImage2);
-	printf("Sum traversal cost of all seams: vertical = %d, horizontal = %d\n", verticalSeamCost, horizontalSeamCost);
+	//printf("Sum traversal cost of all seams: vertical = %d, horizontal = %d\n", verticalSeamCost, horizontalSeamCost);
 
 	free(smallImage);
 	free(newImageEnergy);
 	free(newImageSeams);
 	free(newImageSeams2);
 
-	if (horizontalSeamCost < verticalSeamCost) {
+	//if (horizontalSeamCost < verticalSeamCost) {
 		return newImage2;
-	} else {
-		return newImage;
-	}
+	//} else {
+	//	return newImage;
+	//}
 
 	//return newImage;
 	//return newImage2;
