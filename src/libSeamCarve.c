@@ -111,12 +111,13 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 	if ((direction != directionVertical) && (direction != directionHorizontal)) {
 		return -1;
 	}
-	int loopBeg = 0;
-	int loopEnd = 0;
-	int loopInc = 0;
-	int innerLoopBeg = 0;
-	int innerLoopEnd = 0;
-	int innerLoopInc = 0;
+	int imageSize = 0; // width when going horizontal, height when going vertical
+	int loopBeg = 0; // where the outer loop begins
+	int loopEnd = 0; // where the outer loop ends
+	int loopInc = 0; // the increment of the outer loop
+	int innerLoopBeg = 0; // where the inner loop begins
+	int innerLoopEnd = 0; // where the inner loop ends
+	int innerLoopInc = 0; // the increment of the inner loop
 
 	// the return value of the function, the sum traversal cost of all seams
 	int totalSeamValue = 0;
@@ -177,13 +178,17 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 
 	int textLineDepth = 0; // how far we are into a recognized text line
 
-	int tmp_deviationBegan = 0;
-	int tmp_deviationEnded = 0;
-	int tmp_lastDeviation = 0;
-	int tookCenterPixelFrom = 0;
-	int infoAreaXmin = 0;
-	int infoAreaXmax = 0;
-	int imageSize = 0;
+	// These variables are to aid in tracking where information begain in the other dimensions
+	// (if we are looking at horizontal seams, at which x value did the information start and end)
+	// (NOTE: we are backtracking, so it begins on the right and ends on the left when horizontal)
+	int deviationBeganAt = 0; // the right x value or bottom y value where information begins (pixel location)
+	int deviationEndedAt = 0; // the left x value or top y value where the information ends (pixel location)
+	int lastInnerSeamDeviation = 0; // the last seam deviation, used in the inner loop
+	int tookCenterPixelFrom = 0; // when going center, keep track of the source pixel location
+	// We have to find the outermost begining and ending points.
+	// The above variables help find the per seam value, these values help find the per block values
+	int infoAreaXYmin = 0; // the pixel location of the start of information block
+	int infoAreaXYmax = 0; // the pixel location of the end of the information block
 
 	// loop conditions depend upon the direction
 	if (direction == directionVertical) {
@@ -229,8 +234,8 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 			countGoL = 0;
 			seamDeviation = 0;
 
-			tmp_deviationBegan = 0;
-			tmp_deviationEnded = 0;
+			deviationBeganAt = 0;
+			deviationEndedAt = 0;
 
 			// move right-to-left ot bottom-to-top across/up the image
 			for (int j = innerLoopBeg; j >= innerLoopEnd; j += innerLoopInc) {
@@ -300,25 +305,32 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 					seamDeviation += 1;
 				}
 
+				// this loop went straight (horizontal or vertical)
 				if (tookCenterPixelFrom != 0) {
+					// there is no deviation from straight yet
 					if (seamDeviation == 0) {
+						// we are not at the end of the seam
 						if (j != innerLoopEnd) {
-							tmp_deviationBegan = tookCenterPixelFrom;
+							deviationBeganAt = tookCenterPixelFrom;
 						} else {
-							tmp_deviationBegan = 0;
+							deviationBeganAt = 0;
 						}
+
+					// there was already a deviation from straight
 					} else {
-						if (tmp_deviationBegan != 0) {
-							if (seamDeviation != tmp_lastDeviation) {
-								tmp_deviationEnded = tookCenterPixelFrom;
-								tmp_lastDeviation = seamDeviation;
+						// we have a begining location already
+						if (deviationBeganAt != 0) {
+							// just keep the first of consecutive striaght runs
+							if (seamDeviation != lastInnerSeamDeviation) {
+								deviationEndedAt = tookCenterPixelFrom;
+								lastInnerSeamDeviation = seamDeviation;
 							}
 						}
 					}
 				}
 			}
 		
-			// finf the absolute value of the deviation
+			// find the absolute value of the deviation
 			if (lastSeamDeviation < 0) {
 				lastSeamDeviationABS = lastSeamDeviation * -1;
 			} else {
@@ -343,9 +355,9 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 					textLineDepth += 1;
 					printSeam(thisPath, imageOrig, imageWidth, imageHeight, direction, 128);
 
-					// printf("BEG: %d, %d\n", tmp_deviationEnded, tmp_deviationBegan);
-					infoAreaXmin = tmp_deviationEnded;
-					infoAreaXmax = tmp_deviationBegan;
+					// printf("BEG: %d, %d\n", deviationEndedAt, deviationBeganAt);
+					infoAreaXYmin = deviationEndedAt;
+					infoAreaXYmax = deviationBeganAt;
 					// printf("%d\t%d\t%d\t%d\t%d\t BEGIN \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
 				
 				// 
@@ -353,12 +365,12 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 				// TODO: Consider making this the end of a text line
 				// 
 				} else {
-					// printf("SKP: %d, %d\n", tmp_deviationEnded, tmp_deviationBegan);
-					if ((infoAreaXmin == 0) || ((tmp_deviationEnded % imageSize) < (infoAreaXmin % imageSize))) {
-						infoAreaXmin = tmp_deviationEnded;
+					// printf("SKP: %d, %d\n", deviationEndedAt, deviationBeganAt);
+					if ((infoAreaXYmin == 0) || ((deviationEndedAt % imageSize) < (infoAreaXYmin % imageSize))) {
+						infoAreaXYmin = deviationEndedAt;
 					}
-					if ((infoAreaXmax == 0) || ((tmp_deviationBegan % imageSize) > (infoAreaXmax % imageSize))) {
-						infoAreaXmax = tmp_deviationBegan;
+					if ((infoAreaXYmax == 0) || ((deviationBeganAt % imageSize) > (infoAreaXYmax % imageSize))) {
+						infoAreaXYmax = deviationBeganAt;
 					}
 
 					// printf("%d\t%d\t%d\t%d\t%d\t SKP \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
@@ -389,23 +401,23 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 
 							// printf("%d\t%d\t%d\t%d\t%d\t END \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
 							
-							printf("min: %d, mix: %d\n", infoAreaXmin, infoAreaXmax);
-							if (infoAreaXmin != 0) {
-								imageOrig[infoAreaXmin] = 0;
-								imageOrig[infoAreaXmin+imageWidth] = 0;
-								imageOrig[infoAreaXmin+imageWidth-1] = 0;
-								imageOrig[infoAreaXmin+imageWidth+1] = 0;
-								imageOrig[infoAreaXmin+imageWidth+imageWidth] = 0;
+							printf("min: %d, mix: %d\n", infoAreaXYmin, infoAreaXYmax);
+							if (infoAreaXYmin != 0) {
+								imageOrig[infoAreaXYmin] = 0;
+								imageOrig[infoAreaXYmin+imageWidth] = 0;
+								imageOrig[infoAreaXYmin+imageWidth-1] = 0;
+								imageOrig[infoAreaXYmin+imageWidth+1] = 0;
+								imageOrig[infoAreaXYmin+imageWidth+imageWidth] = 0;
 							}
-							if (infoAreaXmax != 0) {
-								imageOrig[infoAreaXmax] = 0;
-								imageOrig[infoAreaXmax+imageWidth] = 0;
-								imageOrig[infoAreaXmax+imageWidth-1] = 0;
-								imageOrig[infoAreaXmax+imageWidth+1] = 0;
-								imageOrig[infoAreaXmax+imageWidth+imageWidth] = 0;
+							if (infoAreaXYmax != 0) {
+								imageOrig[infoAreaXYmax] = 0;
+								imageOrig[infoAreaXYmax+imageWidth] = 0;
+								imageOrig[infoAreaXYmax+imageWidth-1] = 0;
+								imageOrig[infoAreaXYmax+imageWidth+1] = 0;
+								imageOrig[infoAreaXYmax+imageWidth+imageWidth] = 0;
 							}
-							infoAreaXmin = 0;
-							infoAreaXmax = 0;
+							infoAreaXYmin = 0;
+							infoAreaXYmax = 0;
 						
 						// 
 						// The text line does not have the required minimum number of image seam lines
@@ -424,12 +436,12 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 							// Assume we are at the begining of a jagged text line, keep going
 							// 
 							} else {
-								// printf("GAP: %d, %d\n", tmp_deviationEnded, tmp_deviationBegan);
-								if ((infoAreaXmin == 0) || ((tmp_deviationEnded % imageSize) < (infoAreaXmin % imageSize))) {
-									infoAreaXmin = tmp_deviationEnded;
+								// printf("GAP: %d, %d\n", deviationEndedAt, deviationBeganAt);
+								if ((infoAreaXYmin == 0) || ((deviationEndedAt % imageSize) < (infoAreaXYmin % imageSize))) {
+									infoAreaXYmin = deviationEndedAt;
 								}
-								if ((infoAreaXmax == 0) || ((tmp_deviationBegan % imageSize) > (infoAreaXmax % imageSize))) {
-									infoAreaXmax = tmp_deviationBegan;
+								if ((infoAreaXYmax == 0) || ((deviationBeganAt % imageSize) > (infoAreaXYmax % imageSize))) {
+									infoAreaXYmax = deviationBeganAt;
 								}
 
 								// printf("%d\t%d\t%d\t%d\t%d\t GAP \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
@@ -445,12 +457,12 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 					} else {
 						textLineDepth += 1;
 						
-						// printf("RUN: %d, %d (%d, %d)\n", tmp_deviationEnded, tmp_deviationBegan, infoAreaXmin, infoAreaXmax);
-						if ((infoAreaXmin == 0) || ((tmp_deviationEnded % imageSize) < (infoAreaXmin % imageSize))) {
-							infoAreaXmin = tmp_deviationEnded;
+						// printf("RUN: %d, %d (%d, %d)\n", deviationEndedAt, deviationBeganAt, infoAreaXYmin, infoAreaXYmax);
+						if ((infoAreaXYmin == 0) || ((deviationEndedAt % imageSize) < (infoAreaXYmin % imageSize))) {
+							infoAreaXYmin = deviationEndedAt;
 						}
-						if ((infoAreaXmax == 0) || ((tmp_deviationBegan % imageSize) > (infoAreaXmax % imageSize))) {
-							infoAreaXmax = tmp_deviationBegan;
+						if ((infoAreaXYmax == 0) || ((deviationBeganAt % imageSize) > (infoAreaXYmax % imageSize))) {
+							infoAreaXYmax = deviationBeganAt;
 						}
 
 						// printf("%d\t%d\t%d\t%d\t%d\t RUN \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
