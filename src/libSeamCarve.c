@@ -46,6 +46,11 @@ static inline int min3(int a, int b, int c)
 	}
 }
 
+struct minMax {
+	int min;
+	int max;
+};
+
 // Simple energy function, basically a gradient magnitude calculation
 static int getPixelEnergySimple(int *imageVector, int imageWidth, int imageHeight, int currentPixel, int gradientSize)
 {
@@ -77,6 +82,49 @@ static int getPixelEnergySimple(int *imageVector, int imageWidth, int imageHeigh
 	}
 
 	return min((yDif + xDif), 255);
+}
+
+static struct minMax *findSeamMinMax(int *seamPath, int imageWidth, int imageHeight, int direction)
+{
+	struct minMax *results = (struct minMax*)xmalloc(sizeof(struct minMax));
+	results->min = INT_MAX;
+	results->max = 0;
+
+	// TODO: create macro definition
+	int directionVertical = 0;
+	int directionHorizontal = 1;
+	if ((direction != directionVertical) && (direction != directionHorizontal)) {
+		return results;
+	}
+
+	int currentPixel = 0;
+	if (direction == directionVertical) {
+		for (int j = imageHeight; j > 0; --j) {
+			currentPixel = seamPath[j];
+
+			if (currentPixel < results->min) {
+				results->min = currentPixel;
+			}
+
+			if (currentPixel > results->max) {
+				results->max = currentPixel;
+			}
+		}
+	} else {
+		for (int j = (imageWidth - 1); j >= 0; --j) {
+			currentPixel = seamPath[j];
+
+			if (currentPixel < results->min) {
+				results->min = currentPixel;
+			}
+
+			if (currentPixel > results->max) {
+				results->max = currentPixel;
+			}
+		}
+	}
+
+	return results;
 }
 
 static void printSeam(int *seamPath, int *image, int imageWidth, int imageHeight, int direction, int grayScale)
@@ -169,6 +217,7 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 	int lastSeamDeviation = 0; // last row's net deviation from being stright
 	int lastSeamDeviationABS = 0; // absolute value of last row's deviation
 	int *thisPath = (int*)xmalloc((unsigned long)imageWidth * sizeof(int));
+	struct minMax *thisMinMax = (struct minMax*)xmalloc(sizeof(struct minMax));
 
 	// a seam is considered to have zero weight when it is less than this value
 	// we raise it based upon the size of the image to help ignore dust and speckles
