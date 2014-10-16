@@ -191,6 +191,17 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 	int minValue = INT_MAX;
 	int minValueLocation = INT_MAX;
 
+	int nextPixelR = 0; // next pixel to the right
+	int nextPixelC = 0; // next pixel to the center
+	int nextPixelL = 0; // next pixel to the left
+	int currentMin = 0; // the minimum of nextPixelR, nextPixelC, and nextPixelL
+	int countGoR = 0; // how many times the seam diverged upward
+	int countGoL = 0; // how many times the seam diverged downward
+	
+	int nextPixelDistR = 0; // memory distance to the next pixel to the right
+	int nextPixelDistC = 0; // memory distance to the next pixel to the center
+	int nextPixelDistL = 0; // memory distance to the next pixel to the left
+
 	// loop conditions depend upon the direction
 	if (direction == directionVertical) {
 		for (int i = ((imageWidth * imageHeight) - 1); i > ((imageWidth * imageHeight) - imageWidth - 1); --i) {
@@ -202,6 +213,21 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 			}
 			// TODO: break if min value is zero?
 		}
+
+		loopBeg = (imageWidth * imageHeight) - 1 - imageWidth;
+		loopEnd = (imageWidth * imageHeight) - 1;
+		loopInc = 1;
+
+		innerLoopBeg = imageHeight;
+		innerLoopEnd = 1;
+		innerLoopInc = -1;
+
+		// also set the next pixel distances
+		nextPixelDistR = imageWidth - 1;
+		nextPixelDistC = imageWidth;
+		nextPixelDistL = imageWidth + 1;
+
+		imageSize = imageHeight;
 	} else {
 		for (int i = imageWidth; i < (imageWidth * imageHeight); i += imageWidth) {
 			totalSeamValue += imageSeams[i]; 
@@ -212,18 +238,22 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 			}
 			// TODO: break if min value is zero?
 		}
-	}
 
-	int nextPixelR = 0; // next pixel to the right
-	int nextPixelC = 0; // next pixel to the center
-	int nextPixelL = 0; // next pixel to the left
-	int currentMin = 0; // the minimum of nextPixelR, nextPixelC, and nextPixelL
-	int countGoR = 0; // how many times the seam diverged upward
-	int countGoL = 0; // how many times the seam diverged downward
-	
-	int nextPixelDistR = 0; // memory distance to the next pixel to the right
-	int nextPixelDistC = 0; // memory distance to the next pixel to the center
-	int nextPixelDistL = 0; // memory distance to the next pixel to the left
+		loopBeg = imageWidth - 1;
+		loopEnd = (imageWidth * imageHeight) - 0;//1;
+		loopInc = imageWidth;
+
+		innerLoopBeg = (imageWidth - 1);
+		innerLoopEnd = 0;
+		innerLoopInc = -1;
+
+		// also set the next pixel distances
+		nextPixelDistR = imageWidth + 1;
+		nextPixelDistC = 1;
+		nextPixelDistL = (imageWidth - 1) * -1;
+
+		imageSize = imageWidth;
+	}
 
 	// the deviation variables record a seam's net divergence from being straight
 	//  if a seam's average y position is above its starting line, then the deviation is negative
@@ -261,39 +291,6 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 	struct areaOfInterest *interestingArea = (struct areaOfInterest*)xmalloc(sizeof(struct areaOfInterest));
 	interestingArea->imageWidth = imageWidth;
 	interestingArea->imageHeight = imageHeight;
-
-	// loop conditions depend upon the direction
-	if (direction == directionVertical) {
-		loopBeg = (imageWidth * imageHeight) - 1 - imageWidth;
-		loopEnd = (imageWidth * imageHeight) - 1;
-		loopInc = 1;
-
-		innerLoopBeg = imageHeight;
-		innerLoopEnd = 1;
-		innerLoopInc = -1;
-
-		// also set the next pixel distances
-		nextPixelDistR = imageWidth - 1;
-		nextPixelDistC = imageWidth;
-		nextPixelDistL = imageWidth + 1;
-
-		imageSize = imageHeight;
-	} else {
-		loopBeg = imageWidth - 1;
-		loopEnd = (imageWidth * imageHeight) - 0;//1;
-		loopInc = imageWidth;
-
-		innerLoopBeg = (imageWidth - 1);
-		innerLoopEnd = 0;
-		innerLoopInc = -1;
-
-		// also set the next pixel distances
-		nextPixelDistR = imageWidth + 1;
-		nextPixelDistC = 1;
-		nextPixelDistL = (imageWidth - 1) * -1;
-
-		imageSize = imageWidth;
-	}
 
 	// for every pixel in the right-most or bottom-most column of the image
 	for (int k = loopBeg; k < loopEnd; k += loopInc) {
