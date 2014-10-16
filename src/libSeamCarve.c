@@ -463,7 +463,7 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 					// The current seam is a straight line
 					// or the last seam's deviation was less than required to keep the text line going
 					// 
-					if ((seamDeviationABS <= 0) || (lastSeamDeviationABS < minLineContinue)) {
+					if ((seamDeviationABS <= 0) || (lastSeamDeviationABS < minLineContinue) || (k >= (loopEnd - 1))) {
 						// 
 						// The text line has the required minimum number of image seam lines
 						// 
