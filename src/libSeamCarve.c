@@ -68,6 +68,9 @@ struct areaOfInterest {
 
 	int domainSize;
 	int rangeSize;
+
+	int *pathBegin;
+	int *pathEnd;
 };
 
 // Simple energy function, basically a gradient magnitude calculation
@@ -169,7 +172,22 @@ static void printSeam(int *seamPath, int *image, int imageWidth, int imageHeight
 	}
 }
 
-//static int findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight, int *imageOrig)
+static void savePartialImage(int *image, struct areaOfInterest *interestingArea)
+{
+	int imageWidth = interestingArea->imageWidth;
+	int imageHeight = interestingArea->imageHeight;
+	int *partialImage = (int*)xmalloc((unsigned long)imageWidth * (unsigned long)imageHeight * sizeof(int));
+
+	// int currentPixel = 0;
+	// for (int j = imageHeight; j > 0; --j) {
+	// 	currentPixel = seamPath[j];
+	// 	image[currentPixel] = grayScale;
+	// }
+}
+
+//
+// TODO: Refactor, this function is a beast
+// 
 static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imageOrig, int direction)
 {
 	// TODO: create macro definition
@@ -291,6 +309,8 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 	struct areaOfInterest *interestingArea = (struct areaOfInterest*)xmalloc(sizeof(struct areaOfInterest));
 	interestingArea->imageWidth = imageWidth;
 	interestingArea->imageHeight = imageHeight;
+	interestingArea->pathBegin = (int*)xmalloc((unsigned long)imageSize * sizeof(int));
+	interestingArea->pathEnd = (int*)xmalloc((unsigned long)imageSize * sizeof(int));
 
 	// for every pixel in the right-most or bottom-most column of the image
 	for (int k = loopBeg; k < loopEnd; k += loopInc) {
@@ -427,6 +447,7 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 					printSeam(thisPath, imageOrig, imageWidth, imageHeight, direction, 128);
 					printf("%d\t%d\t%d\t%d\t%d\t BEGIN \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
 
+					interestingArea->pathBegin = thisPath;
 					interestingArea->rangeBeginEntry = thisPath[0];
 					thisMinMax = findSeamMinMax(thisPath, imageWidth, imageHeight, direction);
 					interestingArea->rangeBeginMin = thisMinMax->min;
@@ -485,6 +506,7 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 							printSeam(thisPath, imageOrig, imageWidth, imageHeight, direction, 0);
 							printf("%d\t%d\t%d\t%d\t%d\t END \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
 
+							interestingArea->pathEnd = thisPath;
 							interestingArea->domainMin = infoAreaXYmin;
 							interestingArea->domainMax = infoAreaXYmax;
 							interestingArea->domainSize = ((interestingArea->domainMax % imageSize) + 1) - ((interestingArea->domainMin % imageSize) + 1);
@@ -504,6 +526,8 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 							printf("Domain size: %d\n", interestingArea->domainSize);
 							printf("Range size: %d\n", interestingArea->rangeSize);
 							printf(" ----- \n");
+
+							savePartialImage(interestingArea);
 
 							infoAreaXYmin = 0;
 							infoAreaXYmax = 0;
