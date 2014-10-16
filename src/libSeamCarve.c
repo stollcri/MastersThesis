@@ -265,7 +265,7 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 	int seamDeviationABS = 0; // absolute value of the current row's deviation
 	int lastSeamDeviation = 0; // last row's net deviation from being stright
 	int lastSeamDeviationABS = 0; // absolute value of last row's deviation
-	int *thisPath = (int*)xmalloc((unsigned long)imageWidth * sizeof(int));
+	int *thisPath = (int*)xmalloc((unsigned long)imageSize * sizeof(int));
 	struct minMax *thisMinMax = (struct minMax*)xmalloc(sizeof(struct minMax));
 
 	// a seam is considered to have zero weight when it is less than this value
