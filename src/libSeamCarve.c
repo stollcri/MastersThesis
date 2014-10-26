@@ -447,7 +447,11 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 
 				// get the possible next pixles
 				if (direction == directionVertical) {
-					nextPixelR = imageSeams[minValueLocation - imageWidth + 1];
+					if (((minValueLocation - imageWidth + 1) % imageWidth) != 0) {
+						nextPixelR = imageSeams[minValueLocation - imageWidth + 1];
+					} else {
+						nextPixelR = INT_MAX;
+					}
 					nextPixelC = imageSeams[minValueLocation - imageWidth];
 					nextPixelL = imageSeams[minValueLocation - imageWidth - 1];
 				} else {
