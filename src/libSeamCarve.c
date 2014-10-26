@@ -400,7 +400,7 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 
 	// a seam is considered to have zero weight when it is less than this value
 	// we raise it based upon the size of the image to help ignore dust and speckles
-	int imageSeamZeroValue = imageWidth / 50; // 2% of the image width (TODO: improve heuristic)
+	int imageSeamZeroValue = imageSize / 50; // 2% of the image width (TODO: improve heuristic)
 	// the minimum deviation to prevent a text line (seam gap) from ending
 	int minLineContinue = imageSeamZeroValue * 1; //2; // (TODO: improve heuristic)
 
