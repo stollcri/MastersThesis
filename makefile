@@ -14,10 +14,11 @@ sc:
 
 test:
 	#./bin/sc -v ./tst/RightsOfManA.png ./tst/out.png
-	./bin/sc -v ./tst/BPD-01.png ./tst/out_BPD-01.png
+	./bin/sc -d 1 -v ./tst/BPD-01.png ./tst/out_BPD-01.png
+	./bin/sc -d 2 -v ./tst/BPD-01b.png ./tst/out_BPD-01b.png
 	#./bin/sc -v ./tst/BPD-02.png ./tst/out_BPD-02.png
 	#./bin/sc -v ./tst/BPD-03.png ./tst/out_BPD-03.png
-	./bin/sc -v ./tst/BPD-04.png ./tst/out_BPD-04.png
+	#./bin/sc -v ./tst/BPD-04.png ./tst/out_BPD-04.png
 
 clean:
 	-rm ./bin/*

@@ -819,7 +819,7 @@ static int findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight,
 	return findSeams(imageSeams, imageWidth, imageHeight, imageOrig, 1);
 }
 
-static int *seamCarve(int *imageVector, int imageWidth, int imageHeight)
+static int *seamCarve(int *imageVector, int imageWidth, int forceDirection, int imageHeight)
 {
 	double imageScale = 0.25;
 	int smallImageWidth = getScaledSize(imageWidth, imageScale);
@@ -852,34 +852,33 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight)
 	}
 
 	// DEBUG: To test each direction
-	int doVert = 1;
-	if (doVert == 1) {
+	if (forceDirection == 1) {
+		fillSeamMatrixHorizontal(newImageSeams2, smallImageWidth, smallImageHeight);
+		int horizontalSeamCost = findSeamsHorizontal(newImageSeams2, smallImageWidth, smallImageHeight, newImage2);
+		return newImage2;
+	} else if (forceDirection == 2) {
 		fillSeamMatrixVertical(newImageSeams, smallImageWidth, smallImageHeight);
 		int verticalSeamCost = findSeamsVertical(newImageSeams, smallImageWidth, smallImageHeight, newImage);
 		return newImage;
 	} else {
+		fillSeamMatrixVertical(newImageSeams, smallImageWidth, smallImageHeight);
 		fillSeamMatrixHorizontal(newImageSeams2, smallImageWidth, smallImageHeight);
+
+		int verticalSeamCost = findSeamsVertical(newImageSeams, smallImageWidth, smallImageHeight, newImage);
 		int horizontalSeamCost = findSeamsHorizontal(newImageSeams2, smallImageWidth, smallImageHeight, newImage2);
-		return newImage2;
+		printf("Sum traversal cost of all seams: vertical = %d, horizontal = %d\n", verticalSeamCost, horizontalSeamCost);
+		
+		free(smallImage);
+		free(newImageEnergy);
+		free(newImageSeams);
+		free(newImageSeams2);
+
+		if (horizontalSeamCost < verticalSeamCost) {
+			return newImage2;
+		} else {
+			return newImage;
+		}
 	}
-
-	//fillSeamMatrixVertical(newImageSeams, smallImageWidth, smallImageHeight);
-	//fillSeamMatrixHorizontal(newImageSeams2, smallImageWidth, smallImageHeight);
-
-	//int verticalSeamCost = findSeamsVertical(newImageSeams, smallImageWidth, smallImageHeight, newImage);
-	//int horizontalSeamCost = findSeamsHorizontal(newImageSeams2, smallImageWidth, smallImageHeight, newImage2);
-	//printf("Sum traversal cost of all seams: vertical = %d, horizontal = %d\n", verticalSeamCost, horizontalSeamCost);
-
-	free(smallImage);
-	free(newImageEnergy);
-	free(newImageSeams);
-	free(newImageSeams2);
-
-	//if (horizontalSeamCost < verticalSeamCost) {
-	//	return newImage2;
-	//} else {
-	//	return newImage;
-	//}
 
 	//return newImage;
 	//return newImage2;

@@ -13,7 +13,7 @@
 #define PROGRAM_VERS "0.0"
 #define PROGRAM_COPY "Copyright 2014, Chrisotpher Stoll"
 
-static void carve(char *sourceFile, char *resultFile, int verbose)
+static void carve(char *sourceFile, char *resultFile, int forceDirection, int verbose)
 {
 	int *imageVector;
 	int imageWidth = 0;
@@ -25,7 +25,7 @@ static void carve(char *sourceFile, char *resultFile, int verbose)
 	}
 
 	int *newImageVector;
-	newImageVector = seamCarve(imageVector, imageWidth, imageHeight);
+	newImageVector = seamCarve(imageVector, imageWidth, forceDirection, imageHeight);
 
 	double imageScale = 0.25;
 	int newWidth = getScaledSize(imageWidth, imageScale);
@@ -38,7 +38,8 @@ int main(int argc, char const *argv[])
 {
 	char **argumentVector = (char**)argv;
 
-	char *svalue = 0;
+	char *dvalue = 0;
+	int forceDir = 0;
 	int verboseFlag = 0;
 	char *sourceFile = 0;
 	char *resultFile = 0;
@@ -52,10 +53,11 @@ int main(int argc, char const *argv[])
 	 *  source_file -- the PNG image file to open
 	 *  result_file -- the PNG file to save results to
 	 */
-	while ((c = getopt (argc, argumentVector, "s:v")) != -1) {
+	while ((c = getopt (argc, argumentVector, "d:v")) != -1) {
 		switch (c) {
-			case 's':
-				svalue = optarg;
+			case 'd':
+				dvalue = optarg;
+				forceDir = (int)dvalue[0] - 48;
 				break;
 			case 'v':
 				verboseFlag = 1;
@@ -93,7 +95,7 @@ int main(int argc, char const *argv[])
 
 	// Go ahead if the source file exists
 	if (access(sourceFile, R_OK) != -1) {
-		carve(sourceFile, resultFile, verboseFlag);
+		carve(sourceFile, resultFile, forceDir, verboseFlag);
 	} else {
 		fprintf(stderr, "Error reading file %s\n", sourceFile);
 		return 1;
