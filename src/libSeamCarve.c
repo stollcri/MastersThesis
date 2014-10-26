@@ -213,17 +213,19 @@ static int getPixelEnergySimple(int *imageVector, int imageWidth, int imageHeigh
 	}
 
 	int pixelLeft = 0;
-	// TODO: fix this from rolling back to the other side?
 	pixelLeft = currentPixel - gradientSize;
 	if (pixelLeft < 0) {
 		pixelLeft = 0;
 	}
 
+	int pixelCol = currentPixel % imageWidth;
 	int xDif = 0;
-	if (imageVector[pixelLeft] > imageVector[currentPixel]) {
-		xDif = imageVector[pixelLeft] - imageVector[currentPixel];
-	} else {
-		xDif = imageVector[currentPixel] - imageVector[pixelLeft];
+	if (pixelCol > 0) {
+		if (imageVector[pixelLeft] > imageVector[currentPixel]) {
+			xDif = imageVector[pixelLeft] - imageVector[currentPixel];
+		} else {
+			xDif = imageVector[currentPixel] - imageVector[pixelLeft];
+		}
 	}
 
 	return min((yDif + xDif), 255);
