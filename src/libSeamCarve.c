@@ -140,7 +140,7 @@ static void savePartialImageVertical(int *image, struct areaOfInterest *interest
 	}
 
 	int bodyPixelsStart = 0;
-	for (int i = fullImageEntryCol; i < (fullImageFinCol - 1); ++i) {
+	for (int i = fullImageEntryCol; i <= (fullImageFinCol - 1); ++i) {
 		bodyPixelsStart = ((fullImageStartRow + 1) * fullImageWidth) + i + 1;
 
 		for (int j = 0; j < (newImageHeight - 1); ++j) {
@@ -242,8 +242,8 @@ static void savePartialImageHorizontal(int *image, struct areaOfInterest *intere
 	}
 
 	int bodyPixelsStart = 0;
-	for (int i = fullImageBeginRow; i < (fullImageFinRow - 1); ++i) {
-		bodyPixelsStart = ((i + 1) * fullImageWidth) + fullImageStartCol + 1;
+	for (int i = fullImageBeginRow; i <= (fullImageFinRow - 1); ++i) {
+		bodyPixelsStart = (i * fullImageWidth) + fullImageStartCol + 1;
 
 		for (int j = 0; j < (newImageWidth - 1); ++j) {
 			image[bodyPixelsStart] -= 192;
