@@ -76,16 +76,12 @@ struct areaOfInterest {
 
 static void savePartialImageVertical(int *image, struct areaOfInterest *interestingArea)
 {
-	printf(" -----\n");
-
 	int fullImageSize = interestingArea->imageSize;
 	int fullImageWidth = interestingArea->imageWidth;
 	int fullImageHeight = interestingArea->imageHeight;
-	printf(" size old: width = %d,\theight = %d\n", fullImageWidth, fullImageHeight);
 
 	int fullImageStartRow = interestingArea->domainMin / fullImageWidth;
 	int fullImageEndRow = interestingArea->domainMax / fullImageWidth;
-	printf("      row: begin = %d,\tend = %d\n", fullImageStartRow, fullImageEndRow);
 
 	int fullImageEntryCol = (interestingArea->rangeBeginEntry % fullImageWidth);
 	int fullImageStartCol = (interestingArea->rangeBeginMin % fullImageWidth);
@@ -93,19 +89,14 @@ static void savePartialImageVertical(int *image, struct areaOfInterest *interest
 	int fullImageExitCol = (interestingArea->rangeEndEntry % fullImageWidth);
 	int fullImageFinCol = (interestingArea->rangeEndMin % fullImageWidth);
 	int fullImageEndCol = (interestingArea->rangeEndMax % fullImageWidth);
-	printf("   column: entry = %d,\texit = %d\n", fullImageEntryCol, fullImageExitCol);
-	printf("   column: start = %d,\t fin = %d\n", fullImageStartCol, fullImageFinCol);
-	printf("   column: begin = %d,\t end = %d\n", fullImageBeginCol, fullImageEndCol);
 
 	int newImageWidth = fullImageEndCol - fullImageStartCol;
 	int newImageHeight = fullImageEndRow - fullImageStartRow;
-	printf(" size new: width = %d,\theight = %d\n", newImageWidth, newImageHeight);
 
 	int *partialImage = (int*)xmalloc((unsigned long)newImageWidth * (unsigned long)newImageHeight * sizeof(int));
 
 	int newImageRowOffsetFactor = fullImageEntryCol - fullImageStartCol;
 	int newImageRowOffset = newImageRowOffsetFactor * newImageWidth;
-	printf(" seam offset = %d (%dx)\n", newImageRowOffset, newImageRowOffsetFactor);
 
 	int currentPixel = 0;
 	int currentCol = 0;
@@ -180,16 +171,12 @@ static void savePartialImageVertical(int *image, struct areaOfInterest *interest
  */
 static void savePartialImageHorizontal(int *image, struct areaOfInterest *interestingArea)
 {
-	printf(" -----\n");
-
 	int fullImageSize = interestingArea->imageSize;
 	int fullImageWidth = interestingArea->imageWidth;
 	int fullImageHeight = interestingArea->imageHeight;
-	printf(" size old: width = %d,\theight = %d\n", fullImageWidth, fullImageHeight);
 
 	int fullImageStartCol = interestingArea->domainMin % fullImageWidth;
 	int fullImageEndCol = interestingArea->domainMax % fullImageWidth;
-	printf("   column: begin = %d,\tend = %d\n", fullImageStartCol, fullImageEndCol);
 
 	int fullImageEntryRow = (interestingArea->rangeBeginEntry / fullImageWidth);
 	int fullImageStartRow = (interestingArea->rangeBeginMin / fullImageWidth);
@@ -198,17 +185,14 @@ static void savePartialImageHorizontal(int *image, struct areaOfInterest *intere
 	int fullImageFinRow = (interestingArea->rangeEndMin / fullImageWidth);
 	// TODO: add one below?
 	int fullImageEndRow = (interestingArea->rangeEndMax / fullImageWidth);
-	printf("      row: begin = %d,\tend = %d\n", fullImageStartRow, fullImageEndRow);
 
 	int newImageWidth = fullImageEndCol - fullImageStartCol;
 	int newImageHeight = fullImageEndRow - fullImageStartRow;
-	printf(" size new: width = %d,\theight = %d\n", newImageWidth, newImageHeight);
 
 	int *partialImage = (int*)xmalloc((unsigned long)newImageWidth * (unsigned long)newImageHeight * sizeof(int));
 
 	int newImageRowOffsetFactor = fullImageEntryRow - fullImageStartRow;
 	int newImageRowOffset = newImageRowOffsetFactor * newImageWidth;
-	printf(" seam offset = %d (%dx)\n", newImageRowOffset, newImageRowOffsetFactor);
 
 	int currentPixel = 0;
 	int currentCol = 0;
@@ -662,7 +646,7 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 					infoAreaXYmax = deviationBeganAt;
 					printSeam(thisPath, imageOrig, imageWidth, imageHeight, direction, 128);
 					// printf("%d\t%d\t%d\t%d\t%d\t BEGIN \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
-					printf("BEGIN infoAreaXYmin: %d (%d), infoAreaXYmax: %d (%d)\n", ((infoAreaXYmin % imageSize) + 1), infoAreaXYmin, ((infoAreaXYmax % imageSize) + 1), infoAreaXYmax);
+					// printf("BEGIN infoAreaXYmin: %d (%d), infoAreaXYmax: %d (%d)\n", ((infoAreaXYmin % imageSize) + 1), infoAreaXYmin, ((infoAreaXYmax % imageSize) + 1), infoAreaXYmax);
 
 					//interestingArea->pathBegin = thisPath;
 					// cannot do this ^^^^ it's a reference, not values
@@ -698,7 +682,7 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 
 					printSeam(thisPath, imageOrig, imageWidth, imageHeight, direction, 68);
 					// printf("%d\t%d\t%d\t%d\t%d\t SKP \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
-					printf("  SKP infoAreaXYmin: %d (%d), infoAreaXYmax: %d (%d)\n", ((infoAreaXYmin % imageSize) + 1), infoAreaXYmin, ((infoAreaXYmax % imageSize) + 1), infoAreaXYmax);
+					// printf("  SKP infoAreaXYmin: %d (%d), infoAreaXYmax: %d (%d)\n", ((infoAreaXYmin % imageSize) + 1), infoAreaXYmin, ((infoAreaXYmax % imageSize) + 1), infoAreaXYmax);
 				}
 
 			// 
@@ -737,7 +721,7 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 
 							printSeam(thisPath, imageOrig, imageWidth, imageHeight, direction, 0);
 							// printf("%d\t%d\t%d\t%d\t%d\t END \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
-							printf("  END infoAreaXYmin: %d (%d), infoAreaXYmax: %d (%d)\n", ((infoAreaXYmin % imageSize) + 1), infoAreaXYmin, ((infoAreaXYmax % imageSize) + 1), infoAreaXYmax);
+							// printf("  END infoAreaXYmin: %d (%d), infoAreaXYmax: %d (%d)\n", ((infoAreaXYmin % imageSize) + 1), infoAreaXYmin, ((infoAreaXYmax % imageSize) + 1), infoAreaXYmax);
 
 							interestingArea->pathEnd = thisPath;
 							interestingArea->domainMin = infoAreaXYmin;
@@ -748,20 +732,8 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 							interestingArea->rangeEndMin = thisMinMax->min;
 							interestingArea->rangeEndMax = thisMinMax->max;
 							interestingArea->rangeSize = ((interestingArea->rangeEndMax / imageSize) + 1) - ((interestingArea->rangeBeginMin / imageSize) + 1);
-							printf("Range begin entry: %d (%d)\n", interestingArea->rangeBeginEntry, ((interestingArea->rangeBeginEntry / imageSize) + 1));
-							printf("Range begin min: %d (%d)\n", interestingArea->rangeBeginMin, ((interestingArea->rangeBeginMin / imageSize) + 1));
-							printf("Range begin max: %d (%d)\n", interestingArea->rangeBeginMax, ((interestingArea->rangeBeginMax / imageSize) + 1));
-							printf("Range end entry: %d (%d)\n", interestingArea->rangeEndEntry, ((interestingArea->rangeEndEntry / imageSize) + 1));
-							printf("Range end min: %d (%d)\n", interestingArea->rangeEndMin, ((interestingArea->rangeEndMin / imageSize) + 1));
-							printf("Range end max: %d (%d)\n", interestingArea->rangeEndMax, ((interestingArea->rangeEndMax / imageSize) + 1));
-							printf("Domain min: %d (%d)\n", interestingArea->domainMin, ((interestingArea->domainMin % imageSize) + 1));
-							printf("Domain max: %d (%d)\n", interestingArea->domainMax, ((interestingArea->domainMax % imageSize) + 1));
-							printf("Domain size: %d\n", interestingArea->domainSize);
-							printf("Range size: %d\n", interestingArea->rangeSize);
 
 							savePartialImage(imageOrig, interestingArea, direction);
-
-							printf("----- ----- ----- ----- ----- -----\n");
 
 							infoAreaXYmin = 0;
 							infoAreaXYmax = 0;
@@ -778,7 +750,7 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 
 								printSeam(thisPath, imageOrig, imageWidth, imageHeight, direction, 0);
 								// printf("%d\t%d\t%d\t%d\t%d\t HALT \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
-								printf(" HALT infoAreaXYmin: %d (%d), infoAreaXYmax: %d (%d)\n", ((infoAreaXYmin % imageSize) + 1), infoAreaXYmin, ((infoAreaXYmax % imageSize) + 1), infoAreaXYmax);
+								// printf(" HALT infoAreaXYmin: %d (%d), infoAreaXYmax: %d (%d)\n", ((infoAreaXYmin % imageSize) + 1), infoAreaXYmin, ((infoAreaXYmax % imageSize) + 1), infoAreaXYmax);
 
 							// 
 							// Assume we are at the begining of a jagged text line, keep going
@@ -802,7 +774,7 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 
 								printSeam(thisPath, imageOrig, imageWidth, imageHeight, direction, 72);
 								// printf("%d\t%d\t%d\t%d\t%d\t GAP \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
-								printf("  GAP infoAreaXYmin: %d (%d), infoAreaXYmax: %d (%d)\n", ((infoAreaXYmin % imageSize) + 1), infoAreaXYmin, ((infoAreaXYmax % imageSize) + 1), infoAreaXYmax);
+								// printf("  GAP infoAreaXYmin: %d (%d), infoAreaXYmax: %d (%d)\n", ((infoAreaXYmin % imageSize) + 1), infoAreaXYmin, ((infoAreaXYmax % imageSize) + 1), infoAreaXYmax);
 							}
 						}
 
@@ -830,14 +802,14 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 
 						printSeam(thisPath, imageOrig, imageWidth, imageHeight, direction, 64);
 						// printf("%d\t%d\t%d\t%d\t%d\t RUN \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
-						printf("  RUN infoAreaXYmin: %d (%d), infoAreaXYmax: %d (%d)\n", ((infoAreaXYmin % imageSize) + 1), infoAreaXYmin, ((infoAreaXYmax % imageSize) + 1), infoAreaXYmax);
+						// printf("  RUN infoAreaXYmin: %d (%d), infoAreaXYmax: %d (%d)\n", ((infoAreaXYmin % imageSize) + 1), infoAreaXYmin, ((infoAreaXYmax % imageSize) + 1), infoAreaXYmax);
 					}
 				
 				// 
 				// Not presently in a text line, just ignore and move on
 				// 
 				} else {
-					printf("%d\t%d\t%d\t%d\t%d\t --- \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
+					// printf("%d\t%d\t%d\t%d\t%d\t --- \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
 				}
 			}
 
