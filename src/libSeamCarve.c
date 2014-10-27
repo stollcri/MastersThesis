@@ -661,8 +661,8 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 					infoAreaXYmin = deviationEndedAt;
 					infoAreaXYmax = deviationBeganAt;
 					printSeam(thisPath, imageOrig, imageWidth, imageHeight, direction, 128);
-					printf("%d\t%d\t%d\t%d\t%d\t BEGIN \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
-					// printf("BEGIN infoAreaXYmin: %d (%d), infoAreaXYmax: %d (%d)\n", ((infoAreaXYmin % imageSize) + 1), infoAreaXYmin, ((infoAreaXYmax % imageSize) + 1), infoAreaXYmax);
+					// printf("%d\t%d\t%d\t%d\t%d\t BEGIN \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
+					printf("BEGIN infoAreaXYmin: %d (%d), infoAreaXYmax: %d (%d)\n", ((infoAreaXYmin % imageSize) + 1), infoAreaXYmin, ((infoAreaXYmax % imageSize) + 1), infoAreaXYmax);
 
 					//interestingArea->pathBegin = thisPath;
 					// cannot do this ^^^^ it's a reference, not values
@@ -680,16 +680,25 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 				// TODO: Consider making this the end of a text line
 				// 
 				} else {
-					if ((infoAreaXYmin == 0) || ((deviationEndedAt % imageSize) < (infoAreaXYmin % imageSize))) {
-						infoAreaXYmin = deviationEndedAt;
-					}
-					if ((infoAreaXYmax == 0) || ((deviationBeganAt % imageSize) > (infoAreaXYmax % imageSize))) {
-						infoAreaXYmax = deviationBeganAt;
+					if (direction == directionVertical) {
+						if ((infoAreaXYmin == 0) || ((deviationEndedAt / imageSize) < (infoAreaXYmin / imageSize))) {
+							infoAreaXYmin = deviationEndedAt;
+						}
+						if ((infoAreaXYmax == 0) || ((deviationBeganAt / imageSize) > (infoAreaXYmax / imageSize))) {
+							infoAreaXYmax = deviationBeganAt;
+						}
+					} else {
+						if ((infoAreaXYmin == 0) || ((deviationEndedAt % imageSize) < (infoAreaXYmin % imageSize))) {
+							infoAreaXYmin = deviationEndedAt;
+						}
+						if ((infoAreaXYmax == 0) || ((deviationBeganAt % imageSize) > (infoAreaXYmax % imageSize))) {
+							infoAreaXYmax = deviationBeganAt;
+						}
 					}
 
 					printSeam(thisPath, imageOrig, imageWidth, imageHeight, direction, 68);
-					printf("%d\t%d\t%d\t%d\t%d\t SKP \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
-					// printf("  SKP infoAreaXYmin: %d (%d), infoAreaXYmax: %d (%d)\n", ((infoAreaXYmin % imageSize) + 1), infoAreaXYmin, ((infoAreaXYmax % imageSize) + 1), infoAreaXYmax);
+					// printf("%d\t%d\t%d\t%d\t%d\t SKP \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
+					printf("  SKP infoAreaXYmin: %d (%d), infoAreaXYmax: %d (%d)\n", ((infoAreaXYmin % imageSize) + 1), infoAreaXYmin, ((infoAreaXYmax % imageSize) + 1), infoAreaXYmax);
 				}
 
 			// 
@@ -727,8 +736,8 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 							// }
 
 							printSeam(thisPath, imageOrig, imageWidth, imageHeight, direction, 0);
-							printf("%d\t%d\t%d\t%d\t%d\t END \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
-							// printf("  END infoAreaXYmin: %d (%d), infoAreaXYmax: %d (%d)\n", ((infoAreaXYmin % imageSize) + 1), infoAreaXYmin, ((infoAreaXYmax % imageSize) + 1), infoAreaXYmax);
+							// printf("%d\t%d\t%d\t%d\t%d\t END \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
+							printf("  END infoAreaXYmin: %d (%d), infoAreaXYmax: %d (%d)\n", ((infoAreaXYmin % imageSize) + 1), infoAreaXYmin, ((infoAreaXYmax % imageSize) + 1), infoAreaXYmax);
 
 							interestingArea->pathEnd = thisPath;
 							interestingArea->domainMin = infoAreaXYmin;
@@ -768,23 +777,32 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 								textLineDepth = 0;
 
 								printSeam(thisPath, imageOrig, imageWidth, imageHeight, direction, 0);
-								printf("%d\t%d\t%d\t%d\t%d\t HALT \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
-								// printf(" HALT infoAreaXYmin: %d (%d), infoAreaXYmax: %d (%d)\n", ((infoAreaXYmin % imageSize) + 1), infoAreaXYmin, ((infoAreaXYmax % imageSize) + 1), infoAreaXYmax);
+								// printf("%d\t%d\t%d\t%d\t%d\t HALT \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
+								printf(" HALT infoAreaXYmin: %d (%d), infoAreaXYmax: %d (%d)\n", ((infoAreaXYmin % imageSize) + 1), infoAreaXYmin, ((infoAreaXYmax % imageSize) + 1), infoAreaXYmax);
 
 							// 
 							// Assume we are at the begining of a jagged text line, keep going
 							// 
 							} else {
-								if ((infoAreaXYmin == 0) || ((deviationEndedAt % imageSize) < (infoAreaXYmin % imageSize))) {
-									infoAreaXYmin = deviationEndedAt;
-								}
-								if ((infoAreaXYmax == 0) || ((deviationBeganAt % imageSize) > (infoAreaXYmax % imageSize))) {
-									infoAreaXYmax = deviationBeganAt;
+								if (direction == directionVertical) {
+									if ((infoAreaXYmin == 0) || ((deviationEndedAt / imageSize) < (infoAreaXYmin / imageSize))) {
+										infoAreaXYmin = deviationEndedAt;
+									}
+									if ((infoAreaXYmax == 0) || ((deviationBeganAt / imageSize) > (infoAreaXYmax / imageSize))) {
+										infoAreaXYmax = deviationBeganAt;
+									}
+								} else {
+									if ((infoAreaXYmin == 0) || ((deviationEndedAt % imageSize) < (infoAreaXYmin % imageSize))) {
+										infoAreaXYmin = deviationEndedAt;
+									}
+									if ((infoAreaXYmax == 0) || ((deviationBeganAt % imageSize) > (infoAreaXYmax % imageSize))) {
+										infoAreaXYmax = deviationBeganAt;
+									}
 								}
 
 								printSeam(thisPath, imageOrig, imageWidth, imageHeight, direction, 72);
-								printf("%d\t%d\t%d\t%d\t%d\t GAP \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
-								// printf("  GAP infoAreaXYmin: %d (%d), infoAreaXYmax: %d (%d)\n", ((infoAreaXYmin % imageSize) + 1), infoAreaXYmin, ((infoAreaXYmax % imageSize) + 1), infoAreaXYmax);
+								// printf("%d\t%d\t%d\t%d\t%d\t GAP \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
+								printf("  GAP infoAreaXYmin: %d (%d), infoAreaXYmax: %d (%d)\n", ((infoAreaXYmin % imageSize) + 1), infoAreaXYmin, ((infoAreaXYmax % imageSize) + 1), infoAreaXYmax);
 							}
 						}
 
@@ -794,16 +812,25 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 					} else {
 						textLineDepth += 1;
 						
-						if ((infoAreaXYmin == 0) || ((deviationEndedAt % imageSize) < (infoAreaXYmin % imageSize))) {
-							infoAreaXYmin = deviationEndedAt;
-						}
-						if ((infoAreaXYmax == 0) || ((deviationBeganAt % imageSize) > (infoAreaXYmax % imageSize))) {
-							infoAreaXYmax = deviationBeganAt;
+						if (direction == directionVertical) {
+							if ((infoAreaXYmin == 0) || ((deviationEndedAt / imageSize) < (infoAreaXYmin / imageSize))) {
+								infoAreaXYmin = deviationEndedAt;
+							}
+							if ((infoAreaXYmax == 0) || ((deviationBeganAt / imageSize) > (infoAreaXYmax / imageSize))) {
+								infoAreaXYmax = deviationBeganAt;
+							}
+						} else {
+							if ((infoAreaXYmin == 0) || ((deviationEndedAt % imageSize) < (infoAreaXYmin % imageSize))) {
+								infoAreaXYmin = deviationEndedAt;
+							}
+							if ((infoAreaXYmax == 0) || ((deviationBeganAt % imageSize) > (infoAreaXYmax % imageSize))) {
+								infoAreaXYmax = deviationBeganAt;
+							}
 						}
 
 						printSeam(thisPath, imageOrig, imageWidth, imageHeight, direction, 64);
-						printf("%d\t%d\t%d\t%d\t%d\t RUN \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
-						// printf("  RUN infoAreaXYmin: %d (%d), infoAreaXYmax: %d (%d)\n", ((infoAreaXYmin % imageSize) + 1), infoAreaXYmin, ((infoAreaXYmax % imageSize) + 1), infoAreaXYmax);
+						// printf("%d\t%d\t%d\t%d\t%d\t RUN \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
+						printf("  RUN infoAreaXYmin: %d (%d), infoAreaXYmax: %d (%d)\n", ((infoAreaXYmin % imageSize) + 1), infoAreaXYmin, ((infoAreaXYmax % imageSize) + 1), infoAreaXYmax);
 					}
 				
 				// 
