@@ -420,7 +420,8 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 
 	// loop conditions depend upon the direction
 	if (direction == directionVertical) {
-		for (int i = ((imageWidth * imageHeight) - 1); i > ((imageWidth * imageHeight) - imageWidth - 1); --i) {
+		// for (int i = ((imageWidth * imageHeight) - 1); i > ((imageWidth * imageHeight) - imageWidth - 1); --i) {
+		for (int i = ((imageWidth * imageHeight) - 1 - imageWidth); i < ((imageWidth * imageHeight) - 1); i += 1) {
 			totalSeamValue += imageSeams[i]; 
 			
 			if (imageSeams[i] < minValue) {
@@ -441,7 +442,8 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 
 		imageSize = imageHeight;
 	} else {
-		for (int i = imageWidth; i < (imageWidth * imageHeight); i += imageWidth) {
+		// for (int i = imageWidth; i < (imageWidth * imageHeight); i += imageWidth) {
+		for (int i = (imageWidth - 1); i < (imageWidth * imageHeight); i += imageWidth) {
 			totalSeamValue += imageSeams[i]; 
 			
 			if (imageSeams[i] < minValue) {
