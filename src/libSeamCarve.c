@@ -10,41 +10,7 @@
 #include <limits.h>
 #include "libWrappers.c"
 #include "libResize.c"
-
-static inline int max(int a, int b)
-{
-	if (a > b) {
-		return a;
-	} else {
-		return b;
-	}
-}
-
-static inline int min(int a, int b)
-{
-	if (a < b) {
-		return a;
-	} else {
-		return b;
-	}
-}
-
-static inline int min3(int a, int b, int c)
-{
-	if (a < b) {
-		if (a < c) {
-			return a;
-		} else {
-			return c;
-		}
-	} else {
-		if (b < c) {
-			return b;
-		} else {
-			return c;
-		}
-	}
-}
+#include "libMinMax.c"
 
 struct minMax {
 	int min;
