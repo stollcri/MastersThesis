@@ -818,6 +818,7 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 			lastSeamDeviation = seamDeviation;
 		}
 	}
+	printf("-----\t-----\t-----\t-----\t-----\t-------\n");
 	return totalSeamValue;
 }
 
