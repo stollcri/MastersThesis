@@ -65,7 +65,9 @@ int main(int argc, char const *argv[])
 			case '?':
 				printf(PROGRAM_NAME " v" PROGRAM_VERS "\n");
 				printf(PROGRAM_COPY "\n\n");
-				printf("usage: sc [-v] source_PNG_file result_PNG_file\n");
+				printf("usage: sc [-d 1|2] [-v] source_PNG_file result_PNG_file\n");
+				printf("          '-d 1' is to force horizontal direction seams\n");
+				printf("          '-d 2' is to force vertical direction seams\n");
 				return 1;
 			default:
 				fprintf(stderr, "Unexpected argument character code: %c (0x%04x)\n", (char)c, c);
