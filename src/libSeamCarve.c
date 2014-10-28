@@ -926,50 +926,72 @@ static int findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight,
 static int *seamCarve(int *imageVector, int imageWidth, int forceDirection, int imageHeight)
 {
 	double imageScale = 0.25;
+	int imagePadding = 4;
+	int newImageWidth = getScaledSize(imageWidth, imageScale) + imagePadding + imagePadding;
+	int newImageHeight = getScaledSize(imageHeight, imageScale) + imagePadding + imagePadding;
 	int smallImageWidth = getScaledSize(imageWidth, imageScale);
 	int smallImageHeight = getScaledSize(imageHeight, imageScale);
 	int *smallImage = (int*)xmalloc((unsigned long)smallImageHeight * (unsigned long)smallImageWidth * sizeof(int));
 	resize(imageVector, imageWidth, imageHeight, smallImage, smallImageWidth, smallImageHeight);
 	
-	int *newImage = (int*)xmalloc((unsigned long)smallImageWidth * (unsigned long)smallImageHeight * sizeof(int));
-	int *newImage2 = (int*)xmalloc((unsigned long)smallImageWidth * (unsigned long)smallImageHeight * sizeof(int));
-	int *newImageEnergy = (int*)xmalloc((unsigned long)smallImageWidth * (unsigned long)smallImageHeight * sizeof(int));
+	int *newImage = (int*)xmalloc((unsigned long)newImageWidth * (unsigned long)newImageHeight * sizeof(int));
+	int *newImage2 = (int*)xmalloc((unsigned long)newImageWidth * (unsigned long)newImageHeight * sizeof(int));
+	int *newImageEnergy = (int*)xmalloc((unsigned long)newImageWidth * (unsigned long)newImageHeight * sizeof(int));
 	
-	int *newImageSeams = (int*)xmalloc((unsigned long)smallImageWidth * (unsigned long)smallImageHeight * sizeof(int));
-	int *newImageSeams2 = (int*)xmalloc((unsigned long)smallImageWidth * (unsigned long)smallImageHeight * sizeof(int));
+	int *newImageSeams = (int*)xmalloc((unsigned long)newImageWidth * (unsigned long)newImageHeight * sizeof(int));
+	int *newImageSeams2 = (int*)xmalloc((unsigned long)newImageWidth * (unsigned long)newImageHeight * sizeof(int));
 	
 	int currentPixel = 0;
+	int uncroppedPixel = 0;
 
+	int jj = 0;
+	int ii = 0;
 	// create an image of the original image's energies
-	for (int j = 0; j < smallImageHeight; ++j) {
-		for (int i = 0; i < smallImageWidth; ++i) {
-			currentPixel = (j * smallImageWidth) + i;
-			// mutable copy of the original image, to return the original image with seams shown
-			newImage[currentPixel] = smallImage[currentPixel];
-			newImage2[currentPixel] = smallImage[currentPixel];
-			// original energies of the original image, to return the energies with seams shown
-			newImageEnergy[currentPixel] = getPixelEnergySimple(smallImage, smallImageWidth, smallImageHeight, currentPixel, 1);
-			// top down energy seam data of the original image
-			newImageSeams[currentPixel] = newImageEnergy[currentPixel];
-			newImageSeams2[currentPixel] = newImageEnergy[currentPixel];
+	for (int j = 0; j < newImageHeight; ++j) {
+		for (int i = 0; i < newImageWidth; ++i) {
+			currentPixel = (j * newImageWidth) + i;
+			if ((j >= imagePadding) && (j < (imagePadding + smallImageHeight)) && (i >= imagePadding) && (i < (imagePadding + smallImageWidth))) {
+				uncroppedPixel = (jj * newImageWidth) + ii;
+				++ii;
+				if (ii >= newImageWidth) {
+					ii = 0;
+					++jj;
+				} 
+
+				
+				// mutable copy of the original image, to return the original image with seams shown
+				newImage[currentPixel] = smallImage[uncroppedPixel];
+				newImage2[currentPixel] = smallImage[uncroppedPixel];
+				// original energies of the original image, to return the energies with seams shown
+				newImageEnergy[currentPixel] = getPixelEnergySimple(newImage, newImageWidth, newImageHeight, currentPixel, 1);
+				// top down energy seam data of the original image
+				newImageSeams[currentPixel] = newImageEnergy[currentPixel];
+				newImageSeams2[currentPixel] = newImageEnergy[currentPixel];
+			} else {
+				newImage[currentPixel] = 255;
+				newImage2[currentPixel] = 255;
+				newImageEnergy[currentPixel] = 0;
+				newImageSeams[currentPixel] = 0;
+				newImageSeams2[currentPixel] = 0;
+			}
 		}
 	}
 
 	// DEBUG: To test each direction
 	if (forceDirection == 1) {
-		fillSeamMatrixHorizontal(newImageSeams2, smallImageWidth, smallImageHeight);
-		int horizontalSeamCost = findSeamsHorizontal(newImageSeams2, smallImageWidth, smallImageHeight, newImage2);
+		fillSeamMatrixHorizontal(newImageSeams2, newImageWidth, newImageHeight);
+		int horizontalSeamCost = findSeamsHorizontal(newImageSeams2, newImageWidth, newImageHeight, newImage2);
 		return newImage2;
 	} else if (forceDirection == 2) {
-		fillSeamMatrixVertical(newImageSeams, smallImageWidth, smallImageHeight);
-		int verticalSeamCost = findSeamsVertical(newImageSeams, smallImageWidth, smallImageHeight, newImage);
+		fillSeamMatrixVertical(newImageSeams, newImageWidth, newImageHeight);
+		int verticalSeamCost = findSeamsVertical(newImageSeams, newImageWidth, newImageHeight, newImage);
 		return newImage;
 	} else {
-		fillSeamMatrixVertical(newImageSeams, smallImageWidth, smallImageHeight);
-		fillSeamMatrixHorizontal(newImageSeams2, smallImageWidth, smallImageHeight);
+		fillSeamMatrixVertical(newImageSeams, newImageWidth, newImageHeight);
+		fillSeamMatrixHorizontal(newImageSeams2, newImageWidth, newImageHeight);
 
-		int verticalSeamCost = findSeamsVertical(newImageSeams, smallImageWidth, smallImageHeight, newImage);
-		int horizontalSeamCost = findSeamsHorizontal(newImageSeams2, smallImageWidth, smallImageHeight, newImage2);
+		int verticalSeamCost = findSeamsVertical(newImageSeams, newImageWidth, newImageHeight, newImage);
+		int horizontalSeamCost = findSeamsHorizontal(newImageSeams2, newImageWidth, newImageHeight, newImage2);
 		printf("Sum traversal cost of all seams: vertical = %d, horizontal = %d\n", verticalSeamCost, horizontalSeamCost);
 		
 		free(smallImage);
@@ -978,12 +1000,8 @@ static int *seamCarve(int *imageVector, int imageWidth, int forceDirection, int 
 		free(newImageSeams2);
 
 		if (horizontalSeamCost < verticalSeamCost) {
-			// return smallImage;
-			// return newImageSeams2;
 			return newImage2;
 		} else {
-			// return smallImage;
-			// return newImageSeams;
 			return newImage;
 		}
 	}
