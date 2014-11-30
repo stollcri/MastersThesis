@@ -125,9 +125,14 @@ static int *readPNGFile(char *filename, int *imageWidth, int *imageHeight, int v
 			n = (y * width) + x;
 			
 			if (aPixel >= 64) {
+				/*
 				greyPixel = rPixel * 0.2126;
 				greyPixel += gPixel * 0.7152;
 				greyPixel += bPixel * 0.0722;
+				*/
+				greyPixel = rPixel * 0.299;
+				greyPixel += gPixel * 0.587;
+				greyPixel += bPixel * 0.114;
 			} else {
 				greyPixel = 255;
 			}
