@@ -276,6 +276,66 @@ static int getPixelEnergySimple(int *imageVector, int imageWidth, int imageHeigh
 	return min((yDif + xDif), 255);
 }
 
+static int getPixelEnergySobel(int *imageVector, int imageWidth, int imageHeight, int currentPixel)
+{
+	int pixelDepth = 1;
+    int imageByteWidth = imageWidth * pixelDepth;
+    int currentCol = currentPixel % imageByteWidth;
+    int p1, p2, p3, p4, p5, p6, p7, p8, p9;
+    
+    // get pixel locations within the image array
+    // image border pixels have undefined (zero) energy
+    if ((currentPixel > imageByteWidth) &&
+        (currentPixel < (imageByteWidth * (imageHeight - 1))) &&
+        (currentCol > 0) &&
+        (currentCol < (imageByteWidth - 4))) {
+        p1 = currentPixel - imageByteWidth - pixelDepth;
+        p2 = currentPixel - imageByteWidth;
+        p3 = currentPixel - imageByteWidth + pixelDepth;
+        
+        p4 = currentPixel - pixelDepth;
+        p5 = currentPixel;
+        p6 = currentPixel + pixelDepth;
+        
+        p7 = currentPixel + imageByteWidth - pixelDepth;
+        p8 = currentPixel + imageByteWidth;
+        p9 = currentPixel + imageByteWidth + pixelDepth;
+    } else {
+        // TODO: consider attempting to evaluate border pixels
+        return 33; // zero and INT_MAX are significant, so return 1
+    }
+    
+    // get the pixel values from the image array
+    int p1val = imageVector[p1];
+    int p2val = imageVector[p2];
+    int p3val = imageVector[p3];
+    
+    int p4val = imageVector[p4];
+    int p5val = imageVector[p5];
+    int p6val = imageVector[p6];
+
+    int p7val = imageVector[p7];
+    int p8val = imageVector[p8];
+    int p9val = imageVector[p9];
+    
+    // apply the sobel filter
+    int sobelX = (p3val + (p6val + p6val) + p9val - p1val - (p4val + p4val) - p7val);
+    int sobelY = (p1val + (p2val + p2val) + p3val - p7val - (p8val + p8val) - p9val);
+
+    // bounded gradient magnitude
+    return min(max((int)(sqrt((sobelX * sobelX) + (sobelY * sobelY))/2), 0), 255);
+
+    // alt method - laplacian
+    // double sobelX = p5val + p5val + p5val + p5val - p2val - p4val - p6val - p8val;
+    // return min((255-sobelX), 255);
+
+    // alt method - gradient magnitude
+    // double sobelX = p6val - p4val;
+    // double sobelY = p8val - p2val;
+    // return min((sobelX + sobelY), 255);
+}
+
+
 static struct minMax *findSeamMinMax(int *seamPath, int imageWidth, int imageHeight, int direction)
 {
 	struct minMax *results = (struct minMax*)xmalloc(sizeof(struct minMax));
@@ -913,7 +973,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int forceDirection, int 
 
 	int jj = 0;
 	int ii = 0;
-	// create an image of the original image's energies
+	
 	for (int j = 0; j < newImageHeight; ++j) {
 		for (int i = 0; i < newImageWidth; ++i) {
 			currentPixel = (j * newImageWidth) + i;
@@ -929,21 +989,35 @@ static int *seamCarve(int *imageVector, int imageWidth, int forceDirection, int 
 				// mutable copy of the original image, to return the original image with seams shown
 				newImage[currentPixel] = smallImage[uncroppedPixel];
 				newImage2[currentPixel] = smallImage[uncroppedPixel];
+			} else {
+				newImage[currentPixel] = 255;
+				newImage2[currentPixel] = 255;
+			}
+		}
+	}
+
+	jj = 0;
+	ii = 0;
+
+	// create an image of the original image's energies
+	for (int j = 0; j < newImageHeight; ++j) {
+		for (int i = 0; i < newImageWidth; ++i) {
+			currentPixel = (j * newImageWidth) + i;
+			if ((j >= imagePadding) && (j < (imagePadding + smallImageHeight)) && (i >= imagePadding) && (i < (imagePadding + smallImageWidth))) {
 				// original energies of the original image, to return the energies with seams shown
-				newImageEnergy[currentPixel] = getPixelEnergySimple(newImage, newImageWidth, newImageHeight, currentPixel, 1);
+				//newImageEnergy[currentPixel] = getPixelEnergySimple(newImage, newImageWidth, newImageHeight, currentPixel, 1);
+				newImageEnergy[currentPixel] = getPixelEnergySobel(newImage, newImageWidth, newImageHeight, currentPixel);
 				// top down energy seam data of the original image
 				newImageSeams[currentPixel] = newImageEnergy[currentPixel];
 				newImageSeams2[currentPixel] = newImageEnergy[currentPixel];
 			} else {
-				newImage[currentPixel] = 255;
-				newImage2[currentPixel] = 255;
 				newImageEnergy[currentPixel] = 0;
 				newImageSeams[currentPixel] = 0;
 				newImageSeams2[currentPixel] = 0;
 			}
 		}
 	}
-
+	
 	// DEBUG: To test each direction
 	if (forceDirection == 1) {
 		fillSeamMatrixHorizontal(newImageSeams2, newImageWidth, newImageHeight);
