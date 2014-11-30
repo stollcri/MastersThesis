@@ -673,7 +673,7 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 					infoAreaXYmin = deviationEndedAt;
 					infoAreaXYmax = deviationBeganAt;
 					printSeam(thisPath, imageOrig, imageWidth, imageHeight, direction, 128);
-					printf("%d\t%d\t%d\t%d\t%d\t BEGIN \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
+					// printf("%d\t%d\t%d\t%d\t%d\t BEGIN \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
 					// printf("BEGIN infoAreaXYmin: %d (%d), infoAreaXYmax: %d (%d)\n", ((infoAreaXYmin % imageSize) + 1), infoAreaXYmin, ((infoAreaXYmax % imageSize) + 1), infoAreaXYmax);
 
 					//interestingArea->pathBegin = thisPath;
@@ -709,7 +709,7 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 					}
 
 					printSeam(thisPath, imageOrig, imageWidth, imageHeight, direction, 68);
-					printf("%d\t%d\t%d\t%d\t%d\t SKP \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
+					// printf("%d\t%d\t%d\t%d\t%d\t SKP \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
 					// printf("  SKP infoAreaXYmin: %d (%d), infoAreaXYmax: %d (%d)\n", ((infoAreaXYmin % imageSize) + 1), infoAreaXYmin, ((infoAreaXYmax % imageSize) + 1), infoAreaXYmax);
 				}
 
@@ -748,7 +748,7 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 							// }
 
 							printSeam(thisPath, imageOrig, imageWidth, imageHeight, direction, 0);
-							printf("%d\t%d\t%d\t%d\t%d\t END \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
+							// printf("%d\t%d\t%d\t%d\t%d\t END \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
 							// printf("  END infoAreaXYmin: %d (%d), infoAreaXYmax: %d (%d)\n", ((infoAreaXYmin % imageSize) + 1), infoAreaXYmin, ((infoAreaXYmax % imageSize) + 1), infoAreaXYmax);
 
 							interestingArea->pathEnd = thisPath;
@@ -777,7 +777,7 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 								textLineDepth = 0;
 
 								printSeam(thisPath, imageOrig, imageWidth, imageHeight, direction, 0);
-								printf("%d\t%d\t%d\t%d\t%d\t HALT \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
+								// printf("%d\t%d\t%d\t%d\t%d\t HALT \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
 								// printf(" HALT infoAreaXYmin: %d (%d), infoAreaXYmax: %d (%d)\n", ((infoAreaXYmin % imageSize) + 1), infoAreaXYmin, ((infoAreaXYmax % imageSize) + 1), infoAreaXYmax);
 
 							// 
@@ -801,7 +801,7 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 								}
 
 								printSeam(thisPath, imageOrig, imageWidth, imageHeight, direction, 72);
-								printf("%d\t%d\t%d\t%d\t%d\t GAP \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
+								// printf("%d\t%d\t%d\t%d\t%d\t GAP \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
 								// printf("  GAP infoAreaXYmin: %d (%d), infoAreaXYmax: %d (%d)\n", ((infoAreaXYmin % imageSize) + 1), infoAreaXYmin, ((infoAreaXYmax % imageSize) + 1), infoAreaXYmax);
 							}
 						}
@@ -829,7 +829,7 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 						}
 
 						printSeam(thisPath, imageOrig, imageWidth, imageHeight, direction, 64);
-						printf("%d\t%d\t%d\t%d\t%d\t RUN \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
+						// printf("%d\t%d\t%d\t%d\t%d\t RUN \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
 						// printf("  RUN infoAreaXYmin: %d (%d), infoAreaXYmax: %d (%d)\n", ((infoAreaXYmin % imageSize) + 1), infoAreaXYmin, ((infoAreaXYmax % imageSize) + 1), infoAreaXYmax);
 					}
 				
@@ -837,14 +837,14 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 				// Not presently in a text line, just ignore and move on
 				// 
 				} else {
-					printf("%d\t%d\t%d\t%d\t%d\t --- \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
+					// printf("%d\t%d\t%d\t%d\t%d\t --- \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
 				}
 			}
 
 			lastSeamDeviation = seamDeviation;
 		}
 	}
-	printf("-----\t-----\t-----\t-----\t-----\t-------\n");
+	// printf("-----\t-----\t-----\t-----\t-----\t-------\n");
 	return totalSeamValue;
 }
 
