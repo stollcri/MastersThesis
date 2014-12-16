@@ -25,14 +25,16 @@ static void carve(char *sourceFile, char *resultFile, int forceDirection, int ve
 	}
 
 	int *newImageVector;
-	newImageVector = seamCarve(imageVector, imageWidth, forceDirection, imageHeight);
+	newImageVector = seamCarve(imageVector, imageWidth, imageHeight, forceDirection);
 
+	/*
 	double imageScale = 1;//0.125;
 	int imagePadding = 4;
 	int newWidth = getScaledSize(imageWidth, imageScale) + imagePadding + imagePadding;
 	int newHeight = getScaledSize(imageHeight, imageScale) + imagePadding + imagePadding;
 	write_png_file(newImageVector, newWidth, newHeight, resultFile);
-	//write_png_file(newImageVector, imageWidth, imageHeight, resultFile);
+	*/
+	write_png_file(newImageVector, imageWidth, imageHeight, resultFile);
 }
 
 int main(int argc, char const *argv[])
