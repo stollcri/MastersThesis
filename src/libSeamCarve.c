@@ -8,9 +8,11 @@
 
 #include <stdio.h>
 #include <limits.h>
+#include <string.h>
 #include "libWrappers.c"
 #include "libResize.c"
 #include "libMinMax.c"
+#include "itoa.c"
 
 struct minMax {
 	int min;
@@ -39,6 +41,12 @@ struct areaOfInterest {
 	int *pathBegin;
 	int *pathEnd;
 };
+
+static void addPixelToPartialImage(int *image, int pixelValue, int pixelCol, int pixelRow, int pixelOffset, int fullImageWidth)
+{
+	int partialImagePixel = ((pixelRow * fullImageWidth) + pixelCol) - pixelOffset;
+	image[partialImagePixel] = pixelValue;
+}
 
 static void savePartialImageVertical(int *image, struct areaOfInterest *interestingArea)
 {
@@ -76,15 +84,13 @@ static void savePartialImageVertical(int *image, struct areaOfInterest *interest
 		currentPixel = seamPath[i];
 		currentRow = currentPixel / fullImageWidth;
 		
-		// printf(" %d\t %d\t %d\t %d \n", i, currentCol, fullImageStartCol, fullImageEndCol);
 		// only deal with pixels within the domain
 		if ((currentRow > fullImageStartRow) && (currentRow < fullImageEndRow)) {
-			// printf(" %d\t current: pix = %d, col = %d, row %d\n", i, currentPixel, currentCol, currentRow);
+			currentCol = currentPixel % fullImageWidth;
 			image[currentPixel] -= 192;
 			image[currentPixel] = max(image[currentPixel], 0);
 
 			// back fill pixels below current pixel
-			currentCol = currentPixel % fullImageWidth;
 			if (currentCol < fullImageEntryCol) {
 				// for (int pix = currentRow; pix < fullImageEntryRow; ++pix) {
 				for (int pix = currentCol; pix < fullImageEntryCol; ++pix) {
@@ -156,9 +162,10 @@ static void savePartialImageHorizontal(int *image, struct areaOfInterest *intere
 	int newImageHeight = fullImageEndRow - fullImageStartRow;
 
 	int *partialImage = (int*)xmalloc((unsigned long)newImageWidth * (unsigned long)newImageHeight * sizeof(int));
+	int partialImageOffset = ((fullImageWidth * fullImageHeight) - (newImageWidth * newImageHeight)) / 2;
 
-	int newImageRowOffsetFactor = fullImageEntryRow - fullImageStartRow;
-	int newImageRowOffset = newImageRowOffsetFactor * newImageWidth;
+	// int newImageRowOffsetFactor = fullImageEntryRow - fullImageStartRow;
+	// int newImageRowOffset = newImageRowOffsetFactor * newImageWidth;
 
 	int currentPixel = 0;
 	int currentCol = 0;
@@ -172,18 +179,18 @@ static void savePartialImageHorizontal(int *image, struct areaOfInterest *intere
 		currentPixel = seamPath[i];
 		currentCol = currentPixel % fullImageWidth;
 		
-		// printf(" %d\t %d\t %d\t %d \n", i, currentCol, fullImageStartCol, fullImageEndCol);
 		// only deal with pixels within the domain
 		if ((currentCol > fullImageStartCol) && (currentCol < fullImageEndCol)) {
-			// printf(" %d\t current: pix = %d, col = %d, row %d\n", i, currentPixel, currentCol, currentRow);
+			currentRow = currentPixel / fullImageWidth;
+//			addPixelToPartialImage(partialImage, image[currentPixel], currentCol, currentRow, partialImageOffset, fullImageWidth);
 			image[currentPixel] -= 192;
 			image[currentPixel] = max(image[currentPixel], 0);
 
 			// back fill pixels below current pixel
-			currentRow = currentPixel / fullImageWidth;
 			if (currentRow < fullImageEntryRow) {
 				for (int pix = currentRow; pix < fullImageEntryRow; ++pix) {
 					currentPixel += fullImageWidth;
+//					addPixelToPartialImage(partialImage, image[currentPixel], currentCol, currentRow, partialImageOffset, fullImageWidth);
 					image[currentPixel] -= 192;
 					image[currentPixel] = max(image[currentPixel], 0);
 				}
@@ -196,6 +203,7 @@ static void savePartialImageHorizontal(int *image, struct areaOfInterest *intere
 		bodyPixelsStart = (i * fullImageWidth) + fullImageStartCol + 1;
 
 		for (int j = 0; j < (newImageWidth - 1); ++j) {
+//			addPixelToPartialImage(partialImage, image[currentPixel], currentCol, currentRow, partialImageOffset, fullImageWidth);
 			image[bodyPixelsStart] -= 192;
 			image[bodyPixelsStart] = max(image[bodyPixelsStart], 0);
 			++bodyPixelsStart;
@@ -209,20 +217,44 @@ static void savePartialImageHorizontal(int *image, struct areaOfInterest *intere
 		currentCol = currentPixel % fullImageWidth;
 
 		if ((currentCol > fullImageStartCol) && (currentCol < fullImageEndCol)) {
-			//printf(" %d\t current: pix = %d, col = %d, row %d\n", i, currentPixel, currentCol, currentRow);
+			currentRow = currentPixel / fullImageWidth;
+//			addPixelToPartialImage(partialImage, image[currentPixel], currentCol, currentRow, partialImageOffset, fullImageWidth);
 			image[currentPixel] -= 192;
 			image[currentPixel] = max(image[currentPixel], 0);
 
-			currentRow = currentPixel / fullImageWidth;
 			if (currentRow > fullImageExitRow) {
 				for (int pix = currentRow; pix > fullImageExitRow; --pix) {
 					currentPixel -= fullImageWidth;
+//					addPixelToPartialImage(partialImage, image[currentPixel], currentCol, currentRow, partialImageOffset, fullImageWidth);
 					image[currentPixel] -= 192;
 					image[currentPixel] = max(image[currentPixel], 0);
 				}
 			}
 		}
 	}
+	/*
+	char resultFile[64];
+	char resultFileA[16];
+	char resultFileB[16];
+	char *fileNameMin = (char*)xmalloc((unsigned long)newImageWidth * sizeof(char));
+	char *fileNameMax = (char*)xmalloc((unsigned long)newImageWidth * sizeof(char));
+	fileNameMin = itoa(interestingArea->domainMin);
+	strcpy(resultFileA, fileNameMin);
+	fileNameMax = itoa(interestingArea->domainMax);
+	strcpy(resultFileB, fileNameMax);
+	// if (fileNameMin) free(fileNameMin);
+	// if (fileNameMax) free(fileNameMax);
+	// printf("%d, %d => %s, %s\n", interestingArea->domainMin, interestingArea->domainMax, resultFileA, resultFileB);
+
+	strcpy(resultFile, "./tst/out_part_");
+	strcat(resultFile, resultFileA);
+	strcat(resultFile, "-");
+	strcat(resultFile, resultFileB);
+	strcat(resultFile, ".png");
+	
+	printf("%s\n", resultFile);
+	write_png_file(partialImage, newImageWidth, newImageHeight, resultFile);
+	*/
 }
 
 static void savePartialImage(int *image, struct areaOfInterest *interestingArea, int direction)
@@ -282,7 +314,7 @@ static int getPixelEnergySobel(int *imageVector, int imageWidth, int imageHeight
     int imageByteWidth = imageWidth * pixelDepth;
     int currentCol = currentPixel % imageByteWidth;
     int p1, p2, p3, p4, p5, p6, p7, p8, p9;
-    
+
     // get pixel locations within the image array
     // image border pixels have undefined (zero) energy
     if ((currentPixel > imageByteWidth) &&
@@ -415,7 +447,7 @@ static void printSeam(int *seamPath, int *image, int imageWidth, int imageHeight
 //
 // TODO: Refactor, this function is a beast
 // 
-static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imageOrig, int direction)
+static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imageOrig, int direction, int *imageSeamCounts)
 {
 	// TODO: create macro definition
 	int directionVertical = 0;
@@ -456,6 +488,7 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 			}
 			// TODO: break if min value is zero?
 		}
+		printf("v: %i \n", totalSeamValue);
 
 		loopBeg = (imageWidth * imageHeight) - 1 - imageWidth;
 		loopEnd = (imageWidth * imageHeight) - 1;
@@ -555,6 +588,10 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 				// add pixel to the current path
 				thisPath[j] = minValueLocation;
 				tookCenterPixelFrom = 0;
+
+				if (imageSeamCounts[minValueLocation] < (255-32)) {
+					imageSeamCounts[minValueLocation] += 32;
+				}
 
 				// get the possible next pixles
 				if (direction == directionVertical) {
@@ -780,6 +817,21 @@ static int findSeams(int *imageSeams, int imageWidth, int imageHeight, int *imag
 								// printf("%d\t%d\t%d\t%d\t%d\t HALT \n", lastSeamDeviation, lastSeamDeviationABS, seamDeviation, seamDeviationABS, textLineDepth);
 								// printf(" HALT infoAreaXYmin: %d (%d), infoAreaXYmax: %d (%d)\n", ((infoAreaXYmin % imageSize) + 1), infoAreaXYmin, ((infoAreaXYmax % imageSize) + 1), infoAreaXYmax);
 
+								interestingArea->pathEnd = thisPath;
+								interestingArea->domainMin = infoAreaXYmin;
+								interestingArea->domainMax = infoAreaXYmax;
+								interestingArea->domainSize = ((interestingArea->domainMax % imageSize) + 1) - ((interestingArea->domainMin % imageSize) + 1);
+								interestingArea->rangeEndEntry = thisPath[0];
+								thisMinMax = findSeamMinMax(thisPath, imageWidth, imageHeight, direction);
+								interestingArea->rangeEndMin = thisMinMax->min;
+								interestingArea->rangeEndMax = thisMinMax->max;
+								interestingArea->rangeSize = ((interestingArea->rangeEndMax / imageSize) + 1) - ((interestingArea->rangeBeginMin / imageSize) + 1);
+
+								savePartialImage(imageOrig, interestingArea, direction);
+
+								infoAreaXYmin = 0;
+								infoAreaXYmax = 0;
+
 							// 
 							// Assume we are at the begining of a jagged text line, keep going
 							// 
@@ -880,21 +932,27 @@ static void setPixelPathVertical(int *imageSeams, int imageWidth, int currentPix
 	imageSeams[currentPixel] += newValue;
 }
 
-static void fillSeamMatrixVertical(int *imageSeams, int imageWidth, int imageHeight)
+static int fillSeamMatrixVertical(int *imageSeams, int imageWidth, int imageHeight)
 {
+	int result = 0;
 	int currentPixel = 0;
 	// do not process the first row, start with j=1
 	for (int j = 1; j < imageHeight; ++j) {
 		for (int i = 0; i < imageWidth; ++i) {
 			currentPixel = (j * imageWidth) + i;
 			setPixelPathVertical(imageSeams, imageWidth, currentPixel, i);
+
+			if (imageSeams[currentPixel] != 0) {
+				++result;
+			}
 		}
 	}
+	return result;
 }
 
-static int findSeamsVertical(int *imageSeams, int imageWidth, int imageHeight, int *imageOrig)
+static int findSeamsVertical(int *imageSeams, int imageWidth, int imageHeight, int *imageOrig, int *imageSeamCounts)
 {
-	return findSeams(imageSeams, imageWidth, imageHeight, imageOrig, 0);
+	return findSeams(imageSeams, imageWidth, imageHeight, imageOrig, 0, imageSeamCounts);
 }
 
 static void setPixelPathHorizontal(int *imageSeams, int imageWidth, int imageHeight, int currentPixel, int currentCol)
@@ -932,8 +990,9 @@ static void setPixelPathHorizontal(int *imageSeams, int imageWidth, int imageHei
 	}
 }
 
-static void fillSeamMatrixHorizontal(int *imageSeams, int imageWidth, int imageHeight)
+static int fillSeamMatrixHorizontal(int *imageSeams, int imageWidth, int imageHeight)
 {
+	int result = 0;
 	int currentPixel = 0;
 	// do not process the first row, start with j=1
 	// must be in reverse order from verticle seam, calulate colums as we move across (top down, left to right)
@@ -941,18 +1000,23 @@ static void fillSeamMatrixHorizontal(int *imageSeams, int imageWidth, int imageH
 		for (int j = 1; j < imageHeight; ++j) {
 			currentPixel = (j * imageWidth) + i;
 			setPixelPathHorizontal(imageSeams, imageWidth, imageHeight, currentPixel, i);
+
+			if (imageSeams[currentPixel] != 0) {
+				++result;
+			}
 		}
 	}
+	return result;
 }
 
-static int findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight, int *imageOrig)
+static int findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight, int *imageOrig, int *imageSeamCounts)
 {
-	return findSeams(imageSeams, imageWidth, imageHeight, imageOrig, 1);
+	return findSeams(imageSeams, imageWidth, imageHeight, imageOrig, 1, imageSeamCounts);
 }
 
 static int *seamCarve(int *imageVector, int imageWidth, int forceDirection, int imageHeight)
 {
-	double imageScale = 0.25;
+	double imageScale = 1;//0.125;
 	int imagePadding = 4;
 	int newImageWidth = getScaledSize(imageWidth, imageScale) + imagePadding + imagePadding;
 	int newImageHeight = getScaledSize(imageHeight, imageScale) + imagePadding + imagePadding;
@@ -967,6 +1031,9 @@ static int *seamCarve(int *imageVector, int imageWidth, int forceDirection, int 
 	
 	int *newImageSeams = (int*)xmalloc((unsigned long)newImageWidth * (unsigned long)newImageHeight * sizeof(int));
 	int *newImageSeams2 = (int*)xmalloc((unsigned long)newImageWidth * (unsigned long)newImageHeight * sizeof(int));
+
+	int *imageSeamCounts = (int*)xmalloc((unsigned long)newImageWidth * (unsigned long)newImageHeight * sizeof(int));
+	int *imageSeamCounts2 = (int*)xmalloc((unsigned long)newImageWidth * (unsigned long)newImageHeight * sizeof(int));
 	
 	int currentPixel = 0;
 	int uncroppedPixel = 0;
@@ -993,11 +1060,9 @@ static int *seamCarve(int *imageVector, int imageWidth, int forceDirection, int 
 				newImage[currentPixel] = 255;
 				newImage2[currentPixel] = 255;
 			}
+			imageSeamCounts[currentPixel] = 0;
 		}
 	}
-
-	jj = 0;
-	ii = 0;
 
 	// create an image of the original image's energies
 	for (int j = 0; j < newImageHeight; ++j) {
@@ -1021,28 +1086,36 @@ static int *seamCarve(int *imageVector, int imageWidth, int forceDirection, int 
 	// DEBUG: To test each direction
 	if (forceDirection == 1) {
 		fillSeamMatrixHorizontal(newImageSeams2, newImageWidth, newImageHeight);
-		int horizontalSeamCost = findSeamsHorizontal(newImageSeams2, newImageWidth, newImageHeight, newImage2);
+		int horizontalSeamCost = findSeamsHorizontal(newImageSeams2, newImageWidth, newImageHeight, newImage2, imageSeamCounts2);
 		return newImage2;
 	} else if (forceDirection == 2) {
 		fillSeamMatrixVertical(newImageSeams, newImageWidth, newImageHeight);
-		int verticalSeamCost = findSeamsVertical(newImageSeams, newImageWidth, newImageHeight, newImage);
+		int verticalSeamCost = findSeamsVertical(newImageSeams, newImageWidth, newImageHeight, newImage, imageSeamCounts);
 		return newImage;
 	} else {
-		fillSeamMatrixVertical(newImageSeams, newImageWidth, newImageHeight);
-		fillSeamMatrixHorizontal(newImageSeams2, newImageWidth, newImageHeight);
+		int verticalSeamCost = fillSeamMatrixVertical(newImageSeams, newImageWidth, newImageHeight);
+		int horizontalSeamCost = fillSeamMatrixHorizontal(newImageSeams2, newImageWidth, newImageHeight);
 
-		int verticalSeamCost = findSeamsVertical(newImageSeams, newImageWidth, newImageHeight, newImage);
-		int horizontalSeamCost = findSeamsHorizontal(newImageSeams2, newImageWidth, newImageHeight, newImage2);
+		findSeamsVertical(newImageSeams, newImageWidth, newImageHeight, newImage, imageSeamCounts);
+		findSeamsHorizontal(newImageSeams2, newImageWidth, newImageHeight, newImage2, imageSeamCounts2);
 		printf("Sum traversal cost of all seams: vertical = %d, horizontal = %d\n", verticalSeamCost, horizontalSeamCost);
-		
+		/*
 		free(smallImage);
 		free(newImageEnergy);
 		free(newImageSeams);
 		free(newImageSeams2);
+		*/
+		//return newImageEnergy;
 
 		if (horizontalSeamCost < verticalSeamCost) {
+			//return newImageSeams2;
+			//return newImageEnergy;
+			return imageSeamCounts2;
 			return newImage2;
 		} else {
+			//return newImageSeams;
+			//return newImageEnergy;
+			return imageSeamCounts;
 			return newImage;
 		}
 	}

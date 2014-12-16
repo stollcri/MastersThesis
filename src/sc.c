@@ -27,7 +27,7 @@ static void carve(char *sourceFile, char *resultFile, int forceDirection, int ve
 	int *newImageVector;
 	newImageVector = seamCarve(imageVector, imageWidth, forceDirection, imageHeight);
 
-	double imageScale = 0.25;
+	double imageScale = 1;//0.125;
 	int imagePadding = 4;
 	int newWidth = getScaledSize(imageWidth, imageScale) + imagePadding + imagePadding;
 	int newHeight = getScaledSize(imageHeight, imageScale) + imagePadding + imagePadding;
