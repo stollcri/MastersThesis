@@ -303,11 +303,18 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int for
 	for (int j = 0; j < imageHeight; ++j) {
 		for (int i = 0; i < imageWidth; ++i) {
 			currentPixel = (j * imageWidth) + i;
-			workingImageH[currentPixel].gaussA = getPixelGaussian(workingImageH, imageWidth, imageHeight, 1, currentPixel, 10);
-			workingImageH[currentPixel].gaussB = getPixelGaussian(workingImageH, imageWidth, imageHeight, 1, currentPixel, 14);
-
+			workingImageH[currentPixel].gaussA = getPixelGaussian5x5(workingImageH, imageWidth, imageHeight, 1, currentPixel, 10);
+			workingImageH[currentPixel].gaussB = getPixelGaussian5x5(workingImageH, imageWidth, imageHeight, 1, currentPixel, 14);
 			workingImageV[currentPixel].gaussA = workingImageH[currentPixel].gaussA;
 			workingImageV[currentPixel].gaussB = workingImageH[currentPixel].gaussB;
+
+			// also grab sobel energy
+			/*
+			workingImageH[currentPixel].sobelA = getPixelEnergySobel(workingImageH, imageWidth, imageHeight, currentPixel);
+			workingImageH[currentPixel].sobelB = workingImageH[currentPixel].sobelA;
+			workingImageV[currentPixel].sobelA = workingImageH[currentPixel].sobelB;
+			workingImageV[currentPixel].sobelB = workingImageV[currentPixel].gaussA;
+			*/
 		}
 	}
 
@@ -356,6 +363,9 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int for
 		for (int j = 0; j < imageHeight; ++j) {
 			for (int i = 0; i < imageWidth; ++i) {
 				currentPixel = (j * imageWidth) + i;
+				//resultImage[currentPixel] = workingImageH[currentPixel].energy;
+				//resultImage[currentPixel] = (255 - workingImageV[currentPixel].bright) + workingImageV[currentPixel].sobelA;
+
 				resultImage[currentPixel] = workingImageH[currentPixel].usecount + workingImageV[currentPixel].usecount;
 				//resultImage[currentPixel] = (workingImageH[currentPixel].usecount + workingImageV[currentPixel].usecount) / 2;
 				/*
