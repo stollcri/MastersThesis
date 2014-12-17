@@ -304,7 +304,19 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int for
 	for (int j = 0; j < imageHeight; ++j) {
 		for (int i = 0; i < imageWidth; ++i) {
 			currentPixel = (j * imageWidth) + i;
-			workingImageH[currentPixel].energy = getPixelEnergySobel(workingImageH, imageWidth, imageHeight, currentPixel);
+			workingImageH[currentPixel].gaussA = getPixelGaussian(workingImageH, imageWidth, imageHeight, 1, currentPixel, 10);
+			workingImageH[currentPixel].gaussB = getPixelGaussian(workingImageH, imageWidth, imageHeight, 1, currentPixel, 14);
+
+			workingImageV[currentPixel].gaussA = workingImageH[currentPixel].gaussA;
+			workingImageV[currentPixel].gaussB = workingImageH[currentPixel].gaussB;
+		}
+	}
+
+	for (int j = 0; j < imageHeight; ++j) {
+		for (int i = 0; i < imageWidth; ++i) {
+			currentPixel = (j * imageWidth) + i;
+			//workingImageH[currentPixel].energy = getPixelEnergySobel(workingImageH, imageWidth, imageHeight, currentPixel);
+			workingImageH[currentPixel].energy = getPixelEnergyDoG(workingImageH, currentPixel);
 			workingImageH[currentPixel].seamval = workingImageH[currentPixel].energy;
 
 			workingImageV[currentPixel].energy = workingImageH[currentPixel].energy;

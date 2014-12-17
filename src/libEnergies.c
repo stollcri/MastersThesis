@@ -103,15 +103,7 @@ static int getPixelEnergySobel(struct pixel *imageVector, int imageWidth, int im
     // return min((sobelX + sobelY), 255);
 }
 
-
-
-/*
-static double getGreyValue(double r, double g, double b)
-{
-    return ((r * COLOR_TO_GREY_FACTOR_R) + (g * COLOR_TO_GREY_FACTOR_G) + (b * COLOR_TO_GREY_FACTOR_B));
-}
-
-static int getPixelGaussian(unsigned char *imageVector, int imageWidth, int imageHeight, int pixelDepth, int currentPixel, int sigma)
+static int getPixelGaussian(struct pixel *imageVector, int imageWidth, int imageHeight, int pixelDepth, int currentPixel, int sigma)
 {
     int imageByteWidth = imageWidth * pixelDepth;
     int points[25];
@@ -157,31 +149,31 @@ static int getPixelGaussian(unsigned char *imageVector, int imageWidth, int imag
     }
 
     // get the pixel values from the image array
-    pointValues[0] = getGreyValue(imageVector[points[0]], imageVector[points[0]+1], imageVector[points[0]+2]);
-    pointValues[1] = getGreyValue(imageVector[points[1]], imageVector[points[1]+1], imageVector[points[1]+2]);
-    pointValues[2] = getGreyValue(imageVector[points[2]], imageVector[points[2]+1], imageVector[points[2]+2]);
-    pointValues[3] = getGreyValue(imageVector[points[3]], imageVector[points[3]+1], imageVector[points[3]+2]);
-    pointValues[4] = getGreyValue(imageVector[points[4]], imageVector[points[4]+1], imageVector[points[4]+2]);
-    pointValues[5] = getGreyValue(imageVector[points[5]], imageVector[points[5]+1], imageVector[points[5]+2]);
-    pointValues[6] = getGreyValue(imageVector[points[6]], imageVector[points[6]+1], imageVector[points[6]+2]);
-    pointValues[7] = getGreyValue(imageVector[points[7]], imageVector[points[7]+1], imageVector[points[7]+2]);
-    pointValues[8] = getGreyValue(imageVector[points[8]], imageVector[points[8]+1], imageVector[points[8]+2]);
-    pointValues[9] = getGreyValue(imageVector[points[9]], imageVector[points[9]+1], imageVector[points[9]+2]);
-    pointValues[10] = getGreyValue(imageVector[points[10]], imageVector[points[10]+1], imageVector[points[10]+2]);
-    pointValues[11] = getGreyValue(imageVector[points[11]], imageVector[points[11]+1], imageVector[points[11]+2]);
-    pointValues[12] = getGreyValue(imageVector[points[12]], imageVector[points[12]+1], imageVector[points[12]+2]);
-    pointValues[13] = getGreyValue(imageVector[points[13]], imageVector[points[13]+1], imageVector[points[13]+2]);
-    pointValues[14] = getGreyValue(imageVector[points[14]], imageVector[points[14]+1], imageVector[points[14]+2]);
-    pointValues[15] = getGreyValue(imageVector[points[15]], imageVector[points[15]+1], imageVector[points[15]+2]);
-    pointValues[16] = getGreyValue(imageVector[points[16]], imageVector[points[16]+1], imageVector[points[16]+2]);
-    pointValues[17] = getGreyValue(imageVector[points[17]], imageVector[points[17]+1], imageVector[points[17]+2]);
-    pointValues[18] = getGreyValue(imageVector[points[18]], imageVector[points[18]+1], imageVector[points[18]+2]);
-    pointValues[19] = getGreyValue(imageVector[points[19]], imageVector[points[19]+1], imageVector[points[19]+2]);
-    pointValues[20] = getGreyValue(imageVector[points[20]], imageVector[points[20]+1], imageVector[points[20]+2]);
-    pointValues[21] = getGreyValue(imageVector[points[21]], imageVector[points[21]+1], imageVector[points[21]+2]);
-    pointValues[22] = getGreyValue(imageVector[points[22]], imageVector[points[22]+1], imageVector[points[22]+2]);
-    pointValues[23] = getGreyValue(imageVector[points[23]], imageVector[points[23]+1], imageVector[points[23]+2]);
-    pointValues[24] = getGreyValue(imageVector[points[24]], imageVector[points[24]+1], imageVector[points[24]+2]);
+    pointValues[0] = (double)imageVector[points[0]].bright;
+    pointValues[1] = (double)imageVector[points[1]].bright;
+    pointValues[2] = (double)imageVector[points[2]].bright;
+    pointValues[3] = (double)imageVector[points[3]].bright;
+    pointValues[4] = (double)imageVector[points[4]].bright;
+    pointValues[5] = (double)imageVector[points[5]].bright;
+    pointValues[6] = (double)imageVector[points[6]].bright;
+    pointValues[7] = (double)imageVector[points[7]].bright;
+    pointValues[8] = (double)imageVector[points[8]].bright;
+    pointValues[9] = (double)imageVector[points[9]].bright;
+    pointValues[10] = (double)imageVector[points[10]].bright;
+    pointValues[11] = (double)imageVector[points[11]].bright;
+    pointValues[12] = (double)imageVector[points[12]].bright;
+    pointValues[13] = (double)imageVector[points[13]].bright;
+    pointValues[14] = (double)imageVector[points[14]].bright;
+    pointValues[15] = (double)imageVector[points[15]].bright;
+    pointValues[16] = (double)imageVector[points[16]].bright;
+    pointValues[17] = (double)imageVector[points[17]].bright;
+    pointValues[18] = (double)imageVector[points[18]].bright;
+    pointValues[19] = (double)imageVector[points[19]].bright;
+    pointValues[20] = (double)imageVector[points[20]].bright;
+    pointValues[21] = (double)imageVector[points[21]].bright;
+    pointValues[22] = (double)imageVector[points[22]].bright;
+    pointValues[23] = (double)imageVector[points[23]].bright;
+    pointValues[24] = (double)imageVector[points[24]].bright;
     
     double gaussL1 = 0.0;
     double gaussL2 = 0.0;
@@ -210,9 +202,10 @@ static int getPixelGaussian(unsigned char *imageVector, int imageWidth, int imag
     return min(max((int)gaussAll, 0), 255);
 }
 
-static int getPixelEnergyDoG(unsigned char *imageVector, int currentPixel, int gaussianValue1, int gaussianValue2)
-static int getPixelEnergyDoG(int *imageVector, int imageWidth, int imageHeight, int currentPixel)
+static int getPixelEnergyDoG(struct pixel *imageVector, int currentPixel)
 {
+	int gaussianValue1 = imageVector[currentPixel].gaussA;
+	int gaussianValue2 = imageVector[currentPixel].gaussB;
     //double currentValue = getGreyValue(imageVector[currentPixel], imageVector[currentPixel+1], imageVector[currentPixel+2]);
     if (gaussianValue1 > gaussianValue2) {
         return min(max( (int)((gaussianValue1 - gaussianValue2) * 8), 0), 255);
@@ -220,5 +213,5 @@ static int getPixelEnergyDoG(int *imageVector, int imageWidth, int imageHeight, 
         return min(max( (int)((gaussianValue2 - gaussianValue1) * 8), 0), 255);
     }
 }
-*/
+
 #endif
