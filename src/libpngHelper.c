@@ -136,12 +136,14 @@ static int *readPNGFile(char *filename, int *imageWidth, int *imageHeight, int v
 			} else {
 				greyPixel = 255;
 			}
-
+			/*
 			radianPixel = greyPixel / 256 * radianRange + radianShift;
 			scaledPixel = 128 * (cos(radianPixel) + 1.0);
 
 			imagePixels[n] = (int)scaledPixel;
-
+			*/
+			imagePixels[n] = greyPixel;
+			
 			// RGB_TO_GRAY_CIE_1931
 			// imagePixels[n] = rPixel * 0.2126;
 			// imagePixels[n] += gPixel * 0.7152;
