@@ -347,6 +347,20 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int for
 			}
 		}
 
+	} else if (forceDirection == 3) {
+		int horizontalSeamCost = fillSeamMatrixHorizontal(workingImageH, imageWidth, imageHeight);
+		int verticalSeamCost = fillSeamMatrixVertical(workingImageV, imageWidth, imageHeight);
+
+		findSeamsHorizontal(workingImageH, imageWidth, imageHeight);
+		findSeamsVertical(workingImageV, imageWidth, imageHeight);
+
+		for (int j = 0; j < imageHeight; ++j) {
+			for (int i = 0; i < imageWidth; ++i) {
+				currentPixel = (j * imageWidth) + i;
+				resultImage[currentPixel] = workingImageH[currentPixel].usecount + workingImageV[currentPixel].usecount;
+			}
+		}
+
 	} else {
 		int horizontalSeamCost = fillSeamMatrixHorizontal(workingImageH, imageWidth, imageHeight);
 		int verticalSeamCost = fillSeamMatrixVertical(workingImageV, imageWidth, imageHeight);
@@ -359,14 +373,14 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int for
 			for (int j = 0; j < imageHeight; ++j) {
 				for (int i = 0; i < imageWidth; ++i) {
 					currentPixel = (j * imageWidth) + i;
-					resultImage[currentPixel] = workingImageH[currentPixel].usecount;
+					resultImage[currentPixel] = workingImageH[currentPixel].seamval;//usecount;
 				}
 			}
 		} else {
 			for (int j = 0; j < imageHeight; ++j) {
 				for (int i = 0; i < imageWidth; ++i) {
 					currentPixel = (j * imageWidth) + i;
-					resultImage[currentPixel] = workingImageV[currentPixel].usecount;
+					resultImage[currentPixel] = workingImageV[currentPixel].seamval;//usecount;
 				}
 			}
 		}

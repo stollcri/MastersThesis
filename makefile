@@ -15,9 +15,10 @@ sc:
 test:
 	#time ./bin/sc -v -d 1 ./tst/002.png ./tst/out_002-1.png
 	time ./bin/sc -v      ./tst/Broadway_tower_edit.png ./tst/out_Broadway-0.png
-	time ./bin/sc -v -d 1 ./tst/Broadway_tower_edit.png ./tst/out_Broadway-1.png
-	time ./bin/sc -v -d 2 ./tst/Broadway_tower_edit.png ./tst/out_Broadway-2.png
-	time ./bin/sc -v      ./tst/BPD-01c.png ./tst/out_BPD-01c-0.png
+	# time ./bin/sc -v -d 1 ./tst/Broadway_tower_edit.png ./tst/out_Broadway-1.png
+	# time ./bin/sc -v -d 2 ./tst/Broadway_tower_edit.png ./tst/out_Broadway-2.png
+	# time ./bin/sc -v -d 3 ./tst/Broadway_tower_edit.png ./tst/out_Broadway-3.png
+	# time ./bin/sc -v      ./tst/BPD-01c.png ./tst/out_BPD-01c-0.png
 	# time ./bin/sc -v -d 1 ./tst/BPD-01c.png ./tst/out_BPD-01c-1.png
 	# time ./bin/sc -v -d 2 ./tst/BPD-01c.png ./tst/out_BPD-01c-2.png
 
