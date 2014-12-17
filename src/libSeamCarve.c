@@ -12,10 +12,9 @@
 #include "pixel.h"
 #include "libWrappers.c"
 #include "libEnergies.c"
-
-#include "libResize.c"
 #include "libMinMax.c"
-#include "itoa.c"
+
+#define SEAM_TRACE_INCREMENT 16
 
 static void findSeams(struct pixel *imageVector, int imageWidth, int imageHeight, int direction)
 {
@@ -81,8 +80,8 @@ static void findSeams(struct pixel *imageVector, int imageWidth, int imageHeight
 			//printf("%d\n", (imageSize - 1));
 			for (int j = (imageSize - 1); j >= 0; --j) {
 
-				if (imageVector[minValueLocation].usecount < (255-32)) {
-					imageVector[minValueLocation].usecount += 32;
+				if (imageVector[minValueLocation].usecount < (255-SEAM_TRACE_INCREMENT)) {
+					imageVector[minValueLocation].usecount += SEAM_TRACE_INCREMENT;
 				}
 				// printf("%d\n", imageVector[minValueLocation].usecount);
 
@@ -358,6 +357,14 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int for
 			for (int i = 0; i < imageWidth; ++i) {
 				currentPixel = (j * imageWidth) + i;
 				resultImage[currentPixel] = workingImageH[currentPixel].usecount + workingImageV[currentPixel].usecount;
+				//resultImage[currentPixel] = (workingImageH[currentPixel].usecount + workingImageV[currentPixel].usecount) / 2;
+				/*
+				if ((workingImageH[currentPixel].usecount >= 64) || (workingImageV[currentPixel].usecount >= 64)) {
+					resultImage[currentPixel] = 255;
+				} else {
+					resultImage[currentPixel] = 0;
+				}
+				*/
 			}
 		}
 
