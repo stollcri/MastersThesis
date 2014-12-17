@@ -390,14 +390,14 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int for
 			for (int j = 0; j < imageHeight; ++j) {
 				for (int i = 0; i < imageWidth; ++i) {
 					currentPixel = (j * imageWidth) + i;
-					resultImage[currentPixel] = workingImageH[currentPixel].seamval;//usecount;
+					resultImage[currentPixel] = workingImageH[currentPixel].usecount;
 				}
 			}
 		} else {
 			for (int j = 0; j < imageHeight; ++j) {
 				for (int i = 0; i < imageWidth; ++i) {
 					currentPixel = (j * imageWidth) + i;
-					resultImage[currentPixel] = workingImageV[currentPixel].seamval;//usecount;
+					resultImage[currentPixel] = workingImageV[currentPixel].usecount;
 				}
 			}
 		}
