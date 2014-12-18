@@ -184,6 +184,7 @@ static int getPixelGaussian(struct pixel *imageVector, int imageWidth, int image
 	double gaussDvsr = 1.0;
 	double weights[25];
 
+	// scale courtesy: http://dev.theomader.com/gaussian-kernel-calculator/
 	if (sigma == 80) {
 		// scaling factor / standard deviation / sigma = 8.0
 		weights[0]  = 0.038764;
@@ -217,6 +218,14 @@ static int getPixelGaussian(struct pixel *imageVector, int imageWidth, int image
 		weights[6]  = 9;
 		weights[7]  = 12;
 		weights[12] = 15;
+	} else if (sigma == 13) {
+		// scaling factor / standard deviation / sigma = 1.3
+		weights[0]  = 0.010534;
+		weights[1]  = 0.024530;
+		weights[2]  = 0.032508;
+		weights[6]  = 0.057120;
+		weights[7]  = 0.075698;
+		weights[12] = 0.100318;
 	} else if (sigma == 12) {
 		// scaling factor / standard deviation / sigma = 1.2
 		weights[0]  = 0.008173;
