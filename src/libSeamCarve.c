@@ -15,6 +15,7 @@
 #include "libMinMax.c"
 
 #define SEAM_TRACE_INCREMENT 16
+#define THRESHHOLD_SOBEL 96
 
 static void findSeams(struct pixel *imageVector, int imageWidth, int imageHeight, int direction)
 {
@@ -315,14 +316,18 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 			workingImageH[currentPixel].seamval = workingImageH[currentPixel].energy;
 			workingImageV[currentPixel].energy = workingImageH[currentPixel].energy;
 			workingImageV[currentPixel].seamval = workingImageV[currentPixel].energy;
-
+			
 			// also grab sobel energy
-			/*
+			
 			workingImageH[currentPixel].sobelA = getPixelEnergySobel(workingImageH, imageWidth, imageHeight, currentPixel);
-			workingImageH[currentPixel].sobelB = workingImageH[currentPixel].sobelA;
-			workingImageV[currentPixel].sobelA = workingImageH[currentPixel].sobelB;
-			workingImageV[currentPixel].sobelB = workingImageV[currentPixel].gaussA;
-			*/
+			workingImageV[currentPixel].sobelA = workingImageH[currentPixel].sobelA;
+
+			if (workingImageH[currentPixel].sobelA > THRESHHOLD_SOBEL) {
+				workingImageH[currentPixel].energy = workingImageH[currentPixel].sobelA / 4;
+				workingImageH[currentPixel].seamval = workingImageH[currentPixel].energy;
+				workingImageV[currentPixel].energy = workingImageH[currentPixel].sobelA / 4;
+				workingImageV[currentPixel].seamval = workingImageV[currentPixel].energy;
+			}
 		}
 	}
 
@@ -374,21 +379,34 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 		findSeamsHorizontal(workingImageH, imageWidth, imageHeight);
 		findSeamsVertical(workingImageV, imageWidth, imageHeight);
 
+		int currentUseCount = 0;
 		for (int j = 0; j < imageHeight; ++j) {
 			for (int i = 0; i < imageWidth; ++i) {
 				currentPixel = (j * imageWidth) + i;
-				//resultImage[currentPixel] = workingImageH[currentPixel].energy * 8;
-				//resultImage[currentPixel] = (255 - workingImageV[currentPixel].bright) + workingImageV[currentPixel].sobelA;
+				outputPixel = currentPixel * imageDepth;
+				
+				//currentUseCount = min(max((workingImageV[currentPixel].seamval), 0), 255);
+				//currentUseCount = workingImageH[currentPixel].usecount + workingImageV[currentPixel].usecount;
+				currentUseCount = max(workingImageH[currentPixel].usecount, workingImageV[currentPixel].usecount);
 
-				resultImage[currentPixel] = workingImageH[currentPixel].usecount + workingImageV[currentPixel].usecount;
-				//resultImage[currentPixel] = (workingImageH[currentPixel].usecount + workingImageV[currentPixel].usecount) / 2;
-				/*
-				if ((workingImageH[currentPixel].usecount >= 64) || (workingImageV[currentPixel].usecount >= 64)) {
-					resultImage[currentPixel] = 255;
+				if (currentUseCount > 64)
+				{
+					resultImage[outputPixel] = 255;
+					resultImage[outputPixel+1] = 0;
+					resultImage[outputPixel+2] = 0;
+					resultImage[outputPixel+3] = 255;
 				} else {
-					resultImage[currentPixel] = 0;
+					resultImage[outputPixel] = workingImageH[currentPixel].bright;
+					resultImage[outputPixel+1] = workingImageH[currentPixel].bright;
+					resultImage[outputPixel+2] = workingImageH[currentPixel].bright;
+					resultImage[outputPixel+3] = 255;
+					/*
+					resultImage[outputPixel] = workingImageH[currentPixel].r;
+					resultImage[outputPixel+1] = workingImageH[currentPixel].g;
+					resultImage[outputPixel+2] = workingImageH[currentPixel].b;
+					resultImage[outputPixel+3] = 255;
+					*/
 				}
-				*/
 			}
 		}
 

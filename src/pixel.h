@@ -13,7 +13,6 @@ struct pixel {
 	int a;
 	int bright;
 	int sobelA;
-	int sobelB;
 	int gaussA;
 	int gaussB;
 	int energy;
