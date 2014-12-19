@@ -349,10 +349,17 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				currentPixel = (j * imageWidth) + i;
 				outputPixel = currentPixel * imageDepth;
 
-				resultImage[outputPixel] = workingImageH[currentPixel].usecount;
-				resultImage[outputPixel+1] = workingImageH[currentPixel].usecount;
-				resultImage[outputPixel+2] = workingImageH[currentPixel].usecount;
-				resultImage[outputPixel+3] = workingImageH[currentPixel].usecount;
+				if (workingImageH[currentPixel].usecount > 64) {
+					resultImage[outputPixel] = 255;
+					resultImage[outputPixel+1] = 0;
+					resultImage[outputPixel+2] = 0;
+					resultImage[outputPixel+3] = 255;
+				} else {
+					resultImage[outputPixel] = workingImageH[currentPixel].r;
+					resultImage[outputPixel+1] = workingImageH[currentPixel].g;
+					resultImage[outputPixel+2] = workingImageH[currentPixel].b;
+					resultImage[outputPixel+3] = 255;
+				}
 			}
 		}
 
@@ -365,10 +372,17 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				currentPixel = (j * imageWidth) + i;
 				outputPixel = currentPixel * imageDepth;
 
-				resultImage[outputPixel] = workingImageV[currentPixel].usecount;
-				resultImage[outputPixel+1] = workingImageV[currentPixel].usecount;
-				resultImage[outputPixel+2] = workingImageV[currentPixel].usecount;
-				resultImage[outputPixel+3] = workingImageV[currentPixel].usecount;
+				if (workingImageV[currentPixel].usecount > 64) {
+					resultImage[outputPixel] = 255;
+					resultImage[outputPixel+1] = 0;
+					resultImage[outputPixel+2] = 0;
+					resultImage[outputPixel+3] = 255;
+				} else {
+					resultImage[outputPixel] = workingImageV[currentPixel].r;
+					resultImage[outputPixel+1] = workingImageV[currentPixel].g;
+					resultImage[outputPixel+2] = workingImageV[currentPixel].b;
+					resultImage[outputPixel+3] = 255;
+				}
 			}
 		}
 
@@ -385,10 +399,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				currentPixel = (j * imageWidth) + i;
 				outputPixel = currentPixel * imageDepth;
 				
-				//currentUseCount = min(max((workingImageV[currentPixel].seamval), 0), 255);
-				//currentUseCount = workingImageH[currentPixel].usecount + workingImageV[currentPixel].usecount;
 				currentUseCount = max(workingImageH[currentPixel].usecount, workingImageV[currentPixel].usecount);
-
 				if (currentUseCount > 64)
 				{
 					resultImage[outputPixel] = 255;
@@ -396,6 +407,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 					resultImage[outputPixel+2] = 0;
 					resultImage[outputPixel+3] = 255;
 				} else {
+					
 					resultImage[outputPixel] = workingImageH[currentPixel].bright;
 					resultImage[outputPixel+1] = workingImageH[currentPixel].bright;
 					resultImage[outputPixel+2] = workingImageH[currentPixel].bright;
@@ -424,10 +436,17 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 					currentPixel = (j * imageWidth) + i;
 					outputPixel = currentPixel * imageDepth;
 
-					resultImage[outputPixel] = workingImageH[currentPixel].usecount;
-					resultImage[outputPixel+1] = workingImageH[currentPixel].usecount;
-					resultImage[outputPixel+2] = workingImageH[currentPixel].usecount;
-					resultImage[outputPixel+3] = workingImageH[currentPixel].usecount;
+					if (workingImageH[currentPixel].usecount > 64) {
+						resultImage[outputPixel] = 255;
+						resultImage[outputPixel+1] = 0;
+						resultImage[outputPixel+2] = 0;
+						resultImage[outputPixel+3] = 255;
+					} else {
+						resultImage[outputPixel] = workingImageH[currentPixel].r;
+						resultImage[outputPixel+1] = workingImageH[currentPixel].g;
+						resultImage[outputPixel+2] = workingImageH[currentPixel].b;
+						resultImage[outputPixel+3] = 255;
+					}
 				}
 			}
 		} else {
@@ -436,10 +455,17 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 					currentPixel = (j * imageWidth) + i;
 					outputPixel = currentPixel * imageDepth;
 
-					resultImage[outputPixel] = workingImageV[currentPixel].usecount;
-					resultImage[outputPixel+1] = workingImageV[currentPixel].usecount;
-					resultImage[outputPixel+2] = workingImageV[currentPixel].usecount;
-					resultImage[outputPixel+3] = workingImageV[currentPixel].usecount;
+					if (workingImageV[currentPixel].usecount > 64) {
+						resultImage[outputPixel] = 255;
+						resultImage[outputPixel+1] = 0;
+						resultImage[outputPixel+2] = 0;
+						resultImage[outputPixel+3] = 255;
+					} else {
+						resultImage[outputPixel] = workingImageV[currentPixel].r;
+						resultImage[outputPixel+1] = workingImageV[currentPixel].g;
+						resultImage[outputPixel+2] = workingImageV[currentPixel].b;
+						resultImage[outputPixel+3] = 255;
+					}
 				}
 			}
 		}
