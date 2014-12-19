@@ -259,23 +259,26 @@ static void findSeamsHorizontal(struct pixel *imageVector, int imageWidth, int i
 	findSeams(imageVector, imageWidth, imageHeight, 1);
 }
 
-static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int forceDirection)
+static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int imageDepth, int forceDirection)
 {
 	struct pixel *workingImageH = (struct pixel*)xmalloc((unsigned long)imageWidth * (unsigned long)imageHeight * sizeof(struct pixel));
 	struct pixel *workingImageV = (struct pixel*)xmalloc((unsigned long)imageWidth * (unsigned long)imageHeight * sizeof(struct pixel));
-	int *resultImage = (int*)xmalloc((unsigned long)imageWidth * (unsigned long)imageHeight * sizeof(int));
+	int *resultImage = (int*)xmalloc((unsigned long)imageWidth * (unsigned long)imageHeight * (unsigned long)imageDepth * sizeof(int));
 	
+	int inputPixel = 0;
+	int outputPixel = 0;
 	int currentPixel = 0;
 	for (int j = 0; j < imageHeight; ++j) {
 		for (int i = 0; i < imageWidth; ++i) {
 			currentPixel = (j * imageWidth) + i;
+			inputPixel = currentPixel * imageDepth;
 			
 			struct pixel newPixelH;
-			newPixelH.r = imageVector[currentPixel];
-			newPixelH.g = imageVector[currentPixel];
-			newPixelH.b = imageVector[currentPixel];
-			newPixelH.a = imageVector[currentPixel];
-			newPixelH.bright = imageVector[currentPixel];
+			newPixelH.r = imageVector[inputPixel];
+			newPixelH.g = imageVector[inputPixel+1];
+			newPixelH.b = imageVector[inputPixel+2];
+			newPixelH.a = 0;//imageVector[inputPixel];
+			newPixelH.bright = imageVector[inputPixel+3];
 			newPixelH.gaussA = 0;
 			newPixelH.gaussB = 0;
 			newPixelH.energy = 0;
@@ -284,11 +287,11 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int for
 			workingImageH[currentPixel] = newPixelH;
 			
 			struct pixel newPixelV;
-			newPixelV.r = imageVector[currentPixel];
-			newPixelV.g = imageVector[currentPixel];
-			newPixelV.b = imageVector[currentPixel];
-			newPixelV.a = imageVector[currentPixel];
-			newPixelV.bright = imageVector[currentPixel];
+			newPixelV.r = imageVector[inputPixel];
+			newPixelV.g = imageVector[inputPixel+1];
+			newPixelV.b = imageVector[inputPixel+2];
+			newPixelV.a = 0;//imageVector[inputPixel];
+			newPixelV.bright = imageVector[inputPixel+3];
 			newPixelV.gaussA = 0;
 			newPixelV.gaussB = 0;
 			newPixelV.energy = 0;
@@ -296,7 +299,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int for
 			newPixelV.usecount = 0;
 			workingImageV[currentPixel] = newPixelV;
 
-			resultImage[currentPixel] = 0;
+			resultImage[inputPixel] = 0;
 		}
 	}
 
@@ -339,7 +342,12 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int for
 		for (int j = 0; j < imageHeight; ++j) {
 			for (int i = 0; i < imageWidth; ++i) {
 				currentPixel = (j * imageWidth) + i;
-				resultImage[currentPixel] = workingImageH[currentPixel].usecount;
+				outputPixel = currentPixel * imageDepth;
+
+				resultImage[outputPixel] = workingImageH[currentPixel].usecount;
+				resultImage[outputPixel+1] = workingImageH[currentPixel].usecount;
+				resultImage[outputPixel+2] = workingImageH[currentPixel].usecount;
+				resultImage[outputPixel+3] = workingImageH[currentPixel].usecount;
 			}
 		}
 
@@ -350,7 +358,12 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int for
 		for (int j = 0; j < imageHeight; ++j) {
 			for (int i = 0; i < imageWidth; ++i) {
 				currentPixel = (j * imageWidth) + i;
-				resultImage[currentPixel] = workingImageV[currentPixel].usecount;
+				outputPixel = currentPixel * imageDepth;
+
+				resultImage[outputPixel] = workingImageV[currentPixel].usecount;
+				resultImage[outputPixel+1] = workingImageV[currentPixel].usecount;
+				resultImage[outputPixel+2] = workingImageV[currentPixel].usecount;
+				resultImage[outputPixel+3] = workingImageV[currentPixel].usecount;
 			}
 		}
 
@@ -391,14 +404,24 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int for
 			for (int j = 0; j < imageHeight; ++j) {
 				for (int i = 0; i < imageWidth; ++i) {
 					currentPixel = (j * imageWidth) + i;
-					resultImage[currentPixel] = workingImageH[currentPixel].usecount;
+					outputPixel = currentPixel * imageDepth;
+
+					resultImage[outputPixel] = workingImageH[currentPixel].usecount;
+					resultImage[outputPixel+1] = workingImageH[currentPixel].usecount;
+					resultImage[outputPixel+2] = workingImageH[currentPixel].usecount;
+					resultImage[outputPixel+3] = workingImageH[currentPixel].usecount;
 				}
 			}
 		} else {
 			for (int j = 0; j < imageHeight; ++j) {
 				for (int i = 0; i < imageWidth; ++i) {
 					currentPixel = (j * imageWidth) + i;
-					resultImage[currentPixel] = workingImageV[currentPixel].usecount;
+					outputPixel = currentPixel * imageDepth;
+
+					resultImage[outputPixel] = workingImageV[currentPixel].usecount;
+					resultImage[outputPixel+1] = workingImageV[currentPixel].usecount;
+					resultImage[outputPixel+2] = workingImageV[currentPixel].usecount;
+					resultImage[outputPixel+3] = workingImageV[currentPixel].usecount;
 				}
 			}
 		}

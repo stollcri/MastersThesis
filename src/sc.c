@@ -18,14 +18,15 @@ static void carve(char *sourceFile, char *resultFile, int forceDirection, int ve
 	int *imageVector;
 	int imageWidth = 0;
 	int imageHeight = 0;
-	imageVector = readPNGFile(sourceFile, &imageWidth, &imageHeight, verbose);
+	int imageDepth = 0;
+	imageVector = readPNGFile(sourceFile, &imageWidth, &imageHeight, &imageDepth, verbose);
 	if (!imageVector || !imageWidth || !imageHeight) {
 		fprintf(stderr, "Error loading PNG image.\n");
 		exit(1);
 	}
 
 	int *newImageVector;
-	newImageVector = seamCarve(imageVector, imageWidth, imageHeight, forceDirection);
+	newImageVector = seamCarve(imageVector, imageWidth, imageHeight, imageDepth, forceDirection);
 
 	/*
 	double imageScale = 1;//0.125;

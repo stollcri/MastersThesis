@@ -21,7 +21,7 @@
  * @param  verbosity   Whether or not to print error messages to stderr
  * @return             Returns an array of integers representing the image pixels
  */
-static int *readPNGFile(char *filename, int *imageWidth, int *imageHeight, int verbosity) {
+static int *readPNGFile(char *filename, int *imageWidth, int *imageHeight, int *imageDepth, int verbosity) {
 	FILE *pngfile = fopen(filename, "rb");
 	if(!pngfile) {
 		if(verbosity > 0) {
@@ -99,7 +99,8 @@ static int *readPNGFile(char *filename, int *imageWidth, int *imageHeight, int v
 	png_read_image(png, row_pointers);
 	fclose(pngfile);
 
-	int *imagePixels = (int*)malloc((unsigned long)height * (unsigned long)width * sizeof(int));
+	int pixelDepth = 4;
+	int *imagePixels = (int*)malloc((unsigned long)height * (unsigned long)width * (unsigned long)pixelDepth * sizeof(int));
 
 	int n = 0;
 	int rPixel = 0;
@@ -122,9 +123,9 @@ static int *readPNGFile(char *filename, int *imageWidth, int *imageHeight, int v
 			bPixel = (int)pixel[2];
 			aPixel = (int)pixel[3];
 			
-			n = (y * width) + x;
+			n = ((y * width) + x) * pixelDepth;
 			
-			if (aPixel >= 64) {
+			if (aPixel >= 0) {
 				/*
 				greyPixel = rPixel * 0.2126;
 				greyPixel += gPixel * 0.7152;
@@ -142,7 +143,10 @@ static int *readPNGFile(char *filename, int *imageWidth, int *imageHeight, int v
 
 			imagePixels[n] = (int)scaledPixel;
 			*/
-			imagePixels[n] = greyPixel;
+			imagePixels[n] = rPixel;
+			imagePixels[n+1] = gPixel;
+			imagePixels[n+2] = bPixel;
+			imagePixels[n+3] = (int)greyPixel;
 			
 			// RGB_TO_GRAY_CIE_1931
 			// imagePixels[n] = rPixel * 0.2126;
@@ -173,6 +177,7 @@ static int *readPNGFile(char *filename, int *imageWidth, int *imageHeight, int v
 
 	*imageWidth = width;
 	*imageHeight = height;
+	*imageDepth = pixelDepth;
 	return imagePixels;
 }
 
@@ -213,10 +218,10 @@ static void write_png_file(int *imageVector, int width, int height, char *filena
 	for(int y = 0; y < height; y++) {
 		for(int z = 0; z < width; z++) {
 			row_pointers[y][z*4+0] = (png_byte)imageVector[i];
-			row_pointers[y][z*4+1] = (png_byte)imageVector[i];
-			row_pointers[y][z*4+2] = (png_byte)imageVector[i];
-			row_pointers[y][z*4+3] = 255;
-			++i;
+			row_pointers[y][z*4+1] = (png_byte)imageVector[i+1];
+			row_pointers[y][z*4+2] = (png_byte)imageVector[i+2];
+			row_pointers[y][z*4+3] = (png_byte)imageVector[i+3];
+			i += 4;
 		}
 	}
 
