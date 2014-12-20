@@ -90,8 +90,9 @@ int main(int argc, char const *argv[])
 				printf("          '-d 1' force horizontal direction seams \n");
 				printf("          '-d 2' force vertical direction seams \n");
 				printf("          '-d 3' force both direction seams \n");
-				printf("          '-d 4' output energy values \n");
-				printf("          '-d 5' output seam values \n");
+				printf("          '-d 4' output brightness values \n");
+				printf("          '-d 5' output energy values \n");
+				printf("          '-d 6' output seam values \n");
 				
 				printf("          '-e 1' use Difference of Gaussian (default) \n");
 				printf("          '-e 2' use Laplacian of Gaussian (sigma=8)\n");

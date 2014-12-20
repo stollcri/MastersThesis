@@ -403,16 +403,19 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 		findSeamsHorizontal(workingImageH, imageWidth, imageHeight);
 		findSeamsVertical(workingImageV, imageWidth, imageHeight);
 		resultDirection = 3;
-	} else if ((forceDirection == 4) || (forceDirection == 5)) {
+	} else if ((forceDirection == 4) || (forceDirection == 5) || (forceDirection == 6)) {
 		fillSeamMatrixHorizontal(workingImageH, imageWidth, imageHeight);
 		fillSeamMatrixVertical(workingImageV, imageWidth, imageHeight);
 
 		findSeamsHorizontal(workingImageH, imageWidth, imageHeight);
 		findSeamsVertical(workingImageV, imageWidth, imageHeight);
+
 		if (forceDirection == 4) {
 			resultDirection = 4;
-		} else {
+		} else if (forceDirection == 5) {
 			resultDirection = 5;
+		} else {
+			resultDirection = 6;
 		}
 	} else {
 		int horizontalSeamCost = fillSeamMatrixHorizontal(workingImageH, imageWidth, imageHeight);
@@ -490,7 +493,6 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 			}
 		}
 	} else if (resultDirection == 4) {
-		int energyScale = 8;
 		int currentUseCount = 0;
 		for (int j = 0; j < imageHeight; ++j) {
 			for (int i = 0; i < imageWidth; ++i) {
@@ -498,8 +500,29 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				outputPixel = currentPixel * imageDepth;
 				
 				currentUseCount = max(workingImageH[currentPixel].usecount, workingImageV[currentPixel].usecount);
-				if (currentUseCount > 333)
-				{
+				if (currentUseCount > 256) {
+					resultImage[outputPixel] = 255;
+					resultImage[outputPixel+1] = 0;
+					resultImage[outputPixel+2] = 0;
+					resultImage[outputPixel+3] = 255;
+				} else {
+					resultImage[outputPixel] = min(max(workingImageH[currentPixel].bright, 0), 255);
+					resultImage[outputPixel+1] = min(max(workingImageH[currentPixel].bright, 0), 255);
+					resultImage[outputPixel+2] = min(max(workingImageH[currentPixel].bright, 0), 255);
+					resultImage[outputPixel+3] = 255;
+				}
+			}
+		}
+	} else if (resultDirection == 5) {
+		int energyScale = 16;
+		int currentUseCount = 0;
+		for (int j = 0; j < imageHeight; ++j) {
+			for (int i = 0; i < imageWidth; ++i) {
+				currentPixel = (j * imageWidth) + i;
+				outputPixel = currentPixel * imageDepth;
+				
+				currentUseCount = max(workingImageH[currentPixel].usecount, workingImageV[currentPixel].usecount);
+				if (currentUseCount > 256) {
 					resultImage[outputPixel] = 255;
 					resultImage[outputPixel+1] = 0;
 					resultImage[outputPixel+2] = 0;
@@ -512,7 +535,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				}
 			}
 		}
-	} else if (resultDirection == 5) {
+	} else if (resultDirection == 6) {
 		int seamValueScale = 4;
 		int currentUseCount = 0;
 		for (int j = 0; j < imageHeight; ++j) {
@@ -521,8 +544,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				outputPixel = currentPixel * imageDepth;
 				
 				currentUseCount = max(workingImageH[currentPixel].usecount, workingImageV[currentPixel].usecount);
-				if (currentUseCount > 333)
-				{
+				if (currentUseCount > 256) {
 					resultImage[outputPixel] = 255;
 					resultImage[outputPixel+1] = 0;
 					resultImage[outputPixel+2] = 0;
