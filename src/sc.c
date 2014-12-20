@@ -27,7 +27,7 @@ static void carve(char *sourceFile, char *resultFile, int forceDirection, int fo
 
 	int *newImageVector;
 	if (!forceEdge) {
-		forceEdge = 1;
+		forceEdge = 2;
 	}
 	newImageVector = seamCarve(imageVector, imageWidth, imageHeight, imageDepth, forceEdge, forceDirection);
 
@@ -79,12 +79,14 @@ int main(int argc, char const *argv[])
 				printf(PROGRAM_NAME " v" PROGRAM_VERS "\n");
 				printf(PROGRAM_COPY "\n\n");
 				printf("usage: sc [-d 1|2|3] [-e 1|2|3] [-v] source_PNG_file result_PNG_file\n");
-				printf("          '-d 1' is to force horizontal direction seams \n");
-				printf("          '-d 2' is to force vertical direction seams \n");
-				printf("          '-d 3' is to force both direction seams \n");
-				printf("          '-e 1' is to force DoG (default) \n");
-				printf("          '-e 2' is to force Laplacian \n");
-				printf("          '-e 3' is to force Sobel \n");
+				printf("          '-d 1' to force horizontal direction seams \n");
+				printf("          '-d 2' to force vertical direction seams \n");
+				printf("          '-d 3' to force both direction seams \n");
+				printf("          '-e 1' to use Simple Gradient \n");
+				printf("          '-e 2' to use DoG (default) \n");
+				printf("          '-e 3' to use Laplacian \n");
+				printf("          '-e 4' to use Sobel \n");
+				printf("          '-e 5' to use LoG \n");
 				return 1;
 			default:
 				fprintf(stderr, "Unexpected argument character code: %c (0x%04x)\n", (char)c, c);

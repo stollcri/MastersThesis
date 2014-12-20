@@ -324,8 +324,10 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				workingImageH[currentPixel].energy = sqrt(getPixelEnergyLaplacian(workingImageH, imageWidth, imageHeight, currentPixel));
 			} else if (forceEdge == 3) {
 				workingImageH[currentPixel].energy = getPixelEnergySobel(workingImageH, imageWidth, imageHeight, currentPixel);	
+			} else if (forceEdge == 5) {
+				workingImageH[currentPixel].energy = getPixelGaussian(workingImageH, imageWidth, imageHeight, 1, currentPixel, 9999);
 			}
-			
+
 			workingImageH[currentPixel].seamval = workingImageH[currentPixel].energy;
 			workingImageV[currentPixel].energy = workingImageH[currentPixel].energy;
 			workingImageV[currentPixel].seamval = workingImageV[currentPixel].energy;

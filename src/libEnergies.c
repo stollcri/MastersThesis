@@ -234,7 +234,15 @@ static int getPixelGaussian(struct pixel *imageVector, int imageWidth, int image
 	double weights[25];
 
 	// scale courtesy: http://dev.theomader.com/gaussian-kernel-calculator/
-	if (sigma == 80) {
+	if (sigma == 9999) {
+		// LoG -- Laplacian of Gaussian
+		weights[0]  = 0;
+		weights[1]  = 0;
+		weights[2]  = -1;
+		weights[6]  = -1;
+		weights[7]  = -2;
+		weights[12] = 16;
+	} else if (sigma == 80) {
 		// scaling factor / standard deviation / sigma = 8.0
 		weights[0]  = 0.038764;
 		weights[1]  = 0.039682;
