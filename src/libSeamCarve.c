@@ -403,6 +403,17 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 		findSeamsHorizontal(workingImageH, imageWidth, imageHeight);
 		findSeamsVertical(workingImageV, imageWidth, imageHeight);
 		resultDirection = 3;
+	} else if ((forceDirection == 4) || (forceDirection == 5)) {
+		fillSeamMatrixHorizontal(workingImageH, imageWidth, imageHeight);
+		fillSeamMatrixVertical(workingImageV, imageWidth, imageHeight);
+
+		findSeamsHorizontal(workingImageH, imageWidth, imageHeight);
+		findSeamsVertical(workingImageV, imageWidth, imageHeight);
+		if (forceDirection == 4) {
+			resultDirection = 4;
+		} else {
+			resultDirection = 5;
+		}
 	} else {
 		int horizontalSeamCost = fillSeamMatrixHorizontal(workingImageH, imageWidth, imageHeight);
 		int verticalSeamCost = fillSeamMatrixVertical(workingImageV, imageWidth, imageHeight);
@@ -465,6 +476,28 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				outputPixel = currentPixel * imageDepth;
 				
 				currentUseCount = max(workingImageH[currentPixel].usecount, workingImageV[currentPixel].usecount);
+				if (currentUseCount > THRESHHOLD_USECOUNT) {
+					resultImage[outputPixel] = 255;
+					resultImage[outputPixel+1] = 0;
+					resultImage[outputPixel+2] = 0;
+					resultImage[outputPixel+3] = 255;
+				} else {
+					resultImage[outputPixel] = workingImageH[currentPixel].usecount + workingImageV[currentPixel].usecount;
+					resultImage[outputPixel+1] = workingImageH[currentPixel].usecount + workingImageV[currentPixel].usecount;
+					resultImage[outputPixel+2] = workingImageH[currentPixel].usecount + workingImageV[currentPixel].usecount;
+					resultImage[outputPixel+3] = 255;
+				}
+			}
+		}
+	} else if (resultDirection == 4) {
+		int energyScale = 8;
+		int currentUseCount = 0;
+		for (int j = 0; j < imageHeight; ++j) {
+			for (int i = 0; i < imageWidth; ++i) {
+				currentPixel = (j * imageWidth) + i;
+				outputPixel = currentPixel * imageDepth;
+				
+				currentUseCount = max(workingImageH[currentPixel].usecount, workingImageV[currentPixel].usecount);
 				if (currentUseCount > 333)
 				{
 					resultImage[outputPixel] = 255;
@@ -472,22 +505,33 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 					resultImage[outputPixel+2] = 0;
 					resultImage[outputPixel+3] = 255;
 				} else {
-					/*
-					resultImage[outputPixel] = workingImageH[currentPixel].bright /3;
-					resultImage[outputPixel+1] = workingImageH[currentPixel].bright /3;
-					resultImage[outputPixel+2] = workingImageH[currentPixel].bright /3;
+					resultImage[outputPixel] = min(max((workingImageH[currentPixel].energy * energyScale), 0), 255);
+					resultImage[outputPixel+1] = min(max((workingImageH[currentPixel].energy * energyScale), 0), 255);
+					resultImage[outputPixel+2] = min(max((workingImageH[currentPixel].energy * energyScale), 0), 255);
 					resultImage[outputPixel+3] = 255;
-					*//*
-					resultImage[outputPixel] = workingImageH[currentPixel].r /3;
-					resultImage[outputPixel+1] = workingImageH[currentPixel].g /3;
-					resultImage[outputPixel+2] = workingImageH[currentPixel].b /3;
+				}
+			}
+		}
+	} else if (resultDirection == 5) {
+		int seamValueScale = 4;
+		int currentUseCount = 0;
+		for (int j = 0; j < imageHeight; ++j) {
+			for (int i = 0; i < imageWidth; ++i) {
+				currentPixel = (j * imageWidth) + i;
+				outputPixel = currentPixel * imageDepth;
+				
+				currentUseCount = max(workingImageH[currentPixel].usecount, workingImageV[currentPixel].usecount);
+				if (currentUseCount > 333)
+				{
+					resultImage[outputPixel] = 255;
+					resultImage[outputPixel+1] = 0;
+					resultImage[outputPixel+2] = 0;
 					resultImage[outputPixel+3] = 255;
-					*/
-					resultImage[outputPixel] = workingImageH[currentPixel].usecount + workingImageV[currentPixel].usecount;
-					resultImage[outputPixel+1] = workingImageH[currentPixel].usecount + workingImageV[currentPixel].usecount;
-					resultImage[outputPixel+2] = workingImageH[currentPixel].usecount + workingImageV[currentPixel].usecount;
+				} else {
+					resultImage[outputPixel] = min(max((workingImageH[currentPixel].seamval * seamValueScale), 0), 255);
+					resultImage[outputPixel+1] = min(max((workingImageH[currentPixel].seamval * seamValueScale), 0), 255);
+					resultImage[outputPixel+2] = min(max((workingImageH[currentPixel].seamval * seamValueScale), 0), 255);
 					resultImage[outputPixel+3] = 255;
-					
 				}
 			}
 		}

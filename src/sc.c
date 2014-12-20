@@ -86,9 +86,13 @@ int main(int argc, char const *argv[])
 				printf(PROGRAM_NAME " v" PROGRAM_VERS "\n");
 				printf(PROGRAM_COPY "\n\n");
 				printf("usage: sc [-d 1-3] [-e 1-7] [-g 1-3] [-v] source_PNG_file result_PNG_file\n");
+				
 				printf("          '-d 1' force horizontal direction seams \n");
 				printf("          '-d 2' force vertical direction seams \n");
 				printf("          '-d 3' force both direction seams \n");
+				printf("          '-d 4' output energy values \n");
+				printf("          '-d 5' output seam values \n");
+				
 				printf("          '-e 1' use Difference of Gaussian (default) \n");
 				printf("          '-e 2' use Laplacian of Gaussian (sigma=8)\n");
 				printf("          '-e 3' use Laplacian of Gaussian (sigma=4)\n");
@@ -96,6 +100,7 @@ int main(int argc, char const *argv[])
 				printf("          '-e 5' use Sobel \n");
 				printf("          '-e 6' use LoG Simple\n");
 				printf("          '-e 7' use Simple Gradient \n");
+
 				printf("          '-g 1' pre-Gaussian blur (sigma=2) \n");
 				printf("          '-g 2' pre-Gaussian blur (sigma=4) \n");
 				printf("          '-g 3' pre-Gaussian blur (sigma=8) \n");
