@@ -27,7 +27,7 @@ static void carve(char *sourceFile, char *resultFile, int forceDirection, int fo
 
 	int *newImageVector;
 	if (!forceEdge) {
-		forceEdge = 2;
+		forceEdge = 1;
 	}
 	newImageVector = seamCarve(imageVector, imageWidth, imageHeight, imageDepth, forceEdge, forceDirection);
 
@@ -57,7 +57,8 @@ int main(int argc, char const *argv[])
 	opterr = 0;
 	/*
 	 * Currently accepted arguments:
-	 *  s -- takes a parameter, but does nothing with it (TODO: remove)
+	 *  d -- the direction to seam carve
+	 *  e -- the edge detection method
 	 *  v -- verbose mode
 	 *  source_file -- the PNG image file to open
 	 *  result_file -- the PNG file to save results to
@@ -82,11 +83,13 @@ int main(int argc, char const *argv[])
 				printf("          '-d 1' to force horizontal direction seams \n");
 				printf("          '-d 2' to force vertical direction seams \n");
 				printf("          '-d 3' to force both direction seams \n");
-				printf("          '-e 1' to use Simple Gradient \n");
-				printf("          '-e 2' to use DoG (default) \n");
-				printf("          '-e 3' to use Laplacian \n");
-				printf("          '-e 4' to use Sobel \n");
-				printf("          '-e 5' to use LoG \n");
+				printf("          '-e 1' to use Difference of Gaussian (default) \n");
+				printf("          '-e 2' to use Laplacian of Gaussian (sigma=8)\n");
+				printf("          '-e 3' to use Laplacian of Gaussian (sigma=4)\n");
+				printf("          '-e 4' to use Laplacian of Gaussian (sigma=2)\n");
+				printf("          '-e 5' to use Sobel \n");
+				printf("          '-e 6' to use LoG Simple\n");
+				printf("          '-e 7' to use Simple Gradient \n");
 				return 1;
 			default:
 				fprintf(stderr, "Unexpected argument character code: %c (0x%04x)\n", (char)c, c);
