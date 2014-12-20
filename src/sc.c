@@ -13,7 +13,7 @@
 #define PROGRAM_VERS "0.0"
 #define PROGRAM_COPY "Copyright 2014, Chrisotpher Stoll"
 
-static void carve(char *sourceFile, char *resultFile, int forceDirection, int forceEdge, int verbose)
+static void carve(char *sourceFile, char *resultFile, int forceDirection, int forceEdge, int forceGauss, int verbose)
 {
 	int *imageVector;
 	int imageWidth = 0;
@@ -29,7 +29,7 @@ static void carve(char *sourceFile, char *resultFile, int forceDirection, int fo
 	if (!forceEdge) {
 		forceEdge = 1;
 	}
-	newImageVector = seamCarve(imageVector, imageWidth, imageHeight, imageDepth, forceEdge, forceDirection);
+	newImageVector = seamCarve(imageVector, imageWidth, imageHeight, imageDepth, forceDirection, forceEdge, forceGauss);
 
 	/*
 	double imageScale = 1;//0.125;
@@ -47,8 +47,10 @@ int main(int argc, char const *argv[])
 
 	char *dvalue = 0;
 	char *evalue = 0;
+	char *gvalue = 0;
 	int forceDir = 0;
 	int forceEdge = 0;
+	int forceGauss = 0;
 	int verboseFlag = 0;
 	char *sourceFile = 0;
 	char *resultFile = 0;
@@ -63,7 +65,7 @@ int main(int argc, char const *argv[])
 	 *  source_file -- the PNG image file to open
 	 *  result_file -- the PNG file to save results to
 	 */
-	while ((c = getopt (argc, argumentVector, "d:e:v")) != -1) {
+	while ((c = getopt (argc, argumentVector, "d:e:g:v")) != -1) {
 		switch (c) {
 			case 'd':
 				dvalue = optarg;
@@ -73,23 +75,30 @@ int main(int argc, char const *argv[])
 				evalue = optarg;
 				forceEdge = (int)evalue[0] - 48;
 				break;
+			case 'g':
+				gvalue = optarg;
+				forceGauss = (int)gvalue[0] - 48;
+				break;
 			case 'v':
 				verboseFlag = 1;
 				break;
 			case '?':
 				printf(PROGRAM_NAME " v" PROGRAM_VERS "\n");
 				printf(PROGRAM_COPY "\n\n");
-				printf("usage: sc [-d 1|2|3] [-e 1|2|3] [-v] source_PNG_file result_PNG_file\n");
-				printf("          '-d 1' to force horizontal direction seams \n");
-				printf("          '-d 2' to force vertical direction seams \n");
-				printf("          '-d 3' to force both direction seams \n");
-				printf("          '-e 1' to use Difference of Gaussian (default) \n");
-				printf("          '-e 2' to use Laplacian of Gaussian (sigma=8)\n");
-				printf("          '-e 3' to use Laplacian of Gaussian (sigma=4)\n");
-				printf("          '-e 4' to use Laplacian of Gaussian (sigma=2)\n");
-				printf("          '-e 5' to use Sobel \n");
-				printf("          '-e 6' to use LoG Simple\n");
-				printf("          '-e 7' to use Simple Gradient \n");
+				printf("usage: sc [-d 1-3] [-e 1-7] [-g 1-3] [-v] source_PNG_file result_PNG_file\n");
+				printf("          '-d 1' force horizontal direction seams \n");
+				printf("          '-d 2' force vertical direction seams \n");
+				printf("          '-d 3' force both direction seams \n");
+				printf("          '-e 1' use Difference of Gaussian (default) \n");
+				printf("          '-e 2' use Laplacian of Gaussian (sigma=8)\n");
+				printf("          '-e 3' use Laplacian of Gaussian (sigma=4)\n");
+				printf("          '-e 4' use Laplacian of Gaussian (sigma=2)\n");
+				printf("          '-e 5' use Sobel \n");
+				printf("          '-e 6' use LoG Simple\n");
+				printf("          '-e 7' use Simple Gradient \n");
+				printf("          '-g 1' pre-Gaussian blur (sigma=2) \n");
+				printf("          '-g 2' pre-Gaussian blur (sigma=4) \n");
+				printf("          '-g 3' pre-Gaussian blur (sigma=8) \n");
 				return 1;
 			default:
 				fprintf(stderr, "Unexpected argument character code: %c (0x%04x)\n", (char)c, c);
@@ -119,7 +128,7 @@ int main(int argc, char const *argv[])
 
 	// Go ahead if the source file exists
 	if (access(sourceFile, R_OK) != -1) {
-		carve(sourceFile, resultFile, forceDir, forceEdge, verboseFlag);
+		carve(sourceFile, resultFile, forceDir, forceEdge, forceGauss, verboseFlag);
 	} else {
 		fprintf(stderr, "Error reading file %s\n", sourceFile);
 		return 1;

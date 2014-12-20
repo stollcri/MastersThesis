@@ -270,7 +270,7 @@ static void findSeamsHorizontal(struct pixel *imageVector, int imageWidth, int i
 /*
  * The main function
  */
-static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int imageDepth, int forceEdge, int forceDirection)
+static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int imageDepth, int forceDirection, int forceEdge, int preGauss)
 {
 	struct pixel *workingImageH = (struct pixel*)xmalloc((unsigned long)imageWidth * (unsigned long)imageHeight * sizeof(struct pixel));
 	struct pixel *workingImageV = (struct pixel*)xmalloc((unsigned long)imageWidth * (unsigned long)imageHeight * sizeof(struct pixel));
@@ -319,6 +319,17 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 	for (int j = 0; j < imageHeight; ++j) {
 		for (int i = 0; i < imageWidth; ++i) {
 			currentPixel = (j * imageWidth) + i;
+
+			if (preGauss == 1) {
+				workingImageH[currentPixel].bright = getPixelGaussian(workingImageH, imageWidth, imageHeight, 1, currentPixel, 20);
+				workingImageV[currentPixel].bright = workingImageH[currentPixel].bright;
+			} else if (preGauss == 2) {
+				workingImageH[currentPixel].bright = getPixelGaussian(workingImageH, imageWidth, imageHeight, 1, currentPixel, 40);
+				workingImageV[currentPixel].bright = workingImageH[currentPixel].bright;
+			} else if (preGauss == 3) {
+				workingImageH[currentPixel].bright = getPixelGaussian(workingImageH, imageWidth, imageHeight, 1, currentPixel, 80);
+				workingImageV[currentPixel].bright = workingImageH[currentPixel].bright;
+			}
 
 			if (forceEdge == 1) {
 				// workingImageH[currentPixel].gaussA = getPixelGaussian(workingImageH, imageWidth, imageHeight, 1, currentPixel, 12);
