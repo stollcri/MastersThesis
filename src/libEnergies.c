@@ -147,7 +147,8 @@ static int getPixelEnergyLaplacian(struct pixel *imageVector, int imageWidth, in
 	
 	// apply the sobel filter
 	int laplace = (4 * p5val) - p1val - p4val - p6val - p8val;
-	//int laplace = (8 * p5val) - p1val - p2val - p3val - p4val - p6val - p7val - p8val - p9val;
+	// int laplace = (8 * p5val) - p1val - p2val - p3val - p4val - p6val - p7val - p8val - p9val;
+	// int laplace = (p2val + p2val) + (p4val + p4val) + (p6val + p6val) + (p8val + p8val) - (4 * p5val) - p1val - p3val - p7val - p9val;
 
 	return min(max(laplace, 0), 255);
 }
