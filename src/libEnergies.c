@@ -103,6 +103,54 @@ static int getPixelEnergySobel(struct pixel *imageVector, int imageWidth, int im
 	// return min((sobelX + sobelY), 255);
 }
 
+static int getPixelEnergyLaplacian(struct pixel *imageVector, int imageWidth, int imageHeight, int currentPixel)
+{
+	int pixelDepth = 1;
+	int imageByteWidth = imageWidth * pixelDepth;
+	int currentCol = currentPixel % imageByteWidth;
+	int p1, p2, p3, p4, p5, p6, p7, p8, p9;
+
+	// get pixel locations within the image array
+	// image border pixels have undefined (zero) energy
+	if ((currentPixel > imageByteWidth) &&
+		(currentPixel < (imageByteWidth * (imageHeight - 1))) &&
+		(currentCol > 0) &&
+		(currentCol < (imageByteWidth - pixelDepth))) {
+		p1 = currentPixel - imageByteWidth - pixelDepth;
+		p2 = currentPixel - imageByteWidth;
+		p3 = currentPixel - imageByteWidth + pixelDepth;
+		
+		p4 = currentPixel - pixelDepth;
+		p5 = currentPixel;
+		p6 = currentPixel + pixelDepth;
+		
+		p7 = currentPixel + imageByteWidth - pixelDepth;
+		p8 = currentPixel + imageByteWidth;
+		p9 = currentPixel + imageByteWidth + pixelDepth;
+	} else {
+		// TODO: consider attempting to evaluate border pixels
+		return 0;//33; // zero and INT_MAX are significant, so return 1
+	}
+	
+	// get the pixel values from the image array
+	int p1val = imageVector[p1].bright;
+	int p2val = imageVector[p2].bright;
+	int p3val = imageVector[p3].bright;
+	
+	int p4val = imageVector[p4].bright;
+	int p5val = imageVector[p5].bright;
+	int p6val = imageVector[p6].bright;
+
+	int p7val = imageVector[p7].bright;
+	int p8val = imageVector[p8].bright;
+	int p9val = imageVector[p9].bright;
+	
+	// apply the sobel filter
+	int laplace = (4 * p5val) - p1val - p4val - p6val - p8val;
+
+	return min(max(laplace, 0), 255);
+}
+
 static int getPixelGaussian(struct pixel *imageVector, int imageWidth, int imageHeight, int pixelDepth, int currentPixel, int sigma)
 {
 	int imageByteWidth = imageWidth * pixelDepth;
