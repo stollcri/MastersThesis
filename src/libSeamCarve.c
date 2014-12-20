@@ -310,6 +310,8 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 			currentPixel = (j * imageWidth) + i;
 
 			if (forceEdge == 1) {
+				workingImageH[currentPixel].energy = getPixelEnergySimple(workingImageH, imageWidth, imageHeight, currentPixel, 1);
+			} else if (forceEdge == 2) {
 				// workingImageH[currentPixel].gaussA = getPixelGaussian(workingImageH, imageWidth, imageHeight, 1, currentPixel, 12);
 				// workingImageH[currentPixel].gaussB = getPixelGaussian(workingImageH, imageWidth, imageHeight, 1, currentPixel, 13);
 				workingImageH[currentPixel].gaussA = getPixelGaussian(workingImageH, imageWidth, imageHeight, 1, currentPixel, 14);
@@ -319,10 +321,10 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				workingImageV[currentPixel].gaussB = workingImageH[currentPixel].gaussB;
 
 				workingImageH[currentPixel].energy = getPixelEnergyDoG(workingImageH, currentPixel);
-			} else if (forceEdge == 2) {
+			} else if (forceEdge == 3) {
 				workingImageH[currentPixel].bright = getPixelGaussian(workingImageH, imageWidth, imageHeight, 1, currentPixel, 80);
 				workingImageH[currentPixel].energy = sqrt(getPixelEnergyLaplacian(workingImageH, imageWidth, imageHeight, currentPixel));
-			} else if (forceEdge == 3) {
+			} else if (forceEdge == 4) {
 				workingImageH[currentPixel].energy = getPixelEnergySobel(workingImageH, imageWidth, imageHeight, currentPixel);	
 			} else if (forceEdge == 5) {
 				workingImageH[currentPixel].energy = getPixelGaussian(workingImageH, imageWidth, imageHeight, 1, currentPixel, 9999);
