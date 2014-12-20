@@ -193,6 +193,14 @@ static int getPixelGaussian(struct pixel *imageVector, int imageWidth, int image
 		weights[6]  = 0.040622;
 		weights[7]  = 0.040940;
 		weights[12] = 0.041261;
+	} else if (sigma == 50) {
+		// scaling factor / standard deviation / sigma = 5.0
+		weights[0]  = 0.036894;
+		weights[1]  = 0.039167;
+		weights[2]  = 0.039956;
+		weights[6]  = 0.041581;
+		weights[7]  = 0.042418;
+		weights[12] = 0.043272;
 	} else if (sigma == 40) {
 		// scaling factor / standard deviation / sigma = 4.0
 		weights[0]  = 0.035228;//0.01247764154323288;
@@ -233,6 +241,22 @@ static int getPixelGaussian(struct pixel *imageVector, int imageWidth, int image
 		weights[6]  = 0.049045;//0.05901036264417242;
 		weights[7]  = 0.055432;//0.08403777978803546;
 		weights[12] = 0.062651;//0.11967980055109502;
+	} else if (sigma == 16) {
+		// scaling factor / standard deviation / sigma = 1.6
+		weights[0]  = 0.017056;
+		weights[1]  = 0.030076;
+		weights[2]  = 0.036334;
+		weights[6]  = 0.053035;
+		weights[7]  = 0.064071;
+		weights[12] = 0.077404;
+	} else if (sigma == 15) {
+		// scaling factor / standard deviation / sigma = 1.5
+		weights[0]  = 0.015026;
+		weights[1]  = 0.028569;
+		weights[2]  = 0.035391;
+		weights[6]  = 0.054318;
+		weights[7]  = 0.067288;
+		weights[12] = 0.083355;
 	} else if (sigma == 14) {
 		// scaling factor / standard deviation / sigma = 1.4
 		gaussDvsr = 159;
