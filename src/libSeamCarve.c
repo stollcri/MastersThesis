@@ -18,6 +18,11 @@
 #define THRESHHOLD_SOBEL 96
 #define THRESHHOLD_USECOUNT 96
 
+/*
+ * Trace all the seams
+ * The least signifigant pixels will be traced multiple times and have a higher value (whiter)
+ * The most signifigant pixels will not be traced at all and have a value of zero (black)
+ */
 static void findSeams(struct pixel *imageVector, int imageWidth, int imageHeight, int direction)
 {
 	// TODO: create macro definition
@@ -82,6 +87,7 @@ static void findSeams(struct pixel *imageVector, int imageWidth, int imageHeight
 			//printf("%d\n", (imageSize - 1));
 			for (int j = (imageSize - 1); j >= 0; --j) {
 
+				// THIS IS THE CRUTIAL PART
 				if (imageVector[minValueLocation].usecount < (255-SEAM_TRACE_INCREMENT)) {
 					imageVector[minValueLocation].usecount += SEAM_TRACE_INCREMENT;
 				}
@@ -261,6 +267,9 @@ static void findSeamsHorizontal(struct pixel *imageVector, int imageWidth, int i
 	findSeams(imageVector, imageWidth, imageHeight, 1);
 }
 
+/*
+ * The main function
+ */
 static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int imageDepth, int forceEdge, int forceDirection)
 {
 	struct pixel *workingImageH = (struct pixel*)xmalloc((unsigned long)imageWidth * (unsigned long)imageHeight * sizeof(struct pixel));
@@ -270,6 +279,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 	int inputPixel = 0;
 	int outputPixel = 0;
 	int currentPixel = 0;
+	// fill initial data structures
 	for (int j = 0; j < imageHeight; ++j) {
 		for (int i = 0; i < imageWidth; ++i) {
 			currentPixel = (j * imageWidth) + i;
@@ -305,6 +315,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 		}
 	}
 
+	// get energy values using the prescribed method
 	for (int j = 0; j < imageHeight; ++j) {
 		for (int i = 0; i < imageWidth; ++i) {
 			currentPixel = (j * imageWidth) + i;
@@ -364,6 +375,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 	}
 	*/
 
+	// find seams in the prescribed direction
 	int resultDirection = 0;
 	if (forceDirection == 1) {
 		fillSeamMatrixHorizontal(workingImageH, imageWidth, imageHeight);
@@ -395,6 +407,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 		}
 	}
 
+	// prepare results for output
 	if (resultDirection == 1) {
 		for (int j = 0; j < imageHeight; ++j) {
 			for (int i = 0; i < imageWidth; ++i) {
