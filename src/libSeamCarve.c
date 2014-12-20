@@ -261,7 +261,7 @@ static void findSeamsHorizontal(struct pixel *imageVector, int imageWidth, int i
 	findSeams(imageVector, imageWidth, imageHeight, 1);
 }
 
-static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int imageDepth, int forceDirection)
+static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int imageDepth, int forceEdge, int forceDirection)
 {
 	struct pixel *workingImageH = (struct pixel*)xmalloc((unsigned long)imageWidth * (unsigned long)imageHeight * sizeof(struct pixel));
 	struct pixel *workingImageV = (struct pixel*)xmalloc((unsigned long)imageWidth * (unsigned long)imageHeight * sizeof(struct pixel));
@@ -308,14 +308,24 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 	for (int j = 0; j < imageHeight; ++j) {
 		for (int i = 0; i < imageWidth; ++i) {
 			currentPixel = (j * imageWidth) + i;
-			// workingImageH[currentPixel].gaussA = getPixelGaussian(workingImageH, imageWidth, imageHeight, 1, currentPixel, 12);
-			// workingImageH[currentPixel].gaussB = getPixelGaussian(workingImageH, imageWidth, imageHeight, 1, currentPixel, 13);
-			workingImageH[currentPixel].gaussA = getPixelGaussian(workingImageH, imageWidth, imageHeight, 1, currentPixel, 12);
-			workingImageH[currentPixel].gaussB = getPixelGaussian(workingImageH, imageWidth, imageHeight, 1, currentPixel, 13);
-			workingImageV[currentPixel].gaussA = workingImageH[currentPixel].gaussA;
-			workingImageV[currentPixel].gaussB = workingImageH[currentPixel].gaussB;
 
-			workingImageH[currentPixel].energy = getPixelEnergyDoG(workingImageH, currentPixel);
+			if (forceEdge == 1) {
+				// workingImageH[currentPixel].gaussA = getPixelGaussian(workingImageH, imageWidth, imageHeight, 1, currentPixel, 12);
+				// workingImageH[currentPixel].gaussB = getPixelGaussian(workingImageH, imageWidth, imageHeight, 1, currentPixel, 13);
+				workingImageH[currentPixel].gaussA = getPixelGaussian(workingImageH, imageWidth, imageHeight, 1, currentPixel, 14);
+				workingImageH[currentPixel].gaussB = getPixelGaussian(workingImageH, imageWidth, imageHeight, 1, currentPixel, 16);
+				
+				workingImageV[currentPixel].gaussA = workingImageH[currentPixel].gaussA;
+				workingImageV[currentPixel].gaussB = workingImageH[currentPixel].gaussB;
+
+				workingImageH[currentPixel].energy = getPixelEnergyDoG(workingImageH, currentPixel);
+			} else if (forceEdge == 2) {
+				workingImageH[currentPixel].bright = getPixelGaussian(workingImageH, imageWidth, imageHeight, 1, currentPixel, 80);
+				workingImageH[currentPixel].energy = sqrt(getPixelEnergyLaplacian(workingImageH, imageWidth, imageHeight, currentPixel));
+			} else if (forceEdge == 3) {
+				workingImageH[currentPixel].energy = getPixelEnergySobel(workingImageH, imageWidth, imageHeight, currentPixel);	
+			}
+			
 			workingImageH[currentPixel].seamval = workingImageH[currentPixel].energy;
 			workingImageV[currentPixel].energy = workingImageH[currentPixel].energy;
 			workingImageV[currentPixel].seamval = workingImageV[currentPixel].energy;
@@ -344,10 +354,38 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 	}
 	*/
 
+	int resultDirection = 0;
 	if (forceDirection == 1) {
 		fillSeamMatrixHorizontal(workingImageH, imageWidth, imageHeight);
 		findSeamsHorizontal(workingImageH, imageWidth, imageHeight);
+		resultDirection = 1;
+	} else if (forceDirection == 2) {
+		fillSeamMatrixVertical(workingImageV, imageWidth, imageHeight);
+		findSeamsVertical(workingImageV, imageWidth, imageHeight);
+		resultDirection = 2;
+	} else if (forceDirection == 3) {
+		fillSeamMatrixHorizontal(workingImageH, imageWidth, imageHeight);
+		fillSeamMatrixVertical(workingImageV, imageWidth, imageHeight);
 
+		findSeamsHorizontal(workingImageH, imageWidth, imageHeight);
+		findSeamsVertical(workingImageV, imageWidth, imageHeight);
+		resultDirection = 3;
+	} else {
+		int horizontalSeamCost = fillSeamMatrixHorizontal(workingImageH, imageWidth, imageHeight);
+		int verticalSeamCost = fillSeamMatrixVertical(workingImageV, imageWidth, imageHeight);
+		printf("Sum traversal cost of all seams: horizontal = %d, vertical = %d \n", verticalSeamCost, horizontalSeamCost);
+
+		findSeamsHorizontal(workingImageH, imageWidth, imageHeight);
+		findSeamsVertical(workingImageV, imageWidth, imageHeight);
+		
+		if (horizontalSeamCost < verticalSeamCost) {
+			resultDirection = 1;
+		} else {
+			resultDirection = 2;
+		}
+	}
+
+	if (resultDirection == 1) {
 		for (int j = 0; j < imageHeight; ++j) {
 			for (int i = 0; i < imageWidth; ++i) {
 				currentPixel = (j * imageWidth) + i;
@@ -366,11 +404,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				}
 			}
 		}
-
-	} else if (forceDirection == 2) {
-		fillSeamMatrixVertical(workingImageV, imageWidth, imageHeight);
-		findSeamsVertical(workingImageV, imageWidth, imageHeight);
-
+	} else if (resultDirection == 2) {
 		for (int j = 0; j < imageHeight; ++j) {
 			for (int i = 0; i < imageWidth; ++i) {
 				currentPixel = (j * imageWidth) + i;
@@ -389,14 +423,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				}
 			}
 		}
-
-	} else if (forceDirection == 3) {
-		int horizontalSeamCost = fillSeamMatrixHorizontal(workingImageH, imageWidth, imageHeight);
-		int verticalSeamCost = fillSeamMatrixVertical(workingImageV, imageWidth, imageHeight);
-
-		findSeamsHorizontal(workingImageH, imageWidth, imageHeight);
-		findSeamsVertical(workingImageV, imageWidth, imageHeight);
-
+	} else if (resultDirection == 3) {
 		int currentUseCount = 0;
 		for (int j = 0; j < imageHeight; ++j) {
 			for (int i = 0; i < imageWidth; ++i) {
@@ -404,7 +431,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				outputPixel = currentPixel * imageDepth;
 				
 				currentUseCount = max(workingImageH[currentPixel].usecount, workingImageV[currentPixel].usecount);
-				if (currentUseCount > THRESHHOLD_USECOUNT)
+				if (currentUseCount > 333)
 				{
 					resultImage[outputPixel] = 255;
 					resultImage[outputPixel+1] = 0;
@@ -416,64 +443,22 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 					resultImage[outputPixel+1] = workingImageH[currentPixel].bright /3;
 					resultImage[outputPixel+2] = workingImageH[currentPixel].bright /3;
 					resultImage[outputPixel+3] = 255;
-					*/
+					*//*
 					resultImage[outputPixel] = workingImageH[currentPixel].r /3;
 					resultImage[outputPixel+1] = workingImageH[currentPixel].g /3;
 					resultImage[outputPixel+2] = workingImageH[currentPixel].b /3;
+					resultImage[outputPixel+3] = 255;
+					*/
+					resultImage[outputPixel] = workingImageH[currentPixel].usecount + workingImageV[currentPixel].usecount;
+					resultImage[outputPixel+1] = workingImageH[currentPixel].usecount + workingImageV[currentPixel].usecount;
+					resultImage[outputPixel+2] = workingImageH[currentPixel].usecount + workingImageV[currentPixel].usecount;
 					resultImage[outputPixel+3] = 255;
 					
 				}
 			}
 		}
-
-	} else {
-		int horizontalSeamCost = fillSeamMatrixHorizontal(workingImageH, imageWidth, imageHeight);
-		int verticalSeamCost = fillSeamMatrixVertical(workingImageV, imageWidth, imageHeight);
-		printf("Sum traversal cost of all seams: horizontal = %d, vertical = %d \n", verticalSeamCost, horizontalSeamCost);
-
-		findSeamsHorizontal(workingImageH, imageWidth, imageHeight);
-		findSeamsVertical(workingImageV, imageWidth, imageHeight);
-		
-		if (horizontalSeamCost < verticalSeamCost) {
-			for (int j = 0; j < imageHeight; ++j) {
-				for (int i = 0; i < imageWidth; ++i) {
-					currentPixel = (j * imageWidth) + i;
-					outputPixel = currentPixel * imageDepth;
-
-					if (workingImageH[currentPixel].usecount > THRESHHOLD_USECOUNT) {
-						resultImage[outputPixel] = 255;
-						resultImage[outputPixel+1] = 0;
-						resultImage[outputPixel+2] = 0;
-						resultImage[outputPixel+3] = 255;
-					} else {
-						resultImage[outputPixel] = workingImageH[currentPixel].r;
-						resultImage[outputPixel+1] = workingImageH[currentPixel].g;
-						resultImage[outputPixel+2] = workingImageH[currentPixel].b;
-						resultImage[outputPixel+3] = 255;
-					}
-				}
-			}
-		} else {
-			for (int j = 0; j < imageHeight; ++j) {
-				for (int i = 0; i < imageWidth; ++i) {
-					currentPixel = (j * imageWidth) + i;
-					outputPixel = currentPixel * imageDepth;
-
-					if (workingImageV[currentPixel].usecount > THRESHHOLD_USECOUNT) {
-						resultImage[outputPixel] = 255;
-						resultImage[outputPixel+1] = 0;
-						resultImage[outputPixel+2] = 0;
-						resultImage[outputPixel+3] = 255;
-					} else {
-						resultImage[outputPixel] = workingImageV[currentPixel].r;
-						resultImage[outputPixel+1] = workingImageV[currentPixel].g;
-						resultImage[outputPixel+2] = workingImageV[currentPixel].b;
-						resultImage[outputPixel+3] = 255;
-					}
-				}
-			}
-		}
 	}
+
 	return resultImage;
 }
 

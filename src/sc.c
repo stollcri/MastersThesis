@@ -13,7 +13,7 @@
 #define PROGRAM_VERS "0.0"
 #define PROGRAM_COPY "Copyright 2014, Chrisotpher Stoll"
 
-static void carve(char *sourceFile, char *resultFile, int forceDirection, int verbose)
+static void carve(char *sourceFile, char *resultFile, int forceDirection, int forceEdge, int verbose)
 {
 	int *imageVector;
 	int imageWidth = 0;
@@ -26,7 +26,10 @@ static void carve(char *sourceFile, char *resultFile, int forceDirection, int ve
 	}
 
 	int *newImageVector;
-	newImageVector = seamCarve(imageVector, imageWidth, imageHeight, imageDepth, forceDirection);
+	if (!forceEdge) {
+		forceEdge = 1;
+	}
+	newImageVector = seamCarve(imageVector, imageWidth, imageHeight, imageDepth, forceEdge, forceDirection);
 
 	/*
 	double imageScale = 1;//0.125;
@@ -43,7 +46,9 @@ int main(int argc, char const *argv[])
 	char **argumentVector = (char**)argv;
 
 	char *dvalue = 0;
+	char *evalue = 0;
 	int forceDir = 0;
+	int forceEdge = 0;
 	int verboseFlag = 0;
 	char *sourceFile = 0;
 	char *resultFile = 0;
@@ -57,11 +62,15 @@ int main(int argc, char const *argv[])
 	 *  source_file -- the PNG image file to open
 	 *  result_file -- the PNG file to save results to
 	 */
-	while ((c = getopt (argc, argumentVector, "d:v")) != -1) {
+	while ((c = getopt (argc, argumentVector, "d:e:v")) != -1) {
 		switch (c) {
 			case 'd':
 				dvalue = optarg;
 				forceDir = (int)dvalue[0] - 48;
+				break;
+			case 'e':
+				evalue = optarg;
+				forceEdge = (int)evalue[0] - 48;
 				break;
 			case 'v':
 				verboseFlag = 1;
@@ -69,10 +78,13 @@ int main(int argc, char const *argv[])
 			case '?':
 				printf(PROGRAM_NAME " v" PROGRAM_VERS "\n");
 				printf(PROGRAM_COPY "\n\n");
-				printf("usage: sc [-d 1|2] [-v] source_PNG_file result_PNG_file\n");
-				printf("          '-d 1' is to force horizontal direction seams\n");
-				printf("          '-d 2' is to force vertical direction seams\n");
-				printf("          '-d 3' is to force both direction seams\n");
+				printf("usage: sc [-d 1|2|3] [-e 1|2|3] [-v] source_PNG_file result_PNG_file\n");
+				printf("          '-d 1' is to force horizontal direction seams \n");
+				printf("          '-d 2' is to force vertical direction seams \n");
+				printf("          '-d 3' is to force both direction seams \n");
+				printf("          '-e 1' is to force DoG (default) \n");
+				printf("          '-e 2' is to force Laplacian \n");
+				printf("          '-e 3' is to force Sobel \n");
 				return 1;
 			default:
 				fprintf(stderr, "Unexpected argument character code: %c (0x%04x)\n", (char)c, c);
@@ -102,7 +114,7 @@ int main(int argc, char const *argv[])
 
 	// Go ahead if the source file exists
 	if (access(sourceFile, R_OK) != -1) {
-		carve(sourceFile, resultFile, forceDir, verboseFlag);
+		carve(sourceFile, resultFile, forceDir, forceEdge, verboseFlag);
 	} else {
 		fprintf(stderr, "Error reading file %s\n", sourceFile);
 		return 1;
