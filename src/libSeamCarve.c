@@ -16,6 +16,7 @@
 
 #define SEAM_TRACE_INCREMENT 16
 #define THRESHHOLD_SOBEL 96
+#define THRESHHOLD_USECOUNT 96
 
 static void findSeams(struct pixel *imageVector, int imageWidth, int imageHeight, int direction)
 {
@@ -307,6 +308,8 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 	for (int j = 0; j < imageHeight; ++j) {
 		for (int i = 0; i < imageWidth; ++i) {
 			currentPixel = (j * imageWidth) + i;
+			// workingImageH[currentPixel].gaussA = getPixelGaussian(workingImageH, imageWidth, imageHeight, 1, currentPixel, 12);
+			// workingImageH[currentPixel].gaussB = getPixelGaussian(workingImageH, imageWidth, imageHeight, 1, currentPixel, 13);
 			workingImageH[currentPixel].gaussA = getPixelGaussian(workingImageH, imageWidth, imageHeight, 1, currentPixel, 12);
 			workingImageH[currentPixel].gaussB = getPixelGaussian(workingImageH, imageWidth, imageHeight, 1, currentPixel, 13);
 			workingImageV[currentPixel].gaussA = workingImageH[currentPixel].gaussA;
@@ -318,7 +321,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 			workingImageV[currentPixel].seamval = workingImageV[currentPixel].energy;
 			
 			// also grab sobel energy
-			
+			/*
 			workingImageH[currentPixel].sobelA = getPixelEnergySobel(workingImageH, imageWidth, imageHeight, currentPixel);
 			workingImageV[currentPixel].sobelA = workingImageH[currentPixel].sobelA;
 
@@ -328,6 +331,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				workingImageV[currentPixel].energy = workingImageH[currentPixel].sobelA / 4;
 				workingImageV[currentPixel].seamval = workingImageV[currentPixel].energy;
 			}
+			*/
 		}
 	}
 
@@ -349,7 +353,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				currentPixel = (j * imageWidth) + i;
 				outputPixel = currentPixel * imageDepth;
 
-				if (workingImageH[currentPixel].usecount > 64) {
+				if (workingImageH[currentPixel].usecount > THRESHHOLD_USECOUNT) {
 					resultImage[outputPixel] = 255;
 					resultImage[outputPixel+1] = 0;
 					resultImage[outputPixel+2] = 0;
@@ -372,7 +376,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				currentPixel = (j * imageWidth) + i;
 				outputPixel = currentPixel * imageDepth;
 
-				if (workingImageV[currentPixel].usecount > 64) {
+				if (workingImageV[currentPixel].usecount > THRESHHOLD_USECOUNT) {
 					resultImage[outputPixel] = 255;
 					resultImage[outputPixel+1] = 0;
 					resultImage[outputPixel+2] = 0;
@@ -400,24 +404,24 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				outputPixel = currentPixel * imageDepth;
 				
 				currentUseCount = max(workingImageH[currentPixel].usecount, workingImageV[currentPixel].usecount);
-				if (currentUseCount > 64)
+				if (currentUseCount > THRESHHOLD_USECOUNT)
 				{
 					resultImage[outputPixel] = 255;
 					resultImage[outputPixel+1] = 0;
 					resultImage[outputPixel+2] = 0;
 					resultImage[outputPixel+3] = 255;
 				} else {
-					
-					resultImage[outputPixel] = workingImageH[currentPixel].bright;
-					resultImage[outputPixel+1] = workingImageH[currentPixel].bright;
-					resultImage[outputPixel+2] = workingImageH[currentPixel].bright;
-					resultImage[outputPixel+3] = 255;
 					/*
-					resultImage[outputPixel] = workingImageH[currentPixel].r;
-					resultImage[outputPixel+1] = workingImageH[currentPixel].g;
-					resultImage[outputPixel+2] = workingImageH[currentPixel].b;
+					resultImage[outputPixel] = workingImageH[currentPixel].bright /3;
+					resultImage[outputPixel+1] = workingImageH[currentPixel].bright /3;
+					resultImage[outputPixel+2] = workingImageH[currentPixel].bright /3;
 					resultImage[outputPixel+3] = 255;
 					*/
+					resultImage[outputPixel] = workingImageH[currentPixel].r /3;
+					resultImage[outputPixel+1] = workingImageH[currentPixel].g /3;
+					resultImage[outputPixel+2] = workingImageH[currentPixel].b /3;
+					resultImage[outputPixel+3] = 255;
+					
 				}
 			}
 		}
@@ -436,7 +440,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 					currentPixel = (j * imageWidth) + i;
 					outputPixel = currentPixel * imageDepth;
 
-					if (workingImageH[currentPixel].usecount > 64) {
+					if (workingImageH[currentPixel].usecount > THRESHHOLD_USECOUNT) {
 						resultImage[outputPixel] = 255;
 						resultImage[outputPixel+1] = 0;
 						resultImage[outputPixel+2] = 0;
@@ -455,7 +459,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 					currentPixel = (j * imageWidth) + i;
 					outputPixel = currentPixel * imageDepth;
 
-					if (workingImageV[currentPixel].usecount > 64) {
+					if (workingImageV[currentPixel].usecount > THRESHHOLD_USECOUNT) {
 						resultImage[outputPixel] = 255;
 						resultImage[outputPixel+1] = 0;
 						resultImage[outputPixel+2] = 0;

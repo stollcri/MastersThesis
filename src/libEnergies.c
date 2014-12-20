@@ -201,6 +201,30 @@ static int getPixelGaussian(struct pixel *imageVector, int imageWidth, int image
 		weights[6]  = 0.042452;//0.05592090972790156;
 		weights[7]  = 0.043792;//0.07180386941492609;
 		weights[12] = 0.045175;//0.09219799334529226;
+	} else if (sigma == 24) {
+		// scaling factor / standard deviation / sigma = 2.4
+		weights[0]  = 0.027840;
+		weights[1]  = 0.035986;
+		weights[2]  = 0.039201;
+		weights[6]  = 0.046517;
+		weights[7]  = 0.050672;
+		weights[12] = 0.055198;
+	} else if (sigma == 22) {
+		// scaling factor / standard deviation / sigma = 2.2
+		weights[0]  = 0.025903;
+		weights[1]  = 0.035128;
+		weights[2]  = 0.038882;
+		weights[6]  = 0.047638;
+		weights[7]  = 0.052729;
+		weights[12] = 0.058364;
+	} else if (sigma == 21) {
+		// scaling factor / standard deviation / sigma = 2.1
+		weights[0]  = 0.024777;
+		weights[1]  = 0.034594;
+		weights[2]  = 0.038665;
+		weights[6]  = 0.048301;
+		weights[7]  = 0.053985;
+		weights[12] = 0.060338;
 	} else if (sigma == 20) {
 		// scaling factor / standard deviation / sigma = 2.0
 		weights[0]  = 0.023528;//0.007073763959958826;
@@ -226,6 +250,14 @@ static int getPixelGaussian(struct pixel *imageVector, int imageWidth, int image
 		weights[6]  = 0.057120;
 		weights[7]  = 0.075698;
 		weights[12] = 0.100318;
+	} else if (sigma == 125) {
+		// scaling factor / standard deviation / sigma = 1.25
+		weights[0]  = 0.009355;
+		weights[1]  = 0.023256;
+		weights[2]  = 0.031498;
+		weights[6]  = 0.057816;
+		weights[7]  = 0.078305;
+		weights[12] = 0.106055;
 	} else if (sigma == 12) {
 		// scaling factor / standard deviation / sigma = 1.2
 		weights[0]  = 0.008173;
@@ -234,6 +266,14 @@ static int getPixelGaussian(struct pixel *imageVector, int imageWidth, int image
 		weights[6]  = 0.058473;
 		weights[7]  = 0.081144;
 		weights[12] = 0.112606;
+	} else if (sigma == 11) {
+		// scaling factor / standard deviation / sigma = 1.1
+		weights[0]  = 0.005865;
+		weights[1]  = 0.018686;
+		weights[2]  = 0.027481;
+		weights[6]  = 0.059536;
+		weights[7]  = 0.087555;
+		weights[12] = 0.128760;
 	} else if (sigma == 10) {
 		// scaling factor / standard deviation / sigma = 1
 		gaussDvsr = 273;
