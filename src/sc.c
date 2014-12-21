@@ -93,7 +93,8 @@ int main(int argc, char const *argv[])
 				printf(PROGRAM_COPY "\n\n");
 				printf("usage: sc [-b 1] [-d 1-3] [-e 1-7] [-g 1-3] [-v] source_PNG_file result_PNG_file\n");
 				
-				printf("          '-b 1' use Otsu binarization (before any Gaussian blurring) \n");
+				printf("          '-b 1' use cosine adjusted brightness \n");
+				printf("          '-b 2' use Otsu binarization (before any Gaussian blurring) \n");
 
 				printf("          '-d 1' force horizontal direction seams \n");
 				printf("          '-d 2' force vertical direction seams \n");

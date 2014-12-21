@@ -17,7 +17,7 @@
 
 #define SEAM_TRACE_INCREMENT 16
 #define THRESHHOLD_SOBEL 96
-#define THRESHHOLD_USECOUNT 96
+#define THRESHHOLD_USECOUNT 64
 
 /*
  * Trace all the seams
@@ -316,9 +316,26 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 		}
 	}
 
-	// TODO: merge with above loops and below loops (split)
+	
 	// binarize the image as/if requested
-	if (forceBinarization) {
+	if (forceBinarization == 1) {
+		// not really binarized, but brightness passed though a cosine function
+		// this increases differentiation between light and dark pixels
+		int currentBrightness = 0;
+		double currentRadians = 0;
+		for (int j = 0; j < imageHeight; ++j) {
+			for (int i = 0; i < imageWidth; ++i) {
+				currentPixel = (j * imageWidth) + i;
+				currentBrightness = workingImageH[currentPixel].bright;
+				currentRadians = ((double)currentBrightness / 255.0) * 3.14159265359;
+				workingImageH[currentPixel].bright = (int)(((1.0 - cos(currentRadians)) / 2.0) * 255.0);
+				workingImageV[currentPixel].bright = workingImageH[currentPixel].bright;
+			}
+		}
+
+	} else if (forceBinarization == 2) {
+		// TODO: merge with above loops and below loops (split)
+		
 		int bins[256];
 		int currentBrightness = 0;
 
