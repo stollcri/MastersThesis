@@ -13,7 +13,7 @@
 #define PROGRAM_VERS "0.0"
 #define PROGRAM_COPY "Copyright 2014, Chrisotpher Stoll"
 
-static void carve(char *sourceFile, char *resultFile, int forceDirection, int forceEdge, int forceGauss, int verbose)
+static void carve(char *sourceFile, char *resultFile, int forceBinarization, int forceDirection, int forceEdge, int forceGauss, int verbose)
 {
 	int *imageVector;
 	int imageWidth = 0;
@@ -29,7 +29,7 @@ static void carve(char *sourceFile, char *resultFile, int forceDirection, int fo
 	if (!forceEdge) {
 		forceEdge = 1;
 	}
-	newImageVector = seamCarve(imageVector, imageWidth, imageHeight, imageDepth, forceDirection, forceEdge, forceGauss);
+	newImageVector = seamCarve(imageVector, imageWidth, imageHeight, imageDepth, forceBinarization, forceDirection, forceEdge, forceGauss);
 
 	/*
 	double imageScale = 1;//0.125;
@@ -45,9 +45,11 @@ int main(int argc, char const *argv[])
 {
 	char **argumentVector = (char**)argv;
 
+	char *bvalue = 0;
 	char *dvalue = 0;
 	char *evalue = 0;
 	char *gvalue = 0;
+	int forceBin = 0;
 	int forceDir = 0;
 	int forceEdge = 0;
 	int forceGauss = 0;
@@ -65,8 +67,12 @@ int main(int argc, char const *argv[])
 	 *  source_file -- the PNG image file to open
 	 *  result_file -- the PNG file to save results to
 	 */
-	while ((c = getopt (argc, argumentVector, "d:e:g:v")) != -1) {
+	while ((c = getopt (argc, argumentVector, "b:d:e:g:v")) != -1) {
 		switch (c) {
+			case 'b':
+				bvalue = optarg;
+				forceBin = (int)bvalue[0] - 48;
+				break;
 			case 'd':
 				dvalue = optarg;
 				forceDir = (int)dvalue[0] - 48;
@@ -85,8 +91,10 @@ int main(int argc, char const *argv[])
 			case '?':
 				printf(PROGRAM_NAME " v" PROGRAM_VERS "\n");
 				printf(PROGRAM_COPY "\n\n");
-				printf("usage: sc [-d 1-3] [-e 1-7] [-g 1-3] [-v] source_PNG_file result_PNG_file\n");
+				printf("usage: sc [-b 1] [-d 1-3] [-e 1-7] [-g 1-3] [-v] source_PNG_file result_PNG_file\n");
 				
+				printf("          '-b 1' use Otsu binarization (before any Gaussian blurring) \n");
+
 				printf("          '-d 1' force horizontal direction seams \n");
 				printf("          '-d 2' force vertical direction seams \n");
 				printf("          '-d 3' force both direction seams \n");
@@ -134,7 +142,7 @@ int main(int argc, char const *argv[])
 
 	// Go ahead if the source file exists
 	if (access(sourceFile, R_OK) != -1) {
-		carve(sourceFile, resultFile, forceDir, forceEdge, forceGauss, verboseFlag);
+		carve(sourceFile, resultFile, forceBin, forceDir, forceEdge, forceGauss, verboseFlag);
 	} else {
 		fprintf(stderr, "Error reading file %s\n", sourceFile);
 		return 1;

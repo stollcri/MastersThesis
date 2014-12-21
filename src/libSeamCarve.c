@@ -11,6 +11,7 @@
 #include <string.h>
 #include "pixel.h"
 #include "libWrappers.c"
+#include "libBinarization.c"
 #include "libEnergies.c"
 #include "libMinMax.c"
 
@@ -270,7 +271,7 @@ static void findSeamsHorizontal(struct pixel *imageVector, int imageWidth, int i
 /*
  * The main function
  */
-static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int imageDepth, int forceDirection, int forceEdge, int preGauss)
+static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int imageDepth, int forceBinarization, int forceDirection, int forceEdge, int preGauss)
 {
 	struct pixel *workingImageH = (struct pixel*)xmalloc((unsigned long)imageWidth * (unsigned long)imageHeight * sizeof(struct pixel));
 	struct pixel *workingImageV = (struct pixel*)xmalloc((unsigned long)imageWidth * (unsigned long)imageHeight * sizeof(struct pixel));
@@ -312,6 +313,37 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 			workingImageV[currentPixel] = newPixelV;
 
 			resultImage[inputPixel] = 0;
+		}
+	}
+
+	// TODO: merge with above loops and below loops (split)
+	// binarize the image as/if requested
+	if (forceBinarization) {
+		int bins[256];
+		int currentBrightness = 0;
+
+		// get historgram
+		for (int j = 0; j < imageHeight; ++j) {
+			for (int i = 0; i < imageWidth; ++i) {
+				currentPixel = (j * imageWidth) + i;
+				currentBrightness = workingImageH[currentPixel].bright;
+				bins[currentBrightness] += 1;
+			}
+		}
+
+		int threshold = otsuBinarization(bins, (imageWidth * imageHeight));
+
+		// apply threshold
+		for (int j = 0; j < imageHeight; ++j) {
+			for (int i = 0; i < imageWidth; ++i) {
+				currentPixel = (j * imageWidth) + i;
+				currentBrightness = workingImageH[currentPixel].bright;
+				if (currentBrightness > threshold) {
+					workingImageH[currentPixel].bright = 255;
+				} else {
+					workingImageH[currentPixel].bright = 0;
+				}
+			}
 		}
 	}
 
