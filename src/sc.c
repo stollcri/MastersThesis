@@ -102,6 +102,9 @@ int main(int argc, char const *argv[])
 				printf("          '-d 4' output brightness values \n");
 				printf("          '-d 5' output energy values \n");
 				printf("          '-d 6' output seam values \n");
+				printf("          '-d 7' output seams (horizontal) \n");
+				printf("          '-d 8' output seams (vertical) \n");
+				printf("          '-d 99' output mask \n");
 				
 				printf("          '-e 1' use Difference of Gaussian (default) \n");
 				printf("          '-e 2' use Laplacian of Gaussian (sigma=8)\n");
