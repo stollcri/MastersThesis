@@ -88,11 +88,13 @@ static void findSeams(struct pixel *imageVector, int imageWidth, int imageHeight
 			//printf("%d\n", (imageSize - 1));
 			for (int j = (imageSize - 1); j >= 0; --j) {
 
-				// THIS IS THE CRUTIAL PART
+				// THIS IS THE CRUCIAL PART
 				if (imageVector[minValueLocation].usecount < (255-SEAM_TRACE_INCREMENT)) {
 					imageVector[minValueLocation].usecount += SEAM_TRACE_INCREMENT;
+					imageVector[minValueLocation].usecountR += SEAM_TRACE_INCREMENT;
+					imageVector[minValueLocation].usecountG += SEAM_TRACE_INCREMENT;
+					imageVector[minValueLocation].usecountB += SEAM_TRACE_INCREMENT;
 				}
-				// printf("%d\n", imageVector[minValueLocation].usecount);
 
 				// get the possible next pixles
 				if (direction == directionVertical) {
@@ -303,6 +305,9 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 			newPixelH.energy = 0;
 			newPixelH.seamval = 0;
 			newPixelH.usecount = 0;
+			newPixelH.usecountR = 0;
+			newPixelH.usecountG = 0;
+			newPixelH.usecountB = 0;
 			workingImageH[currentPixel] = newPixelH;
 			
 			struct pixel newPixelV;
@@ -316,6 +321,9 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 			newPixelV.energy = 0;
 			newPixelV.seamval = 0;
 			newPixelV.usecount = 0;
+			newPixelV.usecountR = 0;
+			newPixelV.usecountG = 0;
+			newPixelV.usecountB = 0;
 			workingImageV[currentPixel] = newPixelV;
 
 			resultImage[inputPixel] = 0;
