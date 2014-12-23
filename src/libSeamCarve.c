@@ -535,9 +535,9 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 					resultImage[outputPixel+2] = 0;
 					resultImage[outputPixel+3] = 255;
 				} else {
-					resultImage[outputPixel] = workingImageH[currentPixel].r;
-					resultImage[outputPixel+1] = workingImageH[currentPixel].g;
-					resultImage[outputPixel+2] = workingImageH[currentPixel].b;
+					resultImage[outputPixel] = workingImageH[currentPixel].r /3;
+					resultImage[outputPixel+1] = workingImageH[currentPixel].g /3;
+					resultImage[outputPixel+2] = workingImageH[currentPixel].b /3;
 					resultImage[outputPixel+3] = 255;
 				}
 			}
