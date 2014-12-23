@@ -459,33 +459,14 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 		fillSeamMatrixVertical(workingImageV, imageWidth, imageHeight);
 		findSeamsVertical(workingImageV, imageWidth, imageHeight);
 		resultDirection = 2;
-	} else if (forceDirection == 3) {
-		fillSeamMatrixHorizontal(workingImageH, imageWidth, imageHeight);
-		fillSeamMatrixVertical(workingImageV, imageWidth, imageHeight);
-
-		findSeamsHorizontal(workingImageH, imageWidth, imageHeight);
-		findSeamsVertical(workingImageV, imageWidth, imageHeight);
-		resultDirection = 3;
-	} else if (forceDirection >= 4) {
+	} else if (forceDirection >= 3) {
 		fillSeamMatrixHorizontal(workingImageH, imageWidth, imageHeight);
 		fillSeamMatrixVertical(workingImageV, imageWidth, imageHeight);
 
 		findSeamsHorizontal(workingImageH, imageWidth, imageHeight);
 		findSeamsVertical(workingImageV, imageWidth, imageHeight);
 
-		if (forceDirection == 4) {
-			resultDirection = 4;
-		} else if (forceDirection == 5) {
-			resultDirection = 5;
-		} else if (forceDirection == 6) {
-			resultDirection = 6;
-		} else if (forceDirection == 7) {
-			resultDirection = 7;
-		} else if (forceDirection == 8) {
-			resultDirection = 8;
-		} else {
-			resultDirection = 99;
-		}
+		resultDirection = forceDirection;
 	} else {
 		int horizontalSeamCost = fillSeamMatrixHorizontal(workingImageH, imageWidth, imageHeight);
 		int verticalSeamCost = fillSeamMatrixVertical(workingImageV, imageWidth, imageHeight);
