@@ -186,6 +186,12 @@ static void setPixelPathVertical(struct pixel *imageVector, int imageWidth, int 
 		newValue = min(aboveC, aboveR);
 	}
 	imageVector[currentPixel].seamval += newValue;
+	//
+	// This (below) is kinda a big deal
+	// 
+	if (imageVector[currentPixel].seamval > 0) {
+		imageVector[currentPixel].seamval -= 1;
+	}
 }
 
 static int fillSeamMatrixVertical(struct pixel *imageVector, int imageWidth, int imageHeight)
