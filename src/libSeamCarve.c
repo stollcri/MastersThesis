@@ -623,9 +623,9 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 					resultImage[outputPixel+2] = 0;
 					resultImage[outputPixel+3] = 255;
 				} else {
-					resultImage[outputPixel] = min(max((workingImageH[currentPixel].usecount), 0), 255);
-					resultImage[outputPixel+1] = min(max((workingImageH[currentPixel].usecount), 0), 255);
-					resultImage[outputPixel+2] = min(max((workingImageH[currentPixel].usecount), 0), 255);
+					resultImage[outputPixel] = min(max((workingImageH[currentPixel].usecountR), 0), 255);
+					resultImage[outputPixel+1] = min(max((workingImageH[currentPixel].usecountG), 0), 255);
+					resultImage[outputPixel+2] = min(max((workingImageH[currentPixel].usecountB), 0), 255);
 					resultImage[outputPixel+3] = 255;
 				}
 			}
@@ -646,9 +646,9 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 					resultImage[outputPixel+2] = 0;
 					resultImage[outputPixel+3] = 255;
 				} else {
-					resultImage[outputPixel] = min(max((workingImageV[currentPixel].usecount), 0), 255);
-					resultImage[outputPixel+1] = min(max((workingImageV[currentPixel].usecount), 0), 255);
-					resultImage[outputPixel+2] = min(max((workingImageV[currentPixel].usecount), 0), 255);
+					resultImage[outputPixel] = min(max((workingImageV[currentPixel].usecountR), 0), 255);
+					resultImage[outputPixel+1] = min(max((workingImageV[currentPixel].usecountG), 0), 255);
+					resultImage[outputPixel+2] = min(max((workingImageV[currentPixel].usecountB), 0), 255);
 					resultImage[outputPixel+3] = 255;
 				}
 			}
