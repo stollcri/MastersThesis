@@ -241,6 +241,12 @@ static void setPixelPathHorizontal(struct pixel *imageVector, int imageWidth, in
 			newValue = min(leftM, leftB);
 		}
 		imageVector[currentPixel].seamval += newValue;
+		//
+		// This (below) is kinda a big deal
+		// 
+		if (imageVector[currentPixel].seamval > 0) {
+			imageVector[currentPixel].seamval -= 1;
+		}
 	}
 }
 
