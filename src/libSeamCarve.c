@@ -653,6 +653,27 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				}
 			}
 		}
+	} else if (resultDirection == 9) {
+		int seamValueScale = 4;
+		
+		for (int j = 0; j < imageHeight; ++j) {
+			for (int i = 0; i < imageWidth; ++i) {
+				currentPixel = (j * imageWidth) + i;
+				outputPixel = currentPixel * imageDepth;
+				
+				if ((workingImageH[currentPixel].usecountR == 0) && (workingImageH[currentPixel].usecountG == 0) && (workingImageH[currentPixel].usecountB == 0)) {
+					resultImage[outputPixel] = min(max((workingImageH[currentPixel].seamval * 4), 0), 255);
+					resultImage[outputPixel+1] = min(max((workingImageH[currentPixel].seamval * 4), 0), 255);
+					resultImage[outputPixel+2] = min(max((workingImageH[currentPixel].seamval * 4), 0), 255);
+					resultImage[outputPixel+3] = 255;
+				} else {
+					resultImage[outputPixel] = min(max((workingImageH[currentPixel].usecountR), 0), 255);
+					resultImage[outputPixel+1] = 0;//min(max((workingImageH[currentPixel].usecountG), 0), 255);
+					resultImage[outputPixel+2] = 0;//min(max((workingImageH[currentPixel].usecountB), 0), 255);
+					resultImage[outputPixel+3] = 255;
+				}
+			}
+		}
 	} else if (resultDirection == 99) {
 		int seamValueScale = 4;
 		int currentUseCount = 0;
