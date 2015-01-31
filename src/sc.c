@@ -94,7 +94,10 @@ int main(int argc, char const *argv[])
 				printf("usage: sc [-b 1] [-d 1-3] [-e 1-7] [-g 1-3] [-v] source_PNG_file result_PNG_file\n");
 				
 				printf("          '-b 1' use cosine adjusted brightness \n");
-				printf("          '-b 2' use Otsu binarization (before any Gaussian blurring) \n");
+				printf("          '-b 2' use double-pass cosine adjusted brightness \n");
+				printf("          '-b 3' use triple-pass cosine adjusted brightness \n");
+				printf("          '-b 4' use quadruple-pass cosine adjusted brightness \n");
+				printf("          '-b 5' use Otsu binarization (before any Gaussian blurring) \n");
 
 				printf("          '-d 1' force horizontal direction seams \n");
 				printf("          '-d 2' force vertical direction seams \n");
@@ -113,6 +116,8 @@ int main(int argc, char const *argv[])
 				printf("          '-e 5' use Sobel \n");
 				printf("          '-e 6' use LoG Simple\n");
 				printf("          '-e 7' use Simple Gradient \n");
+				printf("          '-e 8' use DoG + Sobel \n");
+				printf("          '-e 9' use LoG (sigma=8) AND Sobel\n");
 
 				printf("          '-g 1' pre-Gaussian blur (sigma=2) \n");
 				printf("          '-g 2' pre-Gaussian blur (sigma=4) \n");
