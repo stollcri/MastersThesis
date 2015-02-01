@@ -117,10 +117,10 @@ int main(int argc, char const *argv[])
 				printf("          '-d 3' force both direction seams \n");
 				printf("          '-d 4' output brightness values \n");
 				printf("          '-d 5' output energy values \n");
-				printf("          '-d 6' output seam values \n");
-				printf("          '-d 7' output seams (horizontal) \n");
-				printf("          '-d 8' output seams (vertical) \n");
-				printf("          '-d 9' output seam values and seams (vertical) \n");
+				printf("          '-d 6' output seam values (horizontal) \n");
+				printf("          '-d 7' output seam values (vertical) \n");
+				printf("          '-d 8' output seams (horizontal) \n");
+				printf("          '-d 9' output seams (vertical) \n");
 				
 				printf("          '-e 0' use Difference of Gaussian (default) \n");
 				printf("          '-e 1' use Laplacian of Gaussian (sigma=8)\n");

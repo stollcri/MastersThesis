@@ -10,6 +10,7 @@
 #include <limits.h>
 #include <string.h>
 #include "pixel.h"
+#include "window.h"
 #include "libWrappers.c"
 #include "libBinarization.c"
 #include "libEnergies.c"
@@ -159,7 +160,7 @@ static void findSeams(struct pixel *imageVector, int imageWidth, int imageHeight
 	}
 }
 
-static void setPixelPathVertical(struct pixel *imageVector, int imageWidth, int currentPixel, int currentCol)
+static void setPixelPathVertical(struct pixel *imageVector, struct window *imageWindow, int currentPixel, int currentCol)
 {
 	int pixelAbove = 0;
 	int aboveL = 0;
@@ -167,17 +168,17 @@ static void setPixelPathVertical(struct pixel *imageVector, int imageWidth, int 
 	int aboveR = 0;
 	int newValue = 0;
 
-	pixelAbove = currentPixel - imageWidth;
+	pixelAbove = currentPixel - imageWindow->yStep;
 	// avoid falling off the left end
 	if (currentCol > 0) {
 		// avoid falling off the right end
-		if (currentCol < imageWidth) {
-			aboveL = imageVector[pixelAbove - 1].seamvalV;
+		if (currentCol < imageWindow->xLength) {
+			aboveL = imageVector[pixelAbove - imageWindow->xStep].seamvalV;
 			aboveC = imageVector[pixelAbove].seamvalV;
-			aboveR = imageVector[pixelAbove + 1].seamvalV;
+			aboveR = imageVector[pixelAbove + imageWindow->xStep].seamvalV;
 			newValue = min3(aboveL, aboveC, aboveR);
 		} else {
-			aboveL = imageVector[pixelAbove - 1].seamvalV;
+			aboveL = imageVector[pixelAbove - imageWindow->xStep].seamvalV;
 			aboveC = imageVector[pixelAbove].seamvalV;
 			aboveR = INT_MAX;
 			newValue = min(aboveL, aboveC);
@@ -185,7 +186,7 @@ static void setPixelPathVertical(struct pixel *imageVector, int imageWidth, int 
 	} else {
 		aboveL = INT_MAX;
 		aboveC = imageVector[pixelAbove].seamvalV;
-		aboveR = imageVector[pixelAbove + 1].seamvalV;
+		aboveR = imageVector[pixelAbove + imageWindow->xStep].seamvalV;
 		newValue = min(aboveC, aboveR);
 	}
 	imageVector[currentPixel].seamvalV += newValue;
@@ -197,15 +198,15 @@ static void setPixelPathVertical(struct pixel *imageVector, int imageWidth, int 
 	}
 }
 
-static int fillSeamMatrixVertical(struct pixel *imageVector, int imageWidth, int imageHeight)
+static int fillSeamMatrixVertical(struct pixel *imageVector, struct window *imageWindow)
 {
 	int result = 0;
 	int currentPixel = 0;
 	// do not process the first row, start with j=1
-	for (int j = 1; j < imageHeight; ++j) {
-		for (int i = 0; i < imageWidth; ++i) {
-			currentPixel = (j * imageWidth) + i;
-			setPixelPathVertical(imageVector, imageWidth, currentPixel, i);
+	for (int y = (imageWindow->yOrigin + 1); y < imageWindow->yTerminus; y += imageWindow->xStep) {
+		for (int x = imageWindow->xOrigin; x < imageWindow->xTerminus; x += imageWindow->xStep) {
+			currentPixel = (y * imageWindow->xLength) + x;
+			setPixelPathVertical(imageVector, imageWindow, currentPixel, x);
 
 			if (imageVector[currentPixel].seamvalV != 0) {
 				++result;
@@ -220,27 +221,27 @@ static void findSeamsVertical(struct pixel *imageVector, int imageWidth, int ima
 	findSeams(imageVector, imageWidth, imageHeight, 0);
 }
 
-static void setPixelPathHorizontal(struct pixel *imageVector, int imageWidth, int imageHeight, int currentPixel, int currentCol)
+static void setPixelPathHorizontal(struct pixel *imageVector, struct window *imageWindow, int currentPixel, int currentCol)
 {
 	// avoid falling off the right
-	if (currentCol < imageWidth) {
+	if (currentCol < imageWindow->xLength) {
 		int pixelLeft = 0;
 		int leftT = 0;
 		int leftM = 0;
 		int leftB = 0;
 		int newValue = 0;
 
-		pixelLeft = currentPixel - 1;
+		pixelLeft = currentPixel - imageWindow->xStep;
 		// avoid falling off the top
-		if (currentPixel > imageWidth) {
+		if (currentPixel > imageWindow->xLength) {
 			// avoid falling off the bottom
-			if (currentPixel < ((imageWidth * imageHeight) - imageWidth)) {
-				leftT = imageVector[pixelLeft - imageWidth].seamvalH;
+			if (currentPixel < (imageWindow->pixelCount - imageWindow->xLength)) {
+				leftT = imageVector[pixelLeft - imageWindow->yStep].seamvalH;
 				leftM = imageVector[pixelLeft].seamvalH;
-				leftB = imageVector[pixelLeft + imageWidth].seamvalH;
+				leftB = imageVector[pixelLeft + imageWindow->yStep].seamvalH;
 				newValue = min3(leftT, leftM, leftB);
 			} else {
-				leftT = imageVector[pixelLeft - imageWidth].seamvalH;
+				leftT = imageVector[pixelLeft - imageWindow->yStep].seamvalH;
 				leftM = imageVector[pixelLeft].seamvalH;
 				leftB = INT_MAX;
 				newValue = min(leftT, leftM);
@@ -248,7 +249,7 @@ static void setPixelPathHorizontal(struct pixel *imageVector, int imageWidth, in
 		} else {
 			leftT = INT_MAX;
 			leftM = imageVector[pixelLeft].seamvalH;
-			leftB = imageVector[pixelLeft + imageWidth].seamvalH;
+			leftB = imageVector[pixelLeft + imageWindow->yStep].seamvalH;
 			newValue = min(leftM, leftB);
 		}
 		imageVector[currentPixel].seamvalH += newValue;
@@ -261,16 +262,16 @@ static void setPixelPathHorizontal(struct pixel *imageVector, int imageWidth, in
 	}
 }
 
-static int fillSeamMatrixHorizontal(struct pixel *imageVector, int imageWidth, int imageHeight)
+static int fillSeamMatrixHorizontal(struct pixel *imageVector, struct window *imageWindow)
 {
 	int result = 0;
 	int currentPixel = 0;
 	// do not process the first row, start with j=1
 	// must be in reverse order from verticle seam, calulate colums as we move across (top down, left to right)
-	for (int i = 0; i < imageWidth; ++i) {
-		for (int j = 1; j < imageHeight; ++j) {
-			currentPixel = (j * imageWidth) + i;
-			setPixelPathHorizontal(imageVector, imageWidth, imageHeight, currentPixel, i);
+	for (int x = imageWindow->xOrigin; x < imageWindow->xTerminus; x += imageWindow->xStep) {
+		for (int y = (imageWindow->yOrigin + 1); y < imageWindow->yTerminus; y += 1) {
+			currentPixel = (y * imageWindow->xLength) + x;
+			setPixelPathHorizontal(imageVector, imageWindow, currentPixel, x);
 
 			if (imageVector[currentPixel].seamvalH != 0) {
 				++result;
@@ -310,7 +311,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 			newPixel.a = imageVector[inputPixel+3];
 
 			if (brightnessMode == 0) {
-				// Intensity / Brightness
+				// Average Intensity / Brightness
 				newPixel.bright = ((imageVector[inputPixel] + imageVector[inputPixel+1] + imageVector[inputPixel+2]) / 3);
 			} else if (brightnessMode == 1) {
 				// HSV hexcone
@@ -319,11 +320,11 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				// Luma luminance -- sRGB / BT.709
 				newPixel.bright = (imageVector[inputPixel] * 0.21) + (imageVector[inputPixel+1] * 0.72) + (imageVector[inputPixel+2] * 0.07);
 			} else if (brightnessMode == 3) {
-				// Luma luminance -- NTSC / BT.601
+				// Luma luminance -- NTSC / BT.601 (Digital CCIR601)
 				//newPixel.bright = (imageVector[inputPixel] * 0.3) + (imageVector[inputPixel+1] * 0.59) + (imageVector[inputPixel+2] * 0.11);
 				newPixel.bright = (imageVector[inputPixel] * 0.299) + (imageVector[inputPixel+1] * 0.587) + (imageVector[inputPixel+2] * 0.114);
 			} else if (brightnessMode == 4) {
-				// Relative luminance
+				// Relative luminance (Photometric/digital ITU-R)
 				newPixel.bright = (imageVector[inputPixel] * 0.2126) + (imageVector[inputPixel+1] * 0.7152) + (imageVector[inputPixel+2] * 0.0722);
 			} else if (brightnessMode == 5) {
 				// HSP?
@@ -331,6 +332,16 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 			} else if (brightnessMode == 6) {
 				// Euclidian distance
 				newPixel.bright = pow((imageVector[inputPixel] * imageVector[inputPixel]) + (imageVector[inputPixel+1] * imageVector[inputPixel+1]) + (imageVector[inputPixel+2] * imageVector[inputPixel+2]), 0.33333);
+			} else if (brightnessMode == 7) {
+				// Fast ITU-R
+				newPixel.bright = (imageVector[inputPixel] * 0.33) + (imageVector[inputPixel+1] * 0.5) + (imageVector[inputPixel+2] * 0.16);
+				// even faster (when not in an IF condition)
+				//newPixel.bright = (imageVector[inputPixel] + imageVector[inputPixel] + imageVector[inputPixel+1] + imageVector[inputPixel+1] + imageVector[inputPixel+1] + imageVector[inputPixel+2]) / 6;
+			} else if (brightnessMode == 8) {
+				// Fast BT.601
+				newPixel.bright = (imageVector[inputPixel] * 0.375) + (imageVector[inputPixel+1] * 0.5) + (imageVector[inputPixel+2] * 0.125);
+				// even faster (when not in an IF condition)
+				//newPixel.bright = (imageVector[inputPixel] + imageVector[inputPixel] + imageVector[inputPixel] + imageVector[inputPixel+1] + imageVector[inputPixel+1] + imageVector[inputPixel+1] + imageVector[inputPixel+1] + imageVector[inputPixel+2]) >> 3;
 			}
 
 			newPixel.energy = 0;
@@ -517,27 +528,13 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 		}
 	}
 
+	struct window *currentWindow = newWindow(0, 0, imageWidth, imageHeight);
+
 	// find seams in the prescribed direction
-	int resultDirection = 0;
-	if (forceDirection == 1) {
-		fillSeamMatrixHorizontal(workingImage, imageWidth, imageHeight);
-		findSeamsHorizontal(workingImage, imageWidth, imageHeight);
-		resultDirection = 1;
-	} else if (forceDirection == 2) {
-		fillSeamMatrixVertical(workingImage, imageWidth, imageHeight);
-		findSeamsVertical(workingImage, imageWidth, imageHeight);
-		resultDirection = 2;
-	} else if (forceDirection >= 3) {
-		fillSeamMatrixHorizontal(workingImage, imageWidth, imageHeight);
-		fillSeamMatrixVertical(workingImage, imageWidth, imageHeight);
-
-		findSeamsHorizontal(workingImage, imageWidth, imageHeight);
-		findSeamsVertical(workingImage, imageWidth, imageHeight);
-
-		resultDirection = forceDirection;
-	} else {
-		int horizontalSeamCost = fillSeamMatrixHorizontal(workingImage, imageWidth, imageHeight);
-		int verticalSeamCost = fillSeamMatrixVertical(workingImage, imageWidth, imageHeight);
+	int resultDirection = forceDirection;
+	if (forceDirection == 0) {
+		int horizontalSeamCost = fillSeamMatrixHorizontal(workingImage, currentWindow);
+		int verticalSeamCost = fillSeamMatrixVertical(workingImage, currentWindow);
 		printf("Sum traversal cost of all seams: horizontal = %d, vertical = %d \n", verticalSeamCost, horizontalSeamCost);
 
 		findSeamsHorizontal(workingImage, imageWidth, imageHeight);
@@ -548,6 +545,18 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 		} else {
 			resultDirection = 2;
 		}
+	} else if ((forceDirection == 1) || (forceDirection == 8)) {
+		fillSeamMatrixHorizontal(workingImage, currentWindow);
+		findSeamsHorizontal(workingImage, imageWidth, imageHeight);
+	} else if ((forceDirection == 2) || (forceDirection == 9)) {
+		fillSeamMatrixVertical(workingImage, currentWindow);
+		findSeamsVertical(workingImage, imageWidth, imageHeight);
+	} else {
+		fillSeamMatrixHorizontal(workingImage, currentWindow);
+		fillSeamMatrixVertical(workingImage, currentWindow);
+
+		findSeamsHorizontal(workingImage, imageWidth, imageHeight);
+		findSeamsVertical(workingImage, imageWidth, imageHeight);
 	}
 
 	// prepare results for output
@@ -668,14 +677,36 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 					resultImage[outputPixel+2] = 0;
 					resultImage[outputPixel+3] = 255;
 				} else {
-					resultImage[outputPixel] = min(max(((workingImage[currentPixel].seamvalH + workingImage[currentPixel].seamvalV) * seamValueScale), 0), 255);
-					resultImage[outputPixel+1] = min(max(((workingImage[currentPixel].seamvalH + workingImage[currentPixel].seamvalV) * seamValueScale), 0), 255);
-					resultImage[outputPixel+2] = min(max(((workingImage[currentPixel].seamvalH + workingImage[currentPixel].seamvalV) * seamValueScale), 0), 255);
+					resultImage[outputPixel] = min(max((workingImage[currentPixel].seamvalH * seamValueScale), 0), 255);
+					resultImage[outputPixel+1] = min(max((workingImage[currentPixel].seamvalH * seamValueScale), 0), 255);
+					resultImage[outputPixel+2] = min(max((workingImage[currentPixel].seamvalH * seamValueScale), 0), 255);
 					resultImage[outputPixel+3] = 255;
 				}
 			}
 		}
 	} else if (resultDirection == 7) {
+		int seamValueScale = 16;
+		int currentUseCount = 0;
+		for (int j = 0; j < imageHeight; ++j) {
+			for (int i = 0; i < imageWidth; ++i) {
+				currentPixel = (j * imageWidth) + i;
+				outputPixel = currentPixel * imageDepth;
+				
+				currentUseCount = workingImage[currentPixel].usecount;
+				if (currentUseCount > 256) {
+					resultImage[outputPixel] = 255;
+					resultImage[outputPixel+1] = 0;
+					resultImage[outputPixel+2] = 0;
+					resultImage[outputPixel+3] = 255;
+				} else {
+					resultImage[outputPixel] = min(max((workingImage[currentPixel].seamvalV * seamValueScale), 0), 255);
+					resultImage[outputPixel+1] = min(max((workingImage[currentPixel].seamvalV * seamValueScale), 0), 255);
+					resultImage[outputPixel+2] = min(max((workingImage[currentPixel].seamvalV * seamValueScale), 0), 255);
+					resultImage[outputPixel+3] = 255;
+				}
+			}
+		}
+	} else if (resultDirection == 8) {
 		int seamValueScale = 4;
 		int currentUseCount = 0;
 		
@@ -698,7 +729,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				}
 			}
 		}
-	} else if (resultDirection == 8) {
+	} else if (resultDirection == 9) {
 		int seamValueScale = 4;
 		int currentUseCount = 0;
 		
@@ -760,7 +791,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				resultImage[outputPixel+3] = 255;
 			}
 		}
-	} else if (resultDirection == 9) {
+	} else if (resultDirection == 99) {
 		int currentUseCount = 0;
 		for (int j = 0; j < imageHeight; ++j) {
 			for (int i = 0; i < imageWidth; ++i) {
