@@ -299,7 +299,7 @@ static void findSeamsHorizontal(struct pixel *imageVector, int imageWidth, int i
 /*
  * The main function
  */
-static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int imageDepth, int forceBinarization, int forceDirection, int forceEdge, int preGauss)
+static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int imageDepth, int brightnessMode, int contrastMode, int forceDirection, int forceEdge, int preGauss)
 {
 	struct pixel *workingImageH = (struct pixel*)xmalloc((unsigned long)imageWidth * (unsigned long)imageHeight * sizeof(struct pixel));
 	struct pixel *workingImageV = (struct pixel*)xmalloc((unsigned long)imageWidth * (unsigned long)imageHeight * sizeof(struct pixel));
@@ -345,6 +345,30 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 			newPixelV.usecountG = 0;
 			newPixelV.usecountB = 0;
 			workingImageV[currentPixel] = newPixelV;
+
+			if (brightnessMode == 0) {
+				// Intensity / Brightness
+				newPixel.bright = ((imageVector[inputPixel] + imageVector[inputPixel+1] + imageVector[inputPixel+2]) / 3);
+			} else if (brightnessMode == 1) {
+				// HSV hexcone
+				newPixel.bright = max3(imageVector[inputPixel], imageVector[inputPixel+1], imageVector[inputPixel+2]);
+			} else if (brightnessMode == 2) {
+				// Luma luminance -- sRGB / BT.709
+				newPixel.bright = (imageVector[inputPixel] * 0.21) + (imageVector[inputPixel+1] * 0.72) + (imageVector[inputPixel+2] * 0.07);
+			} else if (brightnessMode == 3) {
+				// Luma luminance -- NTSC / BT.601
+				//newPixel.bright = (imageVector[inputPixel] * 0.3) + (imageVector[inputPixel+1] * 0.59) + (imageVector[inputPixel+2] * 0.11);
+				newPixel.bright = (imageVector[inputPixel] * 0.299) + (imageVector[inputPixel+1] * 0.587) + (imageVector[inputPixel+2] * 0.114);
+			} else if (brightnessMode == 4) {
+				// Relative luminance
+				newPixel.bright = (imageVector[inputPixel] * 0.2126) + (imageVector[inputPixel+1] * 0.7152) + (imageVector[inputPixel+2] * 0.0722);
+			} else if (brightnessMode == 5) {
+				// HSP?
+				newPixel.bright = sqrt((imageVector[inputPixel] * imageVector[inputPixel] * 0.299) + (imageVector[inputPixel+1] * imageVector[inputPixel+1] * 0.587) + (imageVector[inputPixel+2] * imageVector[inputPixel+2] * 0.114));
+			} else if (brightnessMode == 6) {
+				// Euclidian distance
+				newPixel.bright = pow((imageVector[inputPixel] * imageVector[inputPixel]) + (imageVector[inputPixel+1] * imageVector[inputPixel+1]) + (imageVector[inputPixel+2] * imageVector[inputPixel+2]), 0.33333);
+			}
 
 			resultImage[inputPixel] = 0;
 		}

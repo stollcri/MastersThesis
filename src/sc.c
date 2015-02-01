@@ -13,7 +13,7 @@
 #define PROGRAM_VERS "0.0"
 #define PROGRAM_COPY "Copyright 2014, Chrisotpher Stoll"
 
-static void carve(char *sourceFile, char *resultFile, int forceBinarization, int forceDirection, int forceEdge, int forceGauss, int verbose)
+static void carve(char *sourceFile, char *resultFile, int forceBrt, int forceClr, int forceDir, int forceEdge, int forceGauss, int verbose)
 {
 	int *imageVector;
 	int imageWidth = 0;
@@ -26,10 +26,7 @@ static void carve(char *sourceFile, char *resultFile, int forceBinarization, int
 	}
 
 	int *newImageVector;
-	if (!forceEdge) {
-		forceEdge = 1;
-	}
-	newImageVector = seamCarve(imageVector, imageWidth, imageHeight, imageDepth, forceBinarization, forceDirection, forceEdge, forceGauss);
+	newImageVector = seamCarve(imageVector, imageWidth, imageHeight, imageDepth, forceBrt, forceClr, forceDir, forceEdge, forceGauss);
 
 	/*
 	double imageScale = 1;//0.125;
@@ -46,10 +43,12 @@ int main(int argc, char const *argv[])
 	char **argumentVector = (char**)argv;
 
 	char *bvalue = 0;
+	char *cvalue = 0;
 	char *dvalue = 0;
 	char *evalue = 0;
 	char *gvalue = 0;
-	int forceBin = 0;
+	int forceBrt = 0;
+	int forceClr = 0;
 	int forceDir = 0;
 	int forceEdge = 0;
 	int forceGauss = 0;
@@ -67,11 +66,15 @@ int main(int argc, char const *argv[])
 	 *  source_file -- the PNG image file to open
 	 *  result_file -- the PNG file to save results to
 	 */
-	while ((c = getopt (argc, argumentVector, "b:d:e:g:v")) != -1) {
+	while ((c = getopt (argc, argumentVector, "b:c:d:e:g:v")) != -1) {
 		switch (c) {
 			case 'b':
 				bvalue = optarg;
-				forceBin = (int)bvalue[0] - 48;
+				forceBrt = (int)bvalue[0] - 48;
+				break;
+			case 'c':
+				cvalue = optarg;
+				forceClr = (int)cvalue[0] - 48;
 				break;
 			case 'd':
 				dvalue = optarg;
@@ -91,13 +94,23 @@ int main(int argc, char const *argv[])
 			case '?':
 				printf(PROGRAM_NAME " v" PROGRAM_VERS "\n");
 				printf(PROGRAM_COPY "\n\n");
-				printf("usage: sc [-b 1] [-d 1-3] [-e 1-7] [-g 1-3] [-v] source_PNG_file result_PNG_file\n");
+				printf("usage: sc [-b 0-6] [-c 1-6] [-d 1-3] [-e 1-7] [-g 1-3] [-v] source_PNG_file result_PNG_file\n");
 				
-				printf("          '-b 1' use cosine adjusted brightness \n");
-				printf("          '-b 2' use double-pass cosine adjusted brightness \n");
-				printf("          '-b 3' use triple-pass cosine adjusted brightness \n");
-				printf("          '-b 4' use quadruple-pass cosine adjusted brightness \n");
-				printf("          '-b 5' use Otsu binarization (before any Gaussian blurring) \n");
+				printf("          '-b 0' Average Intensity / Brightness (default) \n");
+				printf("          '-b 1' HSV hexcone (Max Channel) \n");
+				printf("          '-b 2' Luma luminance - sRGB / BT.709 \n");
+				printf("          '-b 3' Luma luminance - NTSC / BT.601 \n");
+				printf("          '-b 4' Relative luminance \n");
+				printf("          '-b 5' HSP? \n");
+				printf("          '-b 6' Euclidian distance (generally poor results)\n");
+				printf("          '-b 7' Estimated relative luminance\n");
+				printf("          '-b 8' Estimated luma luminance - NTSC / BT.601\n");
+
+				printf("          '-c 1' use cosine adjusted brightness \n");
+				printf("          '-c 2' use double-pass cosine adjusted brightness \n");
+				printf("          '-c 3' use triple-pass cosine adjusted brightness \n");
+				printf("          '-c 4' use quadruple-pass cosine adjusted brightness \n");
+				printf("          '-c 5' use Otsu binarization (before any Gaussian blurring) \n");
 
 				printf("          '-d 1' force horizontal direction seams \n");
 				printf("          '-d 2' force vertical direction seams \n");
@@ -109,15 +122,15 @@ int main(int argc, char const *argv[])
 				printf("          '-d 8' output seams (vertical) \n");
 				printf("          '-d 9' output seam values and seams (vertical) \n");
 				
-				printf("          '-e 1' use Difference of Gaussian (default) \n");
-				printf("          '-e 2' use Laplacian of Gaussian (sigma=8)\n");
-				printf("          '-e 3' use Laplacian of Gaussian (sigma=4)\n");
-				printf("          '-e 4' use Laplacian of Gaussian (sigma=2)\n");
-				printf("          '-e 5' use Sobel \n");
-				printf("          '-e 6' use LoG Simple\n");
-				printf("          '-e 7' use Simple Gradient \n");
-				printf("          '-e 8' use DoG + Sobel \n");
-				printf("          '-e 9' use LoG (sigma=8) AND Sobel\n");
+				printf("          '-e 0' use Difference of Gaussian (default) \n");
+				printf("          '-e 1' use Laplacian of Gaussian (sigma=8)\n");
+				printf("          '-e 2' use Laplacian of Gaussian (sigma=4)\n");
+				printf("          '-e 3' use Laplacian of Gaussian (sigma=2)\n");
+				printf("          '-e 4' use Sobel \n");
+				printf("          '-e 5' use LoG Simple\n");
+				printf("          '-e 6' use Simple Gradient \n");
+				printf("          '-e 7' use DoG + Sobel \n");
+				printf("          '-e 8' use LoG (sigma=8) AND Sobel\n");
 
 				printf("          '-g 1' pre-Gaussian blur (sigma=2) \n");
 				printf("          '-g 2' pre-Gaussian blur (sigma=4) \n");
@@ -151,7 +164,7 @@ int main(int argc, char const *argv[])
 
 	// Go ahead if the source file exists
 	if (access(sourceFile, R_OK) != -1) {
-		carve(sourceFile, resultFile, forceBin, forceDir, forceEdge, forceGauss, verboseFlag);
+		carve(sourceFile, resultFile, forceBrt, forceClr, forceDir, forceEdge, forceGauss, verboseFlag);
 	} else {
 		fprintf(stderr, "Error reading file %s\n", sourceFile);
 		return 1;
