@@ -12,14 +12,10 @@ struct pixel {
 	int b;
 	int a;
 	int bright;
-	int gaussA;
-	int gaussB;
 	int energy;
-	int seamval;
+	int seamvalH;
+	int seamvalV;
 	int usecount;
-	int usecountR;
-	int usecountG;
-	int usecountB;
 };
 
 #endif

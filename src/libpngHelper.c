@@ -124,19 +124,19 @@ static int *readPNGFile(char *filename, int *imageWidth, int *imageHeight, int *
 			aPixel = (int)pixel[3];
 			
 			n = ((y * width) + x) * pixelDepth;
-			
+			/*
 			if (aPixel >= 0) {
-				/*
-				greyPixel = rPixel * 0.2126;
-				greyPixel += gPixel * 0.7152;
-				greyPixel += bPixel * 0.0722;
-				*/
+				//greyPixel = rPixel * 0.2126;
+				//greyPixel += gPixel * 0.7152;
+				//greyPixel += bPixel * 0.0722;
+				//
 				greyPixel = rPixel * 0.299;
 				greyPixel += gPixel * 0.587;
 				greyPixel += bPixel * 0.114;
 			} else {
 				greyPixel = 255;
 			}
+			*/
 			/*
 			radianPixel = greyPixel / 256 * radianRange + radianShift;
 			scaledPixel = 128 * (cos(radianPixel) + 1.0);
@@ -146,7 +146,7 @@ static int *readPNGFile(char *filename, int *imageWidth, int *imageHeight, int *
 			imagePixels[n] = rPixel;
 			imagePixels[n+1] = gPixel;
 			imagePixels[n+2] = bPixel;
-			imagePixels[n+3] = (int)greyPixel;
+			imagePixels[n+3] = aPixel;//(int)greyPixel;
 			
 			// RGB_TO_GRAY_CIE_1931
 			// imagePixels[n] = rPixel * 0.2126;

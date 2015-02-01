@@ -415,38 +415,15 @@ static int getPixelGaussian(struct pixel *imageVector, int imageWidth, int image
 	return min(max((int)gaussAll, 0), 255);
 }
 
-static int getPixelEnergyDoG(struct pixel *imageVector, int currentPixel)
+static int getPixelEnergyDoG(int gaussianValue1, int gaussianValue2)
 {
-	int gaussianValue1 = imageVector[currentPixel].gaussA;
-	int gaussianValue2 = imageVector[currentPixel].gaussB;
-	
 	double greyPixel = 0.0;
-	/*
-	double radianShift = 3.14159265;
-	double radianRange = 3.14159265;
-	double radianPixel = 0;
-	double scaledPixel = 0;
-	*/
-	//double currentValue = getGreyValue(imageVector[currentPixel], imageVector[currentPixel+1], imageVector[currentPixel+2]);
 	if (gaussianValue1 > gaussianValue2) {
 		greyPixel = (gaussianValue1 - gaussianValue2);
-		//return (gaussianValue1 - gaussianValue2);
-		//return min(max((gaussianValue1 - gaussianValue2), 0), 255);
-		//return min(max( (int)((gaussianValue1 - gaussianValue2) * 8), 0), 255);
 	} else {
 		greyPixel = (gaussianValue2 - gaussianValue1);
-		//return (gaussianValue2 - gaussianValue1);
-		//return min(max((gaussianValue2 - gaussianValue1), 0), 255);
-		//return min(max( (int)((gaussianValue2 - gaussianValue1) * 8), 0), 255);
 	}
 	return min(max(greyPixel, 0), 255);
-
-	// experiment with cosine threshholding
-	/*
-	radianPixel = (greyPixel / 255) * 3.14159265;
-	scaledPixel = ((1 - cos(radianPixel)) / 2) * 255;
-	return (int)scaledPixel;
-	*/
 }
 
 #endif
