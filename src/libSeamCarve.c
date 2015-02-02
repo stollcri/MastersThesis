@@ -19,13 +19,14 @@
 #define SEAM_TRACE_INCREMENT 16
 #define THRESHHOLD_SOBEL 96
 #define THRESHHOLD_USECOUNT 64
+#define PI 3.14159265359
 
 /*
  * Trace all the seams
  * The least signifigant pixels will be traced multiple times and have a higher value (whiter)
  * The most signifigant pixels will not be traced at all and have a value of zero (black)
  */
-static void findSeams(struct pixel *imageVector, int imageWidth, int imageHeight, int direction)
+static void findSeams(struct pixel *imageVector, struct window *imageWindow, int direction)
 {
 	// TODO: create macro definition
 	int directionVertical = 0;
@@ -34,10 +35,12 @@ static void findSeams(struct pixel *imageVector, int imageWidth, int imageHeight
 		return;
 	}
 
-	int imageSize = 0; // width when going horizontal, height when going vertical
 	int loopBeg = 0; // where the outer loop begins
 	int loopEnd = 0; // where the outer loop ends
 	int loopInc = 0; // the increment of the outer loop
+	int loopInBeg = 0;
+	int loopInEnd = 0;
+	int loopInInc = 0;
 
 	int nextPixelR = 0; // next pixel to the right
 	int nextPixelC = 0; // next pixel to the center
@@ -52,27 +55,33 @@ static void findSeams(struct pixel *imageVector, int imageWidth, int imageHeight
 
 	// loop conditions depend upon the direction
 	if (direction == directionVertical) {
-		loopBeg = (imageWidth * imageHeight) - 1 - imageWidth;
-		loopEnd = (imageWidth * imageHeight) - 1;
-		loopInc = 1;
+		loopBeg = imageWindow->lastPixel - 1 - imageWindow->xLength;
+		loopEnd = imageWindow->lastPixel - 1;
+		loopInc = imageWindow->xStep;
+		printf("%d, %d, %d \n", loopBeg, loopEnd, loopInc);
 
 		// also set the next pixel distances
-		nextPixelDistR = imageWidth - 1;
-		nextPixelDistC = imageWidth;
-		nextPixelDistL = imageWidth + 1;
+		nextPixelDistC = imageWindow->fullWidth;
+		nextPixelDistR = nextPixelDistC - 1;
+		nextPixelDistL = nextPixelDistC + 1;
 
-		imageSize = imageHeight;
+		loopInBeg = imageWindow->yTerminus - 1;
+		loopInEnd = imageWindow->yOrigin;
+		loopInInc = imageWindow->xStep;
+		printf("%d, %d, %d \n", loopInBeg, loopInEnd, loopInInc);
 	} else {
-		loopBeg = imageWidth - 1;
-		loopEnd = (imageWidth * imageHeight) - 0;//1;
-		loopInc = imageWidth;
+		loopBeg = imageWindow->firstPixel + imageWindow->xLength - 1;
+		loopEnd = imageWindow->lastPixel;
+		loopInc = imageWindow->yStep;
 
 		// also set the next pixel distances
-		nextPixelDistR = imageWidth + 1;
-		nextPixelDistC = 1;
-		nextPixelDistL = (imageWidth - 1) * -1;
+		nextPixelDistC = imageWindow->xStep;
+		nextPixelDistR = imageWindow->fullWidth + nextPixelDistC;
+		nextPixelDistL = (imageWindow->fullWidth - nextPixelDistC) * -1;
 
-		imageSize = imageWidth;
+		loopInBeg = imageWindow->xTerminus;
+		loopInEnd = imageWindow->xOrigin;
+		loopInInc = imageWindow->xStep;
 	}
 
 	int minValueLocation = 0;
@@ -85,8 +94,7 @@ static void findSeams(struct pixel *imageVector, int imageWidth, int imageHeight
 		countGoL = 0;
 
 		// move right-to-left ot bottom-to-top across/up the image
-		for (int j = (imageSize - 1); j > 0; --j) {
-
+		for (int j = loopInBeg; j > loopInEnd; j -= loopInInc) {
 			// THIS IS THE CRUCIAL PART
 			if (imageVector[minValueLocation].usecount < (255-SEAM_TRACE_INCREMENT)) {
 				imageVector[minValueLocation].usecount += SEAM_TRACE_INCREMENT;
@@ -205,7 +213,7 @@ static int fillSeamMatrixVertical(struct pixel *imageVector, struct window *imag
 	// do not process the first row, start with j=1
 	for (int y = (imageWindow->yOrigin + 1); y < imageWindow->yTerminus; y += imageWindow->xStep) {
 		for (int x = imageWindow->xOrigin; x < imageWindow->xTerminus; x += imageWindow->xStep) {
-			currentPixel = (y * imageWindow->xLength) + x;
+			currentPixel = (y * imageWindow->fullWidth) + x;
 			setPixelPathVertical(imageVector, imageWindow, currentPixel, x);
 
 			if (imageVector[currentPixel].seamvalV != 0) {
@@ -216,9 +224,9 @@ static int fillSeamMatrixVertical(struct pixel *imageVector, struct window *imag
 	return result;
 }
 
-static void findSeamsVertical(struct pixel *imageVector, int imageWidth, int imageHeight)
+static void findSeamsVertical(struct pixel *imageVector, struct window *imageWindow)
 {
-	findSeams(imageVector, imageWidth, imageHeight, 0);
+	findSeams(imageVector, imageWindow, 0);
 }
 
 static void setPixelPathHorizontal(struct pixel *imageVector, struct window *imageWindow, int currentPixel, int currentCol)
@@ -270,7 +278,7 @@ static int fillSeamMatrixHorizontal(struct pixel *imageVector, struct window *im
 	// must be in reverse order from verticle seam, calulate colums as we move across (top down, left to right)
 	for (int x = imageWindow->xOrigin; x < imageWindow->xTerminus; x += imageWindow->xStep) {
 		for (int y = (imageWindow->yOrigin + 1); y < imageWindow->yTerminus; y += 1) {
-			currentPixel = (y * imageWindow->xLength) + x;
+			currentPixel = (y * imageWindow->fullWidth) + x;
 			setPixelPathHorizontal(imageVector, imageWindow, currentPixel, x);
 
 			if (imageVector[currentPixel].seamvalH != 0) {
@@ -281,9 +289,9 @@ static int fillSeamMatrixHorizontal(struct pixel *imageVector, struct window *im
 	return result;
 }
 
-static void findSeamsHorizontal(struct pixel *imageVector, int imageWidth, int imageHeight)
+static void findSeamsHorizontal(struct pixel *imageVector, struct window *imageWindow)
 {
-	findSeams(imageVector, imageWidth, imageHeight, 1);
+	findSeams(imageVector, imageWindow, 1);
 }
 
 /*
@@ -366,7 +374,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				currentPixel = (j * imageWidth) + i;
 
 				currentBrightness = workingImage[currentPixel].bright;
-				currentRadians = ((double)currentBrightness / 255.0) * 3.14159265359;
+				currentRadians = ((double)currentBrightness / 255.0) * PI;
 				currentBrightness = (int)(((1.0 - cos(currentRadians)) / 2.0) * 255.0);
 				workingImage[currentPixel].bright = currentBrightness;
 			}
@@ -380,10 +388,10 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				currentPixel = (j * imageWidth) + i;
 
 				currentBrightness = workingImage[currentPixel].bright;
-				currentRadians = ((double)currentBrightness / 255.0) * 3.14159265359;
+				currentRadians = ((double)currentBrightness / 255.0) * PI;
 				currentBrightness = (int)(((1.0 - cos(currentRadians)) / 2.0) * 255.0);
 
-				currentRadians = ((double)currentBrightness / 255.0) * 3.14159265359;
+				currentRadians = ((double)currentBrightness / 255.0) * PI;
 				currentBrightness = (int)(((1.0 - cos(currentRadians)) / 2.0) * 255.0);
 
 				workingImage[currentPixel].bright = currentBrightness;
@@ -398,13 +406,13 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				currentPixel = (j * imageWidth) + i;
 
 				currentBrightness = workingImage[currentPixel].bright;
-				currentRadians = ((double)currentBrightness / 255.0) * 3.14159265359;
+				currentRadians = ((double)currentBrightness / 255.0) * PI;
 				currentBrightness = (int)(((1.0 - cos(currentRadians)) / 2.0) * 255.0);
 
-				currentRadians = ((double)currentBrightness / 255.0) * 3.14159265359;
+				currentRadians = ((double)currentBrightness / 255.0) * PI;
 				currentBrightness = (int)(((1.0 - cos(currentRadians)) / 2.0) * 255.0);
 
-				currentRadians = ((double)currentBrightness / 255.0) * 3.14159265359;
+				currentRadians = ((double)currentBrightness / 255.0) * PI;
 				currentBrightness = (int)(((1.0 - cos(currentRadians)) / 2.0) * 255.0);
 
 				workingImage[currentPixel].bright = currentBrightness;
@@ -419,16 +427,16 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				currentPixel = (j * imageWidth) + i;
 
 				currentBrightness = workingImage[currentPixel].bright;
-				currentRadians = ((double)currentBrightness / 255.0) * 3.14159265359;
+				currentRadians = ((double)currentBrightness / 255.0) * PI;
 				currentBrightness = (int)(((1.0 - cos(currentRadians)) / 2.0) * 255.0);
 
-				currentRadians = ((double)currentBrightness / 255.0) * 3.14159265359;
+				currentRadians = ((double)currentBrightness / 255.0) * PI;
 				currentBrightness = (int)(((1.0 - cos(currentRadians)) / 2.0) * 255.0);
 
-				currentRadians = ((double)currentBrightness / 255.0) * 3.14159265359;
+				currentRadians = ((double)currentBrightness / 255.0) * PI;
 				currentBrightness = (int)(((1.0 - cos(currentRadians)) / 2.0) * 255.0);
 
-				currentRadians = ((double)currentBrightness / 255.0) * 3.14159265359;
+				currentRadians = ((double)currentBrightness / 255.0) * PI;
 				currentBrightness = (int)(((1.0 - cos(currentRadians)) / 2.0) * 255.0);
 
 				workingImage[currentPixel].bright = currentBrightness;
@@ -528,7 +536,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 		}
 	}
 
-	struct window *currentWindow = newWindow(0, 0, imageWidth, imageHeight);
+	struct window *currentWindow = newWindow(0, 0, imageWidth, imageHeight, imageWidth, imageHeight);
 
 	// find seams in the prescribed direction
 	int resultDirection = forceDirection;
@@ -537,8 +545,8 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 		int verticalSeamCost = fillSeamMatrixVertical(workingImage, currentWindow);
 		printf("Sum traversal cost of all seams: horizontal = %d, vertical = %d \n", verticalSeamCost, horizontalSeamCost);
 
-		findSeamsHorizontal(workingImage, imageWidth, imageHeight);
-		findSeamsVertical(workingImage, imageWidth, imageHeight);
+		findSeamsHorizontal(workingImage, currentWindow);
+		findSeamsVertical(workingImage, currentWindow);
 		
 		if (horizontalSeamCost < verticalSeamCost) {
 			resultDirection = 1;
@@ -547,16 +555,16 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 		}
 	} else if ((forceDirection == 1) || (forceDirection == 8)) {
 		fillSeamMatrixHorizontal(workingImage, currentWindow);
-		findSeamsHorizontal(workingImage, imageWidth, imageHeight);
+		findSeamsHorizontal(workingImage, currentWindow);
 	} else if ((forceDirection == 2) || (forceDirection == 9)) {
 		fillSeamMatrixVertical(workingImage, currentWindow);
-		findSeamsVertical(workingImage, imageWidth, imageHeight);
+		findSeamsVertical(workingImage, currentWindow);
 	} else {
 		fillSeamMatrixHorizontal(workingImage, currentWindow);
 		fillSeamMatrixVertical(workingImage, currentWindow);
 
-		findSeamsHorizontal(workingImage, imageWidth, imageHeight);
-		findSeamsVertical(workingImage, imageWidth, imageHeight);
+		findSeamsHorizontal(workingImage, currentWindow);
+		findSeamsVertical(workingImage, currentWindow);
 	}
 
 	// prepare results for output

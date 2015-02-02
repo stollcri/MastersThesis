@@ -36,8 +36,8 @@ test:
 	# time ./bin/sc -b 0 -c 0 -d 2 -e 0 ./tst/BPD-01c.png ./tst/out_BPD-01c-2.png
 	# time ./bin/sc -b 0 -c 3 -d 3 -e 0 ./tst/BPD-01c.png ./tst/out_BPD-01c-3.png
 
-	time ./bin/sc -b 0 -c 3 -d 0 -e 8 -g 0 ./tst/Fig2a.png ./tst/Fig2a-out.png
-	time ./bin/sc -b 0 -c 3 -d 0 -e 8 -g 0 ./tst/Fig2b.png ./tst/Fig2b-out.png
+	time ./bin/sc -b 0 -c 3 -d 9 -e 8 -g 0 ./tst/Fig2a.png ./tst/Fig2a-out.png
+	time ./bin/sc -b 0 -c 3 -d 9 -e 8 -g 0 ./tst/Fig2b.png ./tst/Fig2b-out.png
 
 	# For Protein Gel Analysis: perhaps divide the image like a kD-tree
 
