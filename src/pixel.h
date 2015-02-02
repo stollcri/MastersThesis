@@ -15,7 +15,8 @@ struct pixel {
 	int energy;
 	int seamvalH;
 	int seamvalV;
-	int usecount;
+	int usecountH;
+	int usecountV;
 };
 
 #endif

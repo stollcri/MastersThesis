@@ -9,9 +9,9 @@
 #include "libSeamCarve.c"
 #include "libResize.c"
 
-#define PROGRAM_NAME "Seam Carving Tests"
-#define PROGRAM_VERS "0.0"
-#define PROGRAM_COPY "Copyright 2014, Chrisotpher Stoll"
+#define PROGRAM_NAME "Experiments with Seam Carving"
+#define PROGRAM_VERS "0.4"
+#define PROGRAM_COPY "Copyright 201-2015, Christopher Stoll"
 
 static void carve(char *sourceFile, char *resultFile, int forceBrt, int forceClr, int forceDir, int forceEdge, int forceGauss, int verbose)
 {
@@ -94,47 +94,55 @@ int main(int argc, char const *argv[])
 			case '?':
 				printf(PROGRAM_NAME " v" PROGRAM_VERS "\n");
 				printf(PROGRAM_COPY "\n\n");
-				printf("usage: sc [-b 0-6] [-c 1-6] [-d 1-3] [-e 1-7] [-g 1-3] [-v] source_PNG_file result_PNG_file\n");
-				
-				printf("          '-b 0' Average Intensity / Brightness (default) \n");
-				printf("          '-b 1' HSV hexcone (Max Channel) \n");
-				printf("          '-b 2' Luma luminance - sRGB / BT.709 \n");
-				printf("          '-b 3' Luma luminance - NTSC / BT.601 \n");
-				printf("          '-b 4' Relative luminance \n");
-				printf("          '-b 5' HSP? \n");
-				printf("          '-b 6' Euclidian distance (generally poor results)\n");
-				printf("          '-b 7' Estimated relative luminance\n");
-				printf("          '-b 8' Estimated luma luminance - NTSC / BT.601\n");
-
-				printf("          '-c 1' use cosine adjusted brightness \n");
-				printf("          '-c 2' use double-pass cosine adjusted brightness \n");
-				printf("          '-c 3' use triple-pass cosine adjusted brightness \n");
-				printf("          '-c 4' use quadruple-pass cosine adjusted brightness \n");
-				printf("          '-c 5' use Otsu binarization (before any Gaussian blurring) \n");
-
-				printf("          '-d 1' force horizontal direction seams \n");
-				printf("          '-d 2' force vertical direction seams \n");
-				printf("          '-d 3' force both direction seams \n");
-				printf("          '-d 4' output brightness values \n");
-				printf("          '-d 5' output energy values \n");
-				printf("          '-d 6' output seam values (horizontal) \n");
-				printf("          '-d 7' output seam values (vertical) \n");
-				printf("          '-d 8' output seams (horizontal) \n");
-				printf("          '-d 9' output seams (vertical) \n");
-				
-				printf("          '-e 0' use Difference of Gaussian (default) \n");
-				printf("          '-e 1' use Laplacian of Gaussian (sigma=8)\n");
-				printf("          '-e 2' use Laplacian of Gaussian (sigma=4)\n");
-				printf("          '-e 3' use Laplacian of Gaussian (sigma=2)\n");
-				printf("          '-e 4' use Sobel \n");
-				printf("          '-e 5' use LoG Simple\n");
-				printf("          '-e 6' use Simple Gradient \n");
-				printf("          '-e 7' use DoG + Sobel \n");
-				printf("          '-e 8' use LoG (sigma=8) AND Sobel\n");
-
-				printf("          '-g 1' pre-Gaussian blur (sigma=2) \n");
-				printf("          '-g 2' pre-Gaussian blur (sigma=4) \n");
-				printf("          '-g 3' pre-Gaussian blur (sigma=8) \n");
+				printf("usage: sc [-b 0-8] [-c 0-5] [-d 0-9] [-e 0-8] [-g 0-3] [-v] source_PNG_file result_PNG_file \n");
+				printf("       \n");
+				printf("       Brightness Calculation Method \n");
+				printf("         '-b 0' Average Intensity / Brightness (default) \n");
+				printf("         '-b 1' HSV hexcone (Max Channel) \n");
+				printf("         '-b 2' Luma luminance - sRGB / BT.709 \n");
+				printf("         '-b 3' Luma luminance - NTSC / BT.601 \n");
+				printf("         '-b 4' Relative luminance \n");
+				printf("         '-b 5' HSP? \n");
+				printf("         '-b 6' Euclidian distance (generally poor results) \n");
+				printf("         '-b 7' Estimated relative luminance \n");
+				printf("         '-b 8' Estimated luma luminance - NTSC / BT.601 \n");
+				printf("          \n");
+				printf("       Contrast Adjustments \n");
+				printf("         '-c 0' none (default) \n");
+				printf("         '-c 1' use cosine adjusted brightness \n");
+				printf("         '-c 2' use double-pass cosine adjusted brightness \n");
+				printf("         '-c 3' use triple-pass cosine adjusted brightness \n");
+				printf("         '-c 4' use quadruple-pass cosine adjusted brightness \n");
+				printf("         '-c 5' use Otsu binarization (before any Gaussian blurring) \n");
+				printf("          \n");
+				printf("       Force Seam Direction (or other output) \n");
+				printf("         '-d 0' automatically selected (default) \n");
+				printf("         '-d 1' force horizontal direction seams \n");
+				printf("         '-d 2' force vertical direction seams \n");
+				printf("         '-d 3' force both direction seams \n");
+				printf("         '-d 4' output brightness values \n");
+				printf("         '-d 5' output energy values \n");
+				printf("         '-d 6' output seam values (horizontal) \n");
+				printf("         '-d 7' output seam values (vertical) \n");
+				printf("         '-d 8' output seams (horizontal) \n");
+				printf("         '-d 9' output seams (vertical) \n");
+				printf("          \n");
+				printf("       Energy Calculation Method \n");
+				printf("         '-e 0' use Difference of Gaussian (default) \n");
+				printf("         '-e 1' use Laplacian of Gaussian (sigma=8) \n");
+				printf("         '-e 2' use Laplacian of Gaussian (sigma=4) \n");
+				printf("         '-e 3' use Laplacian of Gaussian (sigma=2) \n");
+				printf("         '-e 4' use Sobel \n");
+				printf("         '-e 5' use LoG Simple \n");
+				printf("         '-e 6' use Simple Gradient \n");
+				printf("         '-e 7' use DoG + Sobel \n");
+				printf("         '-e 8' use LoG (sigma=8) AND Sobel \n");
+				printf("          \n");
+				printf("       Pre-processing Options \n");
+				printf("         '-g 0' none (default) \n");
+				printf("         '-g 1' pre-Gaussian blur (sigma=2) \n");
+				printf("         '-g 2' pre-Gaussian blur (sigma=4) \n");
+				printf("         '-g 3' pre-Gaussian blur (sigma=8) \n");
 				return 1;
 			default:
 				fprintf(stderr, "Unexpected argument character code: %c (0x%04x)\n", (char)c, c);
