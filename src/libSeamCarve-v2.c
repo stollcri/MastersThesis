@@ -1014,7 +1014,7 @@ static int findSeamsHorizontal(int *imageSeams, int imageWidth, int imageHeight,
 	return findSeams(imageSeams, imageWidth, imageHeight, imageOrig, 1, imageSeamCounts);
 }
 
-static int *seamCarve(int *imageVector, int imageWidth, int forceDirection, int imageHeight)
+static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int forceDirection)
 {
 	double imageScale = 1;//0.125;
 	int imagePadding = 4;
@@ -1105,7 +1105,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int forceDirection, int 
 		free(newImageSeams);
 		free(newImageSeams2);
 		*/
-		//return newImageEnergy;
+		return newImageEnergy;
 
 		if (horizontalSeamCost < verticalSeamCost) {
 			//return newImageSeams2;

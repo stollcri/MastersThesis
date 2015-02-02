@@ -58,7 +58,6 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 		loopBeg = imageWindow->lastPixel - 1 - imageWindow->xLength;
 		loopEnd = imageWindow->lastPixel - 1;
 		loopInc = imageWindow->xStep;
-		printf("%d, %d, %d \n", loopBeg, loopEnd, loopInc);
 
 		// also set the next pixel distances
 		nextPixelDistC = imageWindow->fullWidth;
@@ -68,7 +67,6 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 		loopInBeg = imageWindow->yTerminus - 1;
 		loopInEnd = imageWindow->yOrigin;
 		loopInInc = imageWindow->xStep;
-		printf("%d, %d, %d \n", loopInBeg, loopInEnd, loopInInc);
 	} else {
 		loopBeg = imageWindow->firstPixel + imageWindow->xLength - 1;
 		loopEnd = imageWindow->lastPixel;
@@ -307,6 +305,8 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 {
 	struct pixel *workingImage = (struct pixel*)xmalloc((unsigned long)imageWidth * (unsigned long)imageHeight * sizeof(struct pixel));
 	int *resultImage = (int*)xmalloc((unsigned long)imageWidth * (unsigned long)imageHeight * (unsigned long)imageDepth * sizeof(int));
+	
+	int invertOutput = 0;
 	
 	int inputPixel = 0;
 	int outputPixel = 0;
@@ -550,14 +550,16 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 	if (forceDirection == 0) {
 		int horizontalSeamCost = fillSeamMatrixHorizontal(workingImage, currentWindow);
 		int verticalSeamCost = fillSeamMatrixVertical(workingImage, currentWindow);
-		printf("Sum traversal cost of all seams: horizontal = %d, vertical = %d \n", verticalSeamCost, horizontalSeamCost);
+		//printf("Sum traversal cost of all seams: horizontal = %d, vertical = %d \n", verticalSeamCost, horizontalSeamCost);
 
 		findSeamsHorizontal(workingImage, currentWindow);
 		findSeamsVertical(workingImage, currentWindow);
 		
 		if (horizontalSeamCost < verticalSeamCost) {
+			printf("Horizontal \n");
 			resultDirection = 1;
 		} else {
+			printf("Vertical \n");
 			resultDirection = 2;
 		}
 	} else if ((forceDirection == 1) || (forceDirection == 6) || (forceDirection == 8)) {
@@ -723,10 +725,17 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 					resultImage[outputPixel+2] = 0;
 					resultImage[outputPixel+3] = 255;
 				} else {
-					resultImage[outputPixel] = 255-min(max((workingImage[currentPixel].usecountH), 0), 255);
-					resultImage[outputPixel+1] = 255-min(max((workingImage[currentPixel].usecountH), 0), 255);
-					resultImage[outputPixel+2] = 255-min(max((workingImage[currentPixel].usecountH), 0), 255);
-					resultImage[outputPixel+3] = 255;
+					if (invertOutput) {
+						resultImage[outputPixel] = 255-min(max((workingImage[currentPixel].usecountH), 0), 255);
+						resultImage[outputPixel+1] = 255-min(max((workingImage[currentPixel].usecountH), 0), 255);
+						resultImage[outputPixel+2] = 255-min(max((workingImage[currentPixel].usecountH), 0), 255);
+						resultImage[outputPixel+3] = 255;
+					} else {
+						resultImage[outputPixel] = min(max((workingImage[currentPixel].usecountH), 0), 255);
+						resultImage[outputPixel+1] = min(max((workingImage[currentPixel].usecountH), 0), 255);
+						resultImage[outputPixel+2] = min(max((workingImage[currentPixel].usecountH), 0), 255);
+						resultImage[outputPixel+3] = 255;
+					}
 				}
 			}
 		}
@@ -746,10 +755,17 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 					resultImage[outputPixel+2] = 0;
 					resultImage[outputPixel+3] = 255;
 				} else {
-					resultImage[outputPixel] = 255-min(max((workingImage[currentPixel].usecountV), 0), 255);
-					resultImage[outputPixel+1] = 255-min(max((workingImage[currentPixel].usecountV), 0), 255);
-					resultImage[outputPixel+2] = 255-min(max((workingImage[currentPixel].usecountV), 0), 255);
-					resultImage[outputPixel+3] = 255;
+					if (invertOutput) {
+						resultImage[outputPixel] = 255-min(max((workingImage[currentPixel].usecountV), 0), 255);
+						resultImage[outputPixel+1] = 255-min(max((workingImage[currentPixel].usecountV), 0), 255);
+						resultImage[outputPixel+2] = 255-min(max((workingImage[currentPixel].usecountV), 0), 255);
+						resultImage[outputPixel+3] = 255;
+					} else {
+						resultImage[outputPixel] = min(max((workingImage[currentPixel].usecountV), 0), 255);
+						resultImage[outputPixel+1] = min(max((workingImage[currentPixel].usecountV), 0), 255);
+						resultImage[outputPixel+2] = min(max((workingImage[currentPixel].usecountV), 0), 255);
+						resultImage[outputPixel+3] = 255;
+					}
 				}
 			}
 		}
