@@ -17,6 +17,8 @@ struct pixel {
 	int seamvalV;
 	int usecountH;
 	int usecountV;
+	int areaBoundaryH;
+	int areaBoundaryV;
 };
 
 #endif

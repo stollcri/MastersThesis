@@ -13,7 +13,7 @@ sc:
 	${CC} ${CFLAGS} -o ./bin/sc ./src/sc.c
 
 test:
-	./bin/sc -b 0 -c 2 -d 8 -e 0 -g 0 ./tst/BPD-01c.png ./tst/out_BPD-01c-3.png
+	./bin/sc -b 0 -c 2 -d a -e 0 -g 0 ./tst/BPD-01d.png ./tst/out_BPD-01.png
 
 test-all:
 	# ./bin/sc -b 0 -c 0 -d 7 -e 0 ./tst/RightsOfManB-352degree.png ./tst/out_ROMB-352.png

@@ -21,12 +21,14 @@
 #define THRESHHOLD_USECOUNT 64
 #define PI 3.14159265359
 
+#define DEFAULT_CLIP_AREA_BOUND 1
+
 /*
  * Trace all the seams
  * The least signifigant pixels will be traced multiple times and have a higher value (whiter)
  * The most signifigant pixels will not be traced at all and have a value of zero (black)
  */
-static void findSeams(struct pixel *imageVector, struct window *imageWindow, int direction)
+static void findSeams(struct pixel *imageVector, struct window *imageWindow, int direction, int findAreas)
 {
 	// TODO: create macro definition
 	int directionVertical = 0;
@@ -41,6 +43,7 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 	int loopInBeg = 0;
 	int loopInEnd = 0;
 	int loopInInc = 0;
+	int seamLength = 0;
 
 	int nextPixelR = 0; // next pixel to the right
 	int nextPixelC = 0; // next pixel to the center
@@ -67,6 +70,8 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 		loopInBeg = imageWindow->yTerminus - 1;
 		loopInEnd = imageWindow->yOrigin;
 		loopInInc = imageWindow->xStep;
+
+		seamLength = imageWindow->yLength;
 	} else {
 		loopBeg = imageWindow->firstPixel + imageWindow->xLength - 1;
 		loopEnd = imageWindow->lastPixel;
@@ -80,7 +85,25 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 		loopInBeg = imageWindow->xTerminus;
 		loopInEnd = imageWindow->xOrigin;
 		loopInInc = imageWindow->xStep;
+
+		seamLength = imageWindow->xLength;
 	}
+
+	// v5 experiemnts (based upon v2)
+	int totalDeviation = 0;
+	int totalDeviationL = 0;
+	int totalDeviationR = 0;
+	int lastTotalDeviationL = 0;
+	int lastTotalDeviationR = 0;
+	int seamPointer = 0;
+	int seamBegan = 0;
+	int *lastSeam = (int*)xmalloc((unsigned long)seamLength * sizeof(int));
+	int *currentSeam = (int*)xmalloc((unsigned long)seamLength * sizeof(int));
+	int deviationMin = imageWindow->fullWidth / 20;
+	int deviationTol = imageWindow->fullWidth / 200;
+	int clipAreaBound = DEFAULT_CLIP_AREA_BOUND;
+	int straightDone = 0;
+	int straightStart = 0;
 
 	int minValueLocation = 0;
 	// for every pixel in the right-most or bottom-most column of the image
@@ -91,8 +114,24 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 		countGoR = 0;
 		countGoL = 0;
 
+		// v5 experiemnts (based upon v2)
+		if (findAreas) {
+			totalDeviation = 0;
+			totalDeviationL = 0;
+			totalDeviationR = 0;
+			seamPointer = 0;
+			currentSeam[seamPointer] = minValueLocation;
+		}
+
 		// move right-to-left ot bottom-to-top across/up the image
 		for (int j = loopInBeg; j > loopInEnd; j -= loopInInc) {
+			
+			// // v5 experiemnts (based upon v2)
+			// if (findAreas) {
+			// 	currentSeam[seamPointer] = minValueLocation;
+			// 	++seamPointer;
+			// }
+
 			// THIS IS THE CRUCIAL PART
 			if (direction == directionVertical) {
 				if (imageVector[minValueLocation].usecountV < (255-SEAM_TRACE_INCREMENT)) {
@@ -143,33 +182,253 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 				} else if (currentMin == nextPixelR) {
 					minValueLocation -= nextPixelDistR;
 					++countGoR;
+					++totalDeviation;
 				} else if (currentMin == nextPixelL) {
 					minValueLocation -= nextPixelDistL;
 					++countGoL;
+					--totalDeviation;
 				}
 			} else if (countGoR > countGoL) {
 				if (currentMin == nextPixelL) {
 					minValueLocation -= nextPixelDistL;
 					++countGoL;
+					--totalDeviation;
 				} else if (currentMin == nextPixelC) {
 					minValueLocation -= nextPixelDistC;
 				} else if (currentMin == nextPixelR) {
 					minValueLocation -= nextPixelDistR;
 					++countGoR;
+					++totalDeviation;
 				}
 			} else if (countGoR < countGoL) {
 				if (currentMin == nextPixelR) {
 					minValueLocation -= nextPixelDistR;
 					++countGoR;
+					++totalDeviation;
 				} else if (currentMin == nextPixelC) {
 					minValueLocation -= nextPixelDistC;
 				} else if (currentMin == nextPixelL) {
 					minValueLocation -= nextPixelDistL;
 					++countGoL;
+					--totalDeviation;
 				}
+			}
+
+			// v5 experiemnts (based upon v2)
+			if (findAreas) {
+				if (totalDeviation > 0) {
+					++totalDeviationR;
+				} else if (totalDeviation < 0) {
+					++totalDeviationL;
+				}
+
+				++seamPointer;
+				currentSeam[seamPointer] = minValueLocation;
+			}
+		}
+
+		// v5 experiemnts (based upon v2)
+		if (findAreas) {
+			// only consider seams with persistent deviations
+			if (totalDeviationL || totalDeviationR) {
+				//printf("%d\tdeviation: %d, L: %d, R: %d ", (k / imageWindow->fullWidth), totalDeviation, totalDeviationL, totalDeviationR);
+
+				// persistently going left (bottom of an area)
+				if (totalDeviationL > totalDeviationR) {
+					// we already have the top of an area
+					if (seamBegan) {
+						// present deviation (plus tolerance) is less than last deviation amount
+						// and the last deviation is greater than the minimum required deviation
+						if (((totalDeviationL + deviationTol) < lastTotalDeviationL) && (lastTotalDeviationL > deviationMin)) {
+							seamBegan = 0;
+							//printf(" <<< L");
+
+							straightDone = 0;
+							for (int i = 0; i < seamLength; ++i) {
+								if (direction == directionVertical) {
+									if (clipAreaBound) {
+										if ((i > 0) && ((currentSeam[i-1] - currentSeam[i]) != imageWindow->yStep)) {
+											straightDone = 1;
+											straightStart = 0;
+										} else {
+											if (straightDone && !straightStart) {
+												straightStart = i;
+											}
+										}
+									} else {
+										straightDone = 1;
+									}
+
+									if (straightDone) {
+										imageVector[currentSeam[i]].areaBoundaryV = 3;
+									}
+								} else {
+									if (clipAreaBound) {
+										if ((i > 0) && ((currentSeam[i-1] - currentSeam[i]) != imageWindow->xStep)) {
+											straightDone = 1;
+											straightStart = 0;
+										} else {
+											if (straightDone && !straightStart) {
+												straightStart = i;
+											}
+										}
+									} else {
+										straightDone = 1;
+									}
+
+									if (straightDone) {
+										imageVector[currentSeam[i]].areaBoundaryH = 3;
+									}
+								}
+							}
+							
+							// remove final straight edge
+							if (clipAreaBound && straightStart) {
+								for (int i = straightStart; i < seamLength; ++i) {
+									if (direction == directionVertical) {
+										imageVector[currentSeam[i]].areaBoundaryV = 0;
+									} else {
+										imageVector[currentSeam[i]].areaBoundaryH = 0;
+									}
+								}
+							}
+						}
+					
+					// we don't have the top of an area yet
+					} else {
+						// present deviation (plus tolerance) is less than last deviation amount
+						// and the last deviation is greater than the minimum required deviation
+						if (((totalDeviationR + deviationTol) < lastTotalDeviationR) && (lastTotalDeviationR > deviationMin)) {
+							seamBegan = 1;
+							//printf(" <<< R1");
+
+							straightDone = 0;
+							for (int i = 0; i < seamLength; ++i) {
+								if (direction == directionVertical) {
+									if (clipAreaBound) {
+										if ((i > 0) && ((currentSeam[i-1] - currentSeam[i]) != imageWindow->yStep)) {
+											straightDone = 1;
+											straightStart = 0;
+										} else {
+											if (straightDone && !straightStart) {
+												straightStart = i;
+											}
+										}
+									} else {
+										straightDone = 1;
+									}
+
+									if (straightDone) {
+										imageVector[lastSeam[i]].areaBoundaryV = 1;
+									}
+								} else {
+									if (clipAreaBound) {
+										if ((i > 0) && ((currentSeam[i-1] - currentSeam[i]) != imageWindow->xStep)) {
+											straightDone = 1;
+											straightStart = 0;
+										} else {
+											if (straightDone && !straightStart) {
+												straightStart = i;
+											}
+										}
+									} else {
+										straightDone = 1;
+									}
+
+									if (straightDone) {
+										imageVector[lastSeam[i]].areaBoundaryH = 1;
+									}
+								}
+							}
+							
+							// remove final straight edge
+							if (clipAreaBound && straightStart) {
+								for (int i = straightStart; i < seamLength; ++i) {
+									if (direction == directionVertical) {
+										imageVector[lastSeam[i]].areaBoundaryV = 0;
+									} else {
+										imageVector[lastSeam[i]].areaBoundaryH = 0;
+									}
+								}
+							}
+						}
+					}
+				
+				// persistently going right (top of an area)
+				} else {
+					// only if a top has not yet been found (without a mathing bottom)
+					if (!seamBegan) {
+						// present deviation (plus tolerance) is less than last deviation amount
+						// and the last deviation is greater than the minimum required deviation
+						if (((totalDeviationR + deviationTol) < lastTotalDeviationR) && (lastTotalDeviationR > deviationMin)) {
+							seamBegan = 1;
+							//printf(" <<< R2");
+
+							straightDone = 0;
+							for (int i = 0; i < seamLength; ++i) {
+								if (direction == directionVertical) {
+									if (clipAreaBound) {
+										if ((i > 0) && ((currentSeam[i-1] - currentSeam[i]) != imageWindow->yStep)) {
+											straightDone = 1;
+											straightStart = 0;
+										} else {
+											if (straightDone && !straightStart) {
+												straightStart = i;
+											}
+										}
+									} else {
+										straightDone = 1;
+									}
+
+									if (straightDone) {
+										imageVector[lastSeam[i]].areaBoundaryV = 1;
+									}
+								} else {
+									if (clipAreaBound) {
+										if ((i > 0) && ((currentSeam[i-1] - currentSeam[i]) != imageWindow->xStep)) {
+											straightDone = 1;
+											straightStart = 0;
+										} else {
+											if (straightDone && !straightStart) {
+												straightStart = i;
+											}
+										}
+									} else {
+										straightDone = 1;
+									}
+
+									if (straightDone) {
+										imageVector[lastSeam[i]].areaBoundaryH = 1;
+									}
+								}
+							}
+							
+							// remove final straight edge
+							if (clipAreaBound && straightStart) {
+								for (int i = straightStart; i < seamLength; ++i) {
+									if (direction == directionVertical) {
+										imageVector[lastSeam[i]].areaBoundaryV = 0;
+									} else {
+										imageVector[lastSeam[i]].areaBoundaryH = 0;
+									}
+								}
+							}
+						}
+					}
+				}
+				//printf("\n");
+			}
+
+			lastTotalDeviationL = totalDeviationL;
+			lastTotalDeviationR = totalDeviationR;
+			for (int i = 0; i < seamLength; ++i) {
+				lastSeam[i] = currentSeam[i];
 			}
 		}
 	}
+
+	free(lastSeam);
+	free(currentSeam);
 }
 
 static void setPixelPathVertical(struct pixel *imageVector, struct window *imageWindow, int currentPixel, int currentCol)
@@ -228,9 +487,9 @@ static int fillSeamMatrixVertical(struct pixel *imageVector, struct window *imag
 	return result;
 }
 
-static void findSeamsVertical(struct pixel *imageVector, struct window *imageWindow)
+static void findSeamsVertical(struct pixel *imageVector, struct window *imageWindow, int findAreas)
 {
-	findSeams(imageVector, imageWindow, 0);
+	findSeams(imageVector, imageWindow, 0, findAreas);
 }
 
 static void setPixelPathHorizontal(struct pixel *imageVector, struct window *imageWindow, int currentPixel, int currentCol)
@@ -293,9 +552,9 @@ static int fillSeamMatrixHorizontal(struct pixel *imageVector, struct window *im
 	return result;
 }
 
-static void findSeamsHorizontal(struct pixel *imageVector, struct window *imageWindow)
+static void findSeamsHorizontal(struct pixel *imageVector, struct window *imageWindow, int findAreas)
 {
-	findSeams(imageVector, imageWindow, 1);
+	findSeams(imageVector, imageWindow, 1, findAreas);
 }
 
 /*
@@ -363,6 +622,8 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 			newPixel.seamvalV = 0;
 			newPixel.usecountH = 0;
 			newPixel.usecountV = 0;
+			newPixel.areaBoundaryH = 0;
+			newPixel.areaBoundaryV = 0;
 			workingImage[currentPixel] = newPixel;
 
 			resultImage[inputPixel] = 0;
@@ -552,8 +813,8 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 		int verticalSeamCost = fillSeamMatrixVertical(workingImage, currentWindow);
 		//printf("Sum traversal cost of all seams: horizontal = %d, vertical = %d \n", verticalSeamCost, horizontalSeamCost);
 
-		findSeamsHorizontal(workingImage, currentWindow);
-		findSeamsVertical(workingImage, currentWindow);
+		findSeamsHorizontal(workingImage, currentWindow, 0);
+		findSeamsVertical(workingImage, currentWindow, 0);
 		
 		if (horizontalSeamCost < verticalSeamCost) {
 			printf("Horizontal \n");
@@ -562,20 +823,28 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 			printf("Vertical \n");
 			resultDirection = 2;
 		}
-	} else if ((forceDirection == 1) || (forceDirection == 6) || (forceDirection == 8)) {
+	} else if ((forceDirection == 1) || (forceDirection == 6) || (forceDirection == 8) || (forceDirection == 49)) {
 		fillSeamMatrixHorizontal(workingImage, currentWindow);
-		findSeamsHorizontal(workingImage, currentWindow);
-	} else if ((forceDirection == 2) || (forceDirection == 7) || (forceDirection == 9)) {
+		if (forceDirection == 49) {
+			findSeamsHorizontal(workingImage, currentWindow, 1);
+		} else {
+			findSeamsHorizontal(workingImage, currentWindow, 0);
+		}
+	} else if ((forceDirection == 2) || (forceDirection == 7) || (forceDirection == 9) || (forceDirection == 50)) {
 		fillSeamMatrixVertical(workingImage, currentWindow);
-		findSeamsVertical(workingImage, currentWindow);
+		if (forceDirection == 50) {
+			findSeamsVertical(workingImage, currentWindow, 1);
+		} else {
+			findSeamsVertical(workingImage, currentWindow, 0);
+		}
 	} else if ((forceDirection == 4) || (forceDirection == 5)) {
 		// pass
 	} else {
 		fillSeamMatrixHorizontal(workingImage, currentWindow);
 		fillSeamMatrixVertical(workingImage, currentWindow);
 
-		findSeamsHorizontal(workingImage, currentWindow);
-		findSeamsVertical(workingImage, currentWindow);
+		findSeamsHorizontal(workingImage, currentWindow, 0);
+		findSeamsVertical(workingImage, currentWindow, 0);
 	}
 
 	// prepare results for output
@@ -766,6 +1035,70 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 						resultImage[outputPixel+2] = min(max((workingImage[currentPixel].usecountV), 0), 255);
 						resultImage[outputPixel+3] = 255;
 					}
+				}
+			}
+		}
+	} else if (resultDirection == 49) {
+		int seamValueScale = 4;
+		int currentUseCount = 0;
+		
+		for (int j = 0; j < imageHeight; ++j) {
+			for (int i = 0; i < imageWidth; ++i) {
+				currentPixel = (j * imageWidth) + i;
+				outputPixel = currentPixel * imageDepth;
+				
+				if (workingImage[currentPixel].areaBoundaryH == 1) {
+					resultImage[outputPixel] = 255;
+					resultImage[outputPixel+1] = 0;
+					resultImage[outputPixel+2] = 0;
+					resultImage[outputPixel+3] = 255;
+				} else if (workingImage[currentPixel].areaBoundaryH == 2) {
+					resultImage[outputPixel] = 0;
+					resultImage[outputPixel+1] = 255;
+					resultImage[outputPixel+2] = 0;
+					resultImage[outputPixel+3] = 255;
+				} else if (workingImage[currentPixel].areaBoundaryH == 3) {
+					resultImage[outputPixel] = 0;
+					resultImage[outputPixel+1] = 0;
+					resultImage[outputPixel+2] = 255;
+					resultImage[outputPixel+3] = 255;
+				} else {
+					resultImage[outputPixel] = workingImage[currentPixel].r;
+					resultImage[outputPixel+1] = workingImage[currentPixel].g;
+					resultImage[outputPixel+2] = workingImage[currentPixel].b;
+					resultImage[outputPixel+3] = 255;
+				}
+			}
+		}
+	} else if (resultDirection == 50) {
+		int seamValueScale = 4;
+		int currentUseCount = 0;
+		
+		for (int j = 0; j < imageHeight; ++j) {
+			for (int i = 0; i < imageWidth; ++i) {
+				currentPixel = (j * imageWidth) + i;
+				outputPixel = currentPixel * imageDepth;
+				
+				if (workingImage[currentPixel].areaBoundaryV == 1) {
+					resultImage[outputPixel] = 255;
+					resultImage[outputPixel+1] = 0;
+					resultImage[outputPixel+2] = 0;
+					resultImage[outputPixel+3] = 255;
+				} else if (workingImage[currentPixel].areaBoundaryV == 2) {
+					resultImage[outputPixel] = 0;
+					resultImage[outputPixel+1] = 255;
+					resultImage[outputPixel+2] = 0;
+					resultImage[outputPixel+3] = 255;
+				} else if (workingImage[currentPixel].areaBoundaryV == 3) {
+					resultImage[outputPixel] = 0;
+					resultImage[outputPixel+1] = 0;
+					resultImage[outputPixel+2] = 255;
+					resultImage[outputPixel+3] = 255;
+				} else {
+					resultImage[outputPixel] = workingImage[currentPixel].r;
+					resultImage[outputPixel+1] = workingImage[currentPixel].g;
+					resultImage[outputPixel+2] = workingImage[currentPixel].b;
+					resultImage[outputPixel+3] = 255;
 				}
 			}
 		}

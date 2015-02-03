@@ -126,6 +126,8 @@ int main(int argc, char const *argv[])
 				printf("         '-d 7' output seam values (vertical) \n");
 				printf("         '-d 8' output seams (horizontal) \n");
 				printf("         '-d 9' output seams (vertical) \n");
+				printf("         '-d a' output areas (horizontal) \n");
+				printf("         '-d b' output areas (vertical) \n");
 				printf("          \n");
 				printf("       Energy Calculation Method \n");
 				printf("         '-e 0' use Difference of Gaussian (default) \n");
