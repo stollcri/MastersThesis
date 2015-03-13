@@ -60,9 +60,9 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 
 	// loop conditions depend upon the direction
 	if (direction == directionVertical) {
-		loopBeg = imageWindow->lastPixel - 1 - imageWindow->xLength;
-		loopEnd = imageWindow->lastPixel - 1;
-		loopInc = imageWindow->xStep;
+		loopBeg = imageWindow->lastPixel - 1;
+		loopEnd = imageWindow->lastPixel - 1 - imageWindow->xLength;
+		loopInc = imageWindow->xStep * -1;
 
 		// also set the next pixel distances
 		nextPixelDistC = imageWindow->fullWidth;
@@ -101,15 +101,17 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 	int seamBegan = 0;
 	int *lastSeam = (int*)xmalloc((unsigned long)seamLength * sizeof(int));
 	int *currentSeam = (int*)xmalloc((unsigned long)seamLength * sizeof(int));
-	int deviationMin = imageWindow->fullWidth / 20;
+	int deviationMin = imageWindow->fullWidth / 25;
 	int deviationTol = imageWindow->fullWidth / 200;
 	int clipAreaBound = DEFAULT_CLIP_AREA_BOUND;
 	int straightDone = 0;
 	int straightStart = 0;
 
+	int k = loopBeg;
+	int loopFinished = 0;
 	int minValueLocation = 0;
 	// for every pixel in the right-most or bottom-most column of the image
-	for (int k = loopBeg; k < loopEnd; k += loopInc) {
+	while(!loopFinished) {
 		// process seams with the lowest weights
 		// start from the left-most column
 		minValueLocation = k;
@@ -430,6 +432,18 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 			lastTotalDeviationR = totalDeviationR;
 			for (int i = 0; i < seamLength; ++i) {
 				lastSeam[i] = currentSeam[i];
+			}
+		}
+
+		//for (int k = loopBeg; k < loopEnd; k += loopInc) {
+		k += loopInc;
+		if (direction == directionVertical) {
+			if (k <= loopEnd) {
+				loopFinished = 1;
+			}
+		} else {
+			if (k >= loopEnd) {
+				loopFinished = 1;
 			}
 		}
 	}
