@@ -1,6 +1,8 @@
 /**
- * Masters Thesis Work: OCR
- * Christopher Stoll, 2014 -- v3, major refactoring
+ * libSeabCarve.c
+ * 
+ * Masters Thesis Work
+ * Christopher Stoll, 2015 -- v3, major refactoring
  */
 
 #ifndef LIBSEAMCARVE_C
@@ -231,7 +233,11 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 		if (findAreas) {
 			// only consider seams with persistent deviations
 			if (totalDeviationL || totalDeviationR) {
-				//printf("%d\tdeviation: %d, L: %d, R: %d ", (k / imageWindow->fullWidth), totalDeviation, totalDeviationL, totalDeviationR);
+				// if (direction == directionVertical) {
+				// 	printf("%d\tdeviation: %d, L: %d, R: %d ", ((k + 1) % imageWindow->fullHeight), totalDeviation, totalDeviationL, totalDeviationR);
+				// } else {
+				// 	printf("%d\tdeviation: %d, L: %d, R: %d ", (k / imageWindow->fullWidth), totalDeviation, totalDeviationL, totalDeviationR);
+				// }
 
 				// persistently going left (bottom of an area)
 				if (totalDeviationL > totalDeviationR) {
@@ -241,7 +247,7 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 						// and the last deviation is greater than the minimum required deviation
 						if (((totalDeviationL + deviationTol) < lastTotalDeviationL) && (lastTotalDeviationL > deviationMin)) {
 							seamBegan = 0;
-							//printf(" <<< L");
+							// printf(" <<< L");
 
 							straightDone = 0;
 							for (int i = 0; i < seamLength; ++i) {
@@ -300,7 +306,7 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 						// and the last deviation is greater than the minimum required deviation
 						if (((totalDeviationR + deviationTol) < lastTotalDeviationR) && (lastTotalDeviationR > deviationMin)) {
 							seamBegan = 1;
-							//printf(" <<< R1");
+							// printf(" <<< R1");
 
 							straightDone = 0;
 							for (int i = 0; i < seamLength; ++i) {
@@ -355,6 +361,7 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 					}
 				
 				// persistently going right (top of an area)
+				// totalDeviationL <= totalDeviationR
 				} else {
 					// only if a top has not yet been found (without a mathing bottom)
 					if (!seamBegan) {
@@ -362,7 +369,7 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 						// and the last deviation is greater than the minimum required deviation
 						if (((totalDeviationR + deviationTol) < lastTotalDeviationR) && (lastTotalDeviationR > deviationMin)) {
 							seamBegan = 1;
-							//printf(" <<< R2");
+							// printf(" <<< R2");
 
 							straightDone = 0;
 							for (int i = 0; i < seamLength; ++i) {
@@ -402,7 +409,7 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 									}
 								}
 							}
-							
+
 							// remove final straight edge
 							if (clipAreaBound && straightStart) {
 								for (int i = straightStart; i < seamLength; ++i) {
@@ -416,7 +423,7 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 						}
 					}
 				}
-				//printf("\n");
+				// printf("\n");
 			}
 
 			lastTotalDeviationL = totalDeviationL;
@@ -867,6 +874,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				}
 			}
 		}
+
 	} else if (resultDirection == 2) {
 		for (int j = 0; j < imageHeight; ++j) {
 			for (int i = 0; i < imageWidth; ++i) {
@@ -886,6 +894,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				}
 			}
 		}
+
 	} else if (resultDirection == 3) {
 		int currentUseCount = 0;
 		for (int j = 0; j < imageHeight; ++j) {
@@ -907,6 +916,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				}
 			}
 		}
+
 	} else if (resultDirection == 4) {
 		int currentUseCount = 0;
 		for (int j = 0; j < imageHeight; ++j) {
@@ -920,6 +930,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				resultImage[outputPixel+3] = 255;
 			}
 		}
+
 	} else if (resultDirection == 5) {
 		int energyScale = 16;
 		int currentUseCount = 0;
@@ -934,6 +945,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				resultImage[outputPixel+3] = 255;
 			}
 		}
+
 	} else if (resultDirection == 6) {
 		int seamValueScale = 16;
 		int currentUseCount = 0;
@@ -956,6 +968,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				}
 			}
 		}
+
 	} else if (resultDirection == 7) {
 		int seamValueScale = 16;
 		int currentUseCount = 0;
@@ -978,6 +991,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				}
 			}
 		}
+
 	} else if (resultDirection == 8) {
 		int seamValueScale = 4;
 		int currentUseCount = 0;
@@ -1008,6 +1022,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				}
 			}
 		}
+
 	} else if (resultDirection == 9) {
 		int seamValueScale = 4;
 		int currentUseCount = 0;
@@ -1038,6 +1053,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				}
 			}
 		}
+
 	} else if (resultDirection == 49) {
 		int seamValueScale = 4;
 		int currentUseCount = 0;
@@ -1070,6 +1086,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				}
 			}
 		}
+
 	} else if (resultDirection == 50) {
 		int seamValueScale = 4;
 		int currentUseCount = 0;
