@@ -13,9 +13,22 @@ sc:
 	${CC} ${CFLAGS} -o ./bin/sc ./src/sc.c
 
 test:
-	./bin/sc -b 0 -c 2 -d a -e 0 -g 0 ./tst/BPD-01d.png ./tst/out_BPD-01.png
+	#time ./bin/sc -b 0 -c 0 -d a -e 0 ./tst/BPD-01d-01.png ./tst/out-BPD-01d-x.png
+	#time ./bin/sc -b 0 -c 0 -d a -e 7 ./tst/hidden.png ./tst/out-01.png
+	#time ./bin/sc -b 0 -c 0 -d a -e 4 ./tst/hidden.png ./tst/out-01.png
+	time ./bin/sc -b 0 -c 0 -d 8 -e 0 ./tst/hidden.png ./tst/out-01.png
 
 test-all:
+	# ./bin/sc -b 0 -c 2 -d a -e 0 -g 0 ./tst/BPD-01d.png ./tst/out_BPD-01.png
+	# ./bin/sc -b 0 -c 2 -d b -e 0 -g 0 ./tst/BPD-01d-01.png ./tst/out_BPD-02.png
+	# ./bin/sc -b 0 -c 2 -d b -e 0 -g 0 ./tst/BPD-01d-02.png ./tst/out_BPD-03.png
+	
+	# ./bin/sc -b 0 -c 2 -d 5 -e 0 -g 0 ./tst/BPD-01d.png ./tst/out_BPD-01-Energy-0_DoG.png
+	# ./bin/sc -b 0 -c 2 -d 5 -e 1 -g 0 ./tst/BPD-01d.png ./tst/out_BPD-01-Energy-1_LoG.png
+	# ./bin/sc -b 0 -c 2 -d 5 -e 4 -g 0 ./tst/BPD-01d.png ./tst/out_BPD-01-Energy-4_Sobel.png
+	# ./bin/sc -b 0 -c 2 -d 5 -e 6 -g 0 ./tst/BPD-01d.png ./tst/out_BPD-01-Energy-6_Grad.png
+	# ./bin/sc -b 0 -c 2 -d 5 -e 7 -g 0 ./tst/BPD-01d.png ./tst/out_BPD-01-Energy-7_DoG-Sobel.png
+	
 	# ./bin/sc -b 0 -c 0 -d 7 -e 0 ./tst/RightsOfManB-352degree.png ./tst/out_ROMB-352.png
 	# ./bin/sc -b 0 -c 0 -d 7 -e 0 ./tst/RightsOfManB-356degree.png ./tst/out_ROMB-356.png
 	# ./bin/sc -b 0 -c 0 -d 7 -e 0 ./tst/RightsOfManB-357degree.png ./tst/out_ROMB-357.png

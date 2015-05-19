@@ -454,6 +454,8 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 
 static void setPixelPathVertical(struct pixel *imageVector, struct window *imageWindow, int currentPixel, int currentCol)
 {
+	//return;
+
 	int pixelAbove = 0;
 	int aboveL = 0;
 	int aboveC = 0;
@@ -515,6 +517,8 @@ static void findSeamsVertical(struct pixel *imageVector, struct window *imageWin
 
 static void setPixelPathHorizontal(struct pixel *imageVector, struct window *imageWindow, int currentPixel, int currentCol)
 {
+	//return;
+	
 	// avoid falling off the right
 	if (currentCol < imageWindow->xLength) {
 		int pixelLeft = 0;
