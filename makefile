@@ -16,7 +16,9 @@ test:
 	#time ./bin/sc -b 0 -c 0 -d a -e 0 ./tst/BPD-01d-01.png ./tst/out-BPD-01d-x.png
 	#time ./bin/sc -b 0 -c 0 -d a -e 7 ./tst/hidden.png ./tst/out-01.png
 	#time ./bin/sc -b 0 -c 0 -d a -e 4 ./tst/hidden.png ./tst/out-01.png
-	time ./bin/sc -b 0 -c 0 -d 8 -e 0 ./tst/hidden.png ./tst/out-01.png
+	./bin/sc -b 0 -c 0 -d 5 -e 9 ./tst/Broadway_tower_edit_small.png ./tst/out-00.png
+	./bin/sc -b 0 -c 0 -d 5 -e 9 ./tst/Fig2a.png ./tst/out-01.png
+	./bin/sc -b 0 -c 0 -d 5 -e 9 ./tst/Fig2b.png ./tst/out-02.png
 
 test-all:
 	# ./bin/sc -b 0 -c 2 -d a -e 0 -g 0 ./tst/BPD-01d.png ./tst/out_BPD-01.png

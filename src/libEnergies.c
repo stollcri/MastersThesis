@@ -8,6 +8,7 @@
 
 #include "pixel.h"
 #include "libMinMax.c"
+#include "libColorConv.c" 
 
 // Simple energy function, basically a gradient magnitude calculation
 static int getPixelEnergySimple(struct pixel *imageVector, int imageWidth, int imageHeight, int currentPixel, int gradientSize)
@@ -406,7 +407,7 @@ static int getPixelGaussian(struct pixel *imageVector, int imageWidth, int image
 	weights[23] = weights[3];
 	weights[24] = weights[4];
 
-	gaussL1 = (weights[1]  * pointValues[0])  + (weights[1]  * pointValues[1])  + (weights[2]  * pointValues[2])  + (weights[3]  * pointValues[3])  + (weights[4]  * pointValues[4]);
+	gaussL1 = (weights[0]  * pointValues[0])  + (weights[1]  * pointValues[1])  + (weights[2]  * pointValues[2])  + (weights[3]  * pointValues[3])  + (weights[4]  * pointValues[4]);
 	gaussL2 = (weights[5]  * pointValues[5])  + (weights[6]  * pointValues[6])  + (weights[7]  * pointValues[7])  + (weights[8]  * pointValues[8])  + (weights[9]  * pointValues[9]);
 	gaussL3 = (weights[10] * pointValues[10]) + (weights[11] * pointValues[11]) + (weights[12] * pointValues[12]) + (weights[13] * pointValues[13]) + (weights[14] * pointValues[14]);
 	gaussL4 = (weights[15] * pointValues[15]) + (weights[16] * pointValues[16]) + (weights[17] * pointValues[17]) + (weights[18] * pointValues[18]) + (weights[19] * pointValues[19]);
@@ -424,6 +425,421 @@ static int getPixelEnergyDoG(int gaussianValue1, int gaussianValue2)
 		greyPixel = (gaussianValue2 - gaussianValue1);
 	}
 	return min(max(greyPixel, 0), 255);
+}
+
+static int getPixelEnergyStoll(struct pixel *imageVector, int imageWidth, int imageHeight, int pixelDepth, int currentPixel)
+{
+	int imageByteWidth = imageWidth * pixelDepth;
+	int points[25];
+	double pointValues[25];
+		
+	points[0] = currentPixel - imageByteWidth - imageByteWidth - pixelDepth - pixelDepth;
+	points[1] = currentPixel - imageByteWidth - imageByteWidth - pixelDepth;
+	points[2] = currentPixel - imageByteWidth - imageByteWidth;
+	points[3] = currentPixel - imageByteWidth - imageByteWidth + pixelDepth;
+	points[4] = currentPixel - imageByteWidth - imageByteWidth + pixelDepth + pixelDepth;
+	
+	points[5] = currentPixel - imageByteWidth - pixelDepth - pixelDepth;
+	points[6] = currentPixel - imageByteWidth - pixelDepth;
+	points[7] = currentPixel - imageByteWidth;
+	points[8] = currentPixel - imageByteWidth + pixelDepth;
+	points[9] = currentPixel - imageByteWidth + pixelDepth + pixelDepth;
+	
+	points[10] = currentPixel - pixelDepth - pixelDepth;
+	points[11] = currentPixel - pixelDepth;
+	points[12] = currentPixel;
+	points[13] = currentPixel + pixelDepth;
+	points[14] = currentPixel + pixelDepth + pixelDepth;
+	
+	points[15] = currentPixel + imageByteWidth - pixelDepth - pixelDepth;
+	points[16] = currentPixel + imageByteWidth - pixelDepth;
+	points[17] = currentPixel + imageByteWidth;
+	points[18] = currentPixel + imageByteWidth + pixelDepth;
+	points[19] = currentPixel + imageByteWidth + pixelDepth + pixelDepth;
+	
+	points[20] = currentPixel + imageByteWidth + imageByteWidth - pixelDepth - pixelDepth;
+	points[21] = currentPixel + imageByteWidth + imageByteWidth - pixelDepth;
+	points[22] = currentPixel + imageByteWidth + imageByteWidth;
+	points[23] = currentPixel + imageByteWidth + imageByteWidth + pixelDepth;
+	points[24] = currentPixel + imageByteWidth + imageByteWidth + pixelDepth + pixelDepth;
+	
+	// TODO: this is wrong, fix it
+	for (int i = 0; i < 25; ++i) {
+		if (points[i] < 0) {
+			points[i] = 0;
+		} else if (points[i] >= (imageHeight * imageWidth * pixelDepth)) {
+			points[i] = (imageHeight * imageWidth * pixelDepth);
+		}
+	}
+
+	int valcR = imageVector[points[12]].r;
+	int valcG = imageVector[points[12]].g;
+	int valcB = imageVector[points[12]].b;
+
+	double valcx = rgbToXyzX(valcR, valcG, valcB);
+	double valcy = rgbToXyzY(valcR, valcG, valcB);
+	double valcz = rgbToXyzZ(valcR, valcG, valcB);
+
+	double valcl = xyzToLabL(valcx, valcy, valcz);
+	double valca = xyzToLabL(valcx, valcy, valcz);
+	double valcb = xyzToLabL(valcx, valcy, valcz);
+
+	int valnR = 0;
+	int valnG = 0;
+	int valnB = 0;
+
+	double valnx = 0;
+	double valny = 0;
+	double valnz = 0;
+
+	double valnl = 0;
+	double valna = 0;
+	double valnb = 0;
+	
+	// get the pixel values from the image array
+	valnR = valcR - imageVector[points[0]].r;
+	valnG = valcG - imageVector[points[0]].g;
+	valnB = valcB - imageVector[points[0]].b;
+	valnx = rgbToXyzX(valnR, valnG, valnB);
+	valny = rgbToXyzY(valnR, valnG, valnB);
+	valnz = rgbToXyzZ(valnR, valnG, valnB);
+	valnl = xyzToLabL(valnx, valny, valnz);
+	valna = xyzToLabL(valnx, valny, valnz);
+	valnb = xyzToLabL(valnx, valny, valnz);
+	pointValues[0] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+	valnR = valcR - imageVector[points[1]].r;
+	valnG = valcG - imageVector[points[1]].g;
+	valnB = valcB - imageVector[points[1]].b;
+	valnx = rgbToXyzX(valnR, valnG, valnB);
+	valny = rgbToXyzY(valnR, valnG, valnB);
+	valnz = rgbToXyzZ(valnR, valnG, valnB);
+	valnl = xyzToLabL(valnx, valny, valnz);
+	valna = xyzToLabL(valnx, valny, valnz);
+	valnb = xyzToLabL(valnx, valny, valnz);
+	pointValues[1] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+	valnR = valcR - imageVector[points[2]].r;
+	valnG = valcG - imageVector[points[2]].g;
+	valnB = valcB - imageVector[points[2]].b;
+	valnx = rgbToXyzX(valnR, valnG, valnB);
+	valny = rgbToXyzY(valnR, valnG, valnB);
+	valnz = rgbToXyzZ(valnR, valnG, valnB);
+	valnl = xyzToLabL(valnx, valny, valnz);
+	valna = xyzToLabL(valnx, valny, valnz);
+	valnb = xyzToLabL(valnx, valny, valnz);
+	pointValues[2] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+	valnR = valcR - imageVector[points[3]].r;
+	valnG = valcG - imageVector[points[3]].g;
+	valnB = valcB - imageVector[points[3]].b;
+	valnx = rgbToXyzX(valnR, valnG, valnB);
+	valny = rgbToXyzY(valnR, valnG, valnB);
+	valnz = rgbToXyzZ(valnR, valnG, valnB);
+	valnl = xyzToLabL(valnx, valny, valnz);
+	valna = xyzToLabL(valnx, valny, valnz);
+	valnb = xyzToLabL(valnx, valny, valnz);
+	pointValues[3] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+	valnR = valcR - imageVector[points[4]].r;
+	valnG = valcG - imageVector[points[4]].g;
+	valnB = valcB - imageVector[points[4]].b;
+	valnx = rgbToXyzX(valnR, valnG, valnB);
+	valny = rgbToXyzY(valnR, valnG, valnB);
+	valnz = rgbToXyzZ(valnR, valnG, valnB);
+	valnl = xyzToLabL(valnx, valny, valnz);
+	valna = xyzToLabL(valnx, valny, valnz);
+	valnb = xyzToLabL(valnx, valny, valnz);
+	pointValues[4] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+	valnR = valcR - imageVector[points[5]].r;
+	valnG = valcG - imageVector[points[5]].g;
+	valnB = valcB - imageVector[points[5]].b;
+	valnx = rgbToXyzX(valnR, valnG, valnB);
+	valny = rgbToXyzY(valnR, valnG, valnB);
+	valnz = rgbToXyzZ(valnR, valnG, valnB);
+	valnl = xyzToLabL(valnx, valny, valnz);
+	valna = xyzToLabL(valnx, valny, valnz);
+	valnb = xyzToLabL(valnx, valny, valnz);
+	pointValues[5] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+	valnR = valcR - imageVector[points[6]].r;
+	valnG = valcG - imageVector[points[6]].g;
+	valnB = valcB - imageVector[points[6]].b;
+	valnx = rgbToXyzX(valnR, valnG, valnB);
+	valny = rgbToXyzY(valnR, valnG, valnB);
+	valnz = rgbToXyzZ(valnR, valnG, valnB);
+	valnl = xyzToLabL(valnx, valny, valnz);
+	valna = xyzToLabL(valnx, valny, valnz);
+	valnb = xyzToLabL(valnx, valny, valnz);
+	pointValues[6] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+	valnR = valcR - imageVector[points[7]].r;
+	valnG = valcG - imageVector[points[7]].g;
+	valnB = valcB - imageVector[points[7]].b;
+	valnx = rgbToXyzX(valnR, valnG, valnB);
+	valny = rgbToXyzY(valnR, valnG, valnB);
+	valnz = rgbToXyzZ(valnR, valnG, valnB);
+	valnl = xyzToLabL(valnx, valny, valnz);
+	valna = xyzToLabL(valnx, valny, valnz);
+	valnb = xyzToLabL(valnx, valny, valnz);
+	pointValues[7] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+	valnR = valcR - imageVector[points[8]].r;
+	valnG = valcG - imageVector[points[8]].g;
+	valnB = valcB - imageVector[points[8]].b;
+	valnx = rgbToXyzX(valnR, valnG, valnB);
+	valny = rgbToXyzY(valnR, valnG, valnB);
+	valnz = rgbToXyzZ(valnR, valnG, valnB);
+	valnl = xyzToLabL(valnx, valny, valnz);
+	valna = xyzToLabL(valnx, valny, valnz);
+	valnb = xyzToLabL(valnx, valny, valnz);
+	pointValues[8] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+	valnR = valcR - imageVector[points[9]].r;
+	valnG = valcG - imageVector[points[9]].g;
+	valnB = valcB - imageVector[points[9]].b;
+	valnx = rgbToXyzX(valnR, valnG, valnB);
+	valny = rgbToXyzY(valnR, valnG, valnB);
+	valnz = rgbToXyzZ(valnR, valnG, valnB);
+	valnl = xyzToLabL(valnx, valny, valnz);
+	valna = xyzToLabL(valnx, valny, valnz);
+	valnb = xyzToLabL(valnx, valny, valnz);
+	pointValues[9] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+	valnR = valcR - imageVector[points[10]].r;
+	valnG = valcG - imageVector[points[10]].g;
+	valnB = valcB - imageVector[points[10]].b;
+	valnx = rgbToXyzX(valnR, valnG, valnB);
+	valny = rgbToXyzY(valnR, valnG, valnB);
+	valnz = rgbToXyzZ(valnR, valnG, valnB);
+	valnl = xyzToLabL(valnx, valny, valnz);
+	valna = xyzToLabL(valnx, valny, valnz);
+	valnb = xyzToLabL(valnx, valny, valnz);
+	pointValues[10] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+	valnR = valcR - imageVector[points[11]].r;
+	valnG = valcG - imageVector[points[11]].g;
+	valnB = valcB - imageVector[points[11]].b;
+	valnx = rgbToXyzX(valnR, valnG, valnB);
+	valny = rgbToXyzY(valnR, valnG, valnB);
+	valnz = rgbToXyzZ(valnR, valnG, valnB);
+	valnl = xyzToLabL(valnx, valny, valnz);
+	valna = xyzToLabL(valnx, valny, valnz);
+	valnb = xyzToLabL(valnx, valny, valnz);
+	pointValues[11] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+	pointValues[12] = 0;//(double)imageVector[points[12]].bright;
+	
+	valnR = valcR - imageVector[points[13]].r;
+	valnG = valcG - imageVector[points[13]].g;
+	valnB = valcB - imageVector[points[13]].b;
+	valnx = rgbToXyzX(valnR, valnG, valnB);
+	valny = rgbToXyzY(valnR, valnG, valnB);
+	valnz = rgbToXyzZ(valnR, valnG, valnB);
+	valnl = xyzToLabL(valnx, valny, valnz);
+	valna = xyzToLabL(valnx, valny, valnz);
+	valnb = xyzToLabL(valnx, valny, valnz);
+	pointValues[13] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+	valnR = valcR - imageVector[points[14]].r;
+	valnG = valcG - imageVector[points[14]].g;
+	valnB = valcB - imageVector[points[14]].b;
+	valnx = rgbToXyzX(valnR, valnG, valnB);
+	valny = rgbToXyzY(valnR, valnG, valnB);
+	valnz = rgbToXyzZ(valnR, valnG, valnB);
+	valnl = xyzToLabL(valnx, valny, valnz);
+	valna = xyzToLabL(valnx, valny, valnz);
+	valnb = xyzToLabL(valnx, valny, valnz);
+	pointValues[14] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+	valnR = valcR - imageVector[points[15]].r;
+	valnG = valcG - imageVector[points[15]].g;
+	valnB = valcB - imageVector[points[15]].b;
+	valnx = rgbToXyzX(valnR, valnG, valnB);
+	valny = rgbToXyzY(valnR, valnG, valnB);
+	valnz = rgbToXyzZ(valnR, valnG, valnB);
+	valnl = xyzToLabL(valnx, valny, valnz);
+	valna = xyzToLabL(valnx, valny, valnz);
+	valnb = xyzToLabL(valnx, valny, valnz);
+	pointValues[15] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+	valnR = valcR - imageVector[points[16]].r;
+	valnG = valcG - imageVector[points[16]].g;
+	valnB = valcB - imageVector[points[16]].b;
+	valnx = rgbToXyzX(valnR, valnG, valnB);
+	valny = rgbToXyzY(valnR, valnG, valnB);
+	valnz = rgbToXyzZ(valnR, valnG, valnB);
+	valnl = xyzToLabL(valnx, valny, valnz);
+	valna = xyzToLabL(valnx, valny, valnz);
+	valnb = xyzToLabL(valnx, valny, valnz);
+	pointValues[16] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+	valnR = valcR - imageVector[points[17]].r;
+	valnG = valcG - imageVector[points[17]].g;
+	valnB = valcB - imageVector[points[17]].b;
+	valnx = rgbToXyzX(valnR, valnG, valnB);
+	valny = rgbToXyzY(valnR, valnG, valnB);
+	valnz = rgbToXyzZ(valnR, valnG, valnB);
+	valnl = xyzToLabL(valnx, valny, valnz);
+	valna = xyzToLabL(valnx, valny, valnz);
+	valnb = xyzToLabL(valnx, valny, valnz);
+	pointValues[17] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+	valnR = valcR - imageVector[points[18]].r;
+	valnG = valcG - imageVector[points[18]].g;
+	valnB = valcB - imageVector[points[18]].b;
+	valnx = rgbToXyzX(valnR, valnG, valnB);
+	valny = rgbToXyzY(valnR, valnG, valnB);
+	valnz = rgbToXyzZ(valnR, valnG, valnB);
+	valnl = xyzToLabL(valnx, valny, valnz);
+	valna = xyzToLabL(valnx, valny, valnz);
+	valnb = xyzToLabL(valnx, valny, valnz);
+	pointValues[18] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+	valnR = valcR - imageVector[points[19]].r;
+	valnG = valcG - imageVector[points[19]].g;
+	valnB = valcB - imageVector[points[19]].b;
+	valnx = rgbToXyzX(valnR, valnG, valnB);
+	valny = rgbToXyzY(valnR, valnG, valnB);
+	valnz = rgbToXyzZ(valnR, valnG, valnB);
+	valnl = xyzToLabL(valnx, valny, valnz);
+	valna = xyzToLabL(valnx, valny, valnz);
+	valnb = xyzToLabL(valnx, valny, valnz);
+	pointValues[19] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+	valnR = valcR - imageVector[points[20]].r;
+	valnG = valcG - imageVector[points[20]].g;
+	valnB = valcB - imageVector[points[20]].b;
+	valnx = rgbToXyzX(valnR, valnG, valnB);
+	valny = rgbToXyzY(valnR, valnG, valnB);
+	valnz = rgbToXyzZ(valnR, valnG, valnB);
+	valnl = xyzToLabL(valnx, valny, valnz);
+	valna = xyzToLabL(valnx, valny, valnz);
+	valnb = xyzToLabL(valnx, valny, valnz);
+	pointValues[20] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+	valnR = valcR - imageVector[points[21]].r;
+	valnG = valcG - imageVector[points[21]].g;
+	valnB = valcB - imageVector[points[21]].b;
+	valnx = rgbToXyzX(valnR, valnG, valnB);
+	valny = rgbToXyzY(valnR, valnG, valnB);
+	valnz = rgbToXyzZ(valnR, valnG, valnB);
+	valnl = xyzToLabL(valnx, valny, valnz);
+	valna = xyzToLabL(valnx, valny, valnz);
+	valnb = xyzToLabL(valnx, valny, valnz);
+	pointValues[21] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+	valnR = valcR - imageVector[points[22]].r;
+	valnG = valcG - imageVector[points[22]].g;
+	valnB = valcB - imageVector[points[22]].b;
+	valnx = rgbToXyzX(valnR, valnG, valnB);
+	valny = rgbToXyzY(valnR, valnG, valnB);
+	valnz = rgbToXyzZ(valnR, valnG, valnB);
+	valnl = xyzToLabL(valnx, valny, valnz);
+	valna = xyzToLabL(valnx, valny, valnz);
+	valnb = xyzToLabL(valnx, valny, valnz);
+	pointValues[22] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+	valnR = valcR - imageVector[points[23]].r;
+	valnG = valcG - imageVector[points[23]].g;
+	valnB = valcB - imageVector[points[23]].b;
+	valnx = rgbToXyzX(valnR, valnG, valnB);
+	valny = rgbToXyzY(valnR, valnG, valnB);
+	valnz = rgbToXyzZ(valnR, valnG, valnB);
+	valnl = xyzToLabL(valnx, valny, valnz);
+	valna = xyzToLabL(valnx, valny, valnz);
+	valnb = xyzToLabL(valnx, valny, valnz);
+	pointValues[23] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+	valnR = valcR - imageVector[points[24]].r;
+	valnG = valcG - imageVector[points[24]].g;
+	valnB = valcB - imageVector[points[24]].b;
+	valnx = rgbToXyzX(valnR, valnG, valnB);
+	valny = rgbToXyzY(valnR, valnG, valnB);
+	valnz = rgbToXyzZ(valnR, valnG, valnB);
+	valnl = xyzToLabL(valnx, valny, valnz);
+	valna = xyzToLabL(valnx, valny, valnz);
+	valnb = xyzToLabL(valnx, valny, valnz);
+	pointValues[24] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+	
+	double gaussL1 = 0.0;
+	double gaussL2 = 0.0;
+	double gaussL3 = 0.0;
+	double gaussL4 = 0.0;
+	double gaussL5 = 0.0;
+	double gaussAll = 0.0;
+	double gaussDvsr = 24.0;
+	double weights[25];
+
+	weights[0]  = 0.038764;
+	weights[1]  = 0.039682;
+	weights[2]  = 0.039993;
+	weights[6]  = 0.040622;
+	weights[7]  = 0.040940;
+	weights[12] = 0.041261;
+
+		// weights[0]  = 0.009355;
+		// weights[1]  = 0.023256;
+		// weights[2]  = 0.031498;
+		// weights[6]  = 0.057816;
+		// weights[7]  = 0.078305;
+		// weights[12] = 0.106055;
+
+		// weights[0]  = 0.005865;
+		// weights[1]  = 0.018686;
+		// weights[2]  = 0.027481;
+		// weights[6]  = 0.059536;
+		// weights[7]  = 0.087555;
+		// weights[12] = 0.128760;
+
+		// weights[0]  = 0.000002;
+		// weights[1]  = 0.000212;
+		// weights[2]  = 0.000922;
+		// weights[6]  = 0.024745;
+		// weights[7]  = 0.107391;
+		// weights[12] = 0.466066;
+
+	// line 1 has 2 duplicated values
+	weights[3] = weights[1];
+	weights[4] = weights[0];
+	// line 2 has 3 duplicated values
+	weights[5] = weights[1];
+	weights[8] = weights[6];
+	weights[9] = weights[5];
+	// line 3 has 4 duplicated values
+	weights[10] = weights[2];
+	weights[11] = weights[7];
+	weights[13] = weights[11];
+	weights[14] = weights[10];
+	// line 4 is the same as line 2
+	weights[15] = weights[5];
+	weights[16] = weights[6];
+	weights[17] = weights[7];
+	weights[18] = weights[8];
+	weights[19] = weights[9];
+	// line 5 is the  same as line 1
+	weights[20] = weights[0];
+	weights[21] = weights[1];
+	weights[22] = weights[2];
+	weights[23] = weights[3];
+	weights[24] = weights[4];
+
+	gaussL1 = (weights[0]  * pointValues[0])  + (weights[1]  * pointValues[1])  + (weights[2]  * pointValues[2])  + (weights[3]  * pointValues[3])  + (weights[4]  * pointValues[4]);
+	gaussL2 = (weights[5]  * pointValues[5])  + (weights[6]  * pointValues[6])  + (weights[7]  * pointValues[7])  + (weights[8]  * pointValues[8])  + (weights[9]  * pointValues[9]);
+	gaussL3 = (weights[10] * pointValues[10]) + (weights[11] * pointValues[11]) + (weights[12] * pointValues[12]) + (weights[13] * pointValues[13]) + (weights[14] * pointValues[14]);
+	gaussL4 = (weights[15] * pointValues[15]) + (weights[16] * pointValues[16]) + (weights[17] * pointValues[17]) + (weights[18] * pointValues[18]) + (weights[19] * pointValues[19]);
+	gaussL5 = (weights[20] * pointValues[20]) + (weights[21] * pointValues[21]) + (weights[22] * pointValues[22]) + (weights[23] * pointValues[23]) + (weights[24] * pointValues[24]);
+	gaussAll = (gaussL1 + gaussL2 + gaussL3 + gaussL4 + gaussL5) / gaussDvsr;
+	//gaussAll = sqrt((gaussL1 + gaussL2 + gaussL3 + gaussL4 + gaussL5) / gaussDvsr);
+	//gaussAll = sqrt(sqrt((gaussL1 + gaussL2 + gaussL3 + gaussL4 + gaussL5) / gaussDvsr));
+	//gaussAll = ((gaussL1 + gaussL2 + gaussL3 + gaussL4 + gaussL5) / gaussDvsr) * ((gaussL1 + gaussL2 + gaussL3 + gaussL4 + gaussL5) / gaussDvsr);
+	return min(max((int)gaussAll, 0), 255);
+
+	// double currentBrightness = gaussAll;
+	// double currentRadians = ((double)currentBrightness / 255.0) * 3.14159265359;
+	// double finalBrightness = (int)(((1.0 - cos(currentRadians)) / 2.0) * 255.0);
+	// return min(max((int)finalBrightness, 0), 255);
 }
 
 #endif

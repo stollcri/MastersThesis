@@ -590,7 +590,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 	struct pixel *workingImage = (struct pixel*)xmalloc((unsigned long)imageWidth * (unsigned long)imageHeight * sizeof(struct pixel));
 	int *resultImage = (int*)xmalloc((unsigned long)imageWidth * (unsigned long)imageHeight * (unsigned long)imageDepth * sizeof(int));
 	
-	int invertOutput = 0;
+	int invertOutput = 1;
 	
 	int inputPixel = 0;
 	int outputPixel = 0;
@@ -822,6 +822,8 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				} else {
 					workingImage[currentPixel].energy = 0;
 				}
+			} else if (forceEdge == 9) {
+				workingImage[currentPixel].energy = getPixelEnergyStoll(workingImage, imageWidth, imageHeight, 1, currentPixel);
 			}
 
 			workingImage[currentPixel].seamvalH = workingImage[currentPixel].energy;
@@ -1134,6 +1136,45 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 					resultImage[outputPixel+1] = workingImage[currentPixel].g;
 					resultImage[outputPixel+2] = workingImage[currentPixel].b;
 					resultImage[outputPixel+3] = 255;
+				}
+			}
+		}
+
+	} else if (resultDirection == 51) {
+		int seamValueScale = 4;
+		int currentUseCountH = 0;
+		int currentUseCountV = 0;
+		int currentUseCount = 0;
+		
+		for (int j = 0; j < imageHeight; ++j) {
+			for (int i = 0; i < imageWidth; ++i) {
+				currentPixel = (j * imageWidth) + i;
+				outputPixel = currentPixel * imageDepth;
+				
+				currentUseCountH = workingImage[currentPixel].usecountH;
+				currentUseCountV = workingImage[currentPixel].usecountV;
+				currentUseCount = currentUseCountH + currentUseCountV;
+				if ((currentUseCountH <= 0) && (currentUseCountV <= 0)) {
+					resultImage[outputPixel] = workingImage[currentPixel].r;
+					resultImage[outputPixel+1] = workingImage[currentPixel].g;
+					resultImage[outputPixel+2] = workingImage[currentPixel].b;
+					resultImage[outputPixel+3] = 255;
+				} else {
+					resultImage[outputPixel] = 255;
+					resultImage[outputPixel+1] = 255;
+					resultImage[outputPixel+2] = 255;
+					resultImage[outputPixel+3] = 255;
+					// if (invertOutput) {
+					// 	resultImage[outputPixel] = 255-min(max((currentUseCount), 0), 255);
+					// 	resultImage[outputPixel+1] = 255-min(max((currentUseCount), 0), 255);
+					// 	resultImage[outputPixel+2] = 255-min(max((currentUseCount), 0), 255);
+					// 	resultImage[outputPixel+3] = 255;
+					// } else {
+					// 	resultImage[outputPixel] = min(max((currentUseCount), 0), 255);
+					// 	resultImage[outputPixel+1] = min(max((currentUseCount), 0), 255);
+					// 	resultImage[outputPixel+2] = min(max((currentUseCount), 0), 255);
+					// 	resultImage[outputPixel+3] = 255;
+					// }
 				}
 			}
 		}
