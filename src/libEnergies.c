@@ -481,8 +481,8 @@ static int getPixelEnergyStoll(struct pixel *imageVector, int imageWidth, int im
 	double valcz = rgbToXyzZ(valcR, valcG, valcB);
 
 	double valcl = xyzToLabL(valcx, valcy, valcz);
-	double valca = xyzToLabL(valcx, valcy, valcz);
-	double valcb = xyzToLabL(valcx, valcy, valcz);
+	double valca = xyzToLabA(valcx, valcy, valcz);
+	double valcb = xyzToLabB(valcx, valcy, valcz);
 
 	int valnR = 0;
 	int valnG = 0;
@@ -762,7 +762,6 @@ static int getPixelEnergyStoll(struct pixel *imageVector, int imageWidth, int im
 	valna = valca - xyzToLabA(valnx, valny, valnz);
 	valnb = valcb - xyzToLabB(valnx, valny, valnz);
 	pointValues[24] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
-	if(pointValues[24] > 250) printf("%f\n", pointValues[24]);
 	
 	double gaussL1 = 0.0;
 	double gaussL2 = 0.0;
@@ -770,7 +769,7 @@ static int getPixelEnergyStoll(struct pixel *imageVector, int imageWidth, int im
 	double gaussL4 = 0.0;
 	double gaussL5 = 0.0;
 	double gaussAll = 0.0;
-	double gaussDvsr = 10.0;
+	double gaussDvsr = 8.0;
 	double weights[25];
 
 	weights[0]  = 0.038764;
