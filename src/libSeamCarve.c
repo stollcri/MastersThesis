@@ -17,6 +17,7 @@
 #include "libBinarization.c"
 #include "libEnergies.c"
 #include "libMinMax.c"
+#include "libColorConv.c" 
 
 #define SEAM_TRACE_INCREMENT 16
 #define THRESHHOLD_SOBEL 96
@@ -592,6 +593,9 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 	
 	int invertOutput = 1;
 	
+	double valcx = 0.0;
+	double valcy = 0.0;
+	double valcz = 0.0;
 	int inputPixel = 0;
 	int outputPixel = 0;
 	int currentPixel = 0;
@@ -640,6 +644,17 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				newPixel.bright = (imageVector[inputPixel] * 0.375) + (imageVector[inputPixel+1] * 0.5) + (imageVector[inputPixel+2] * 0.125);
 				// even faster (when not in an IF condition)
 				//newPixel.bright = (imageVector[inputPixel] + imageVector[inputPixel] + imageVector[inputPixel] + imageVector[inputPixel+1] + imageVector[inputPixel+1] + imageVector[inputPixel+1] + imageVector[inputPixel+1] + imageVector[inputPixel+2]) >> 3;
+			} else if (brightnessMode == 9) {
+				// Euclidean distance of Lab color over Gaussian distribution
+				valcx = rgbToXyzX(imageVector[inputPixel], imageVector[inputPixel+1], imageVector[inputPixel+2]);
+				valcy = rgbToXyzY(imageVector[inputPixel], imageVector[inputPixel+1], imageVector[inputPixel+2]);
+				valcz = rgbToXyzZ(imageVector[inputPixel], imageVector[inputPixel+1], imageVector[inputPixel+2]);
+
+				newPixel.L = xyzToLabL(valcx, valcy, valcz);
+				newPixel.A = xyzToLabA(valcx, valcy, valcz);
+				newPixel.B = xyzToLabB(valcx, valcy, valcz);
+
+				newPixel.bright = 0;
 			}
 
 			newPixel.energy = 0;
@@ -655,6 +670,253 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 		}
 	}
 
+	// calculate the birghtness based upon the difference between pixels over a Guassian area
+	// /* */
+	if (brightnessMode == 9) {
+		double weights[25];
+
+		weights[0]  = 0.038764;
+		weights[1]  = 0.039682;
+		weights[2]  = 0.039993;
+		weights[6]  = 0.040622;
+		weights[7]  = 0.040940;
+		weights[12] = 0.041261;
+
+		// line 1 has 2 duplicated values
+		weights[3] = weights[1];
+		weights[4] = weights[0];
+		// line 2 has 3 duplicated values
+		weights[5] = weights[1];
+		weights[8] = weights[6];
+		weights[9] = weights[5];
+		// line 3 has 4 duplicated values
+		weights[10] = weights[2];
+		weights[11] = weights[7];
+		weights[13] = weights[11];
+		weights[14] = weights[10];
+		// line 4 is the same as line 2
+		weights[15] = weights[5];
+		weights[16] = weights[6];
+		weights[17] = weights[7];
+		weights[18] = weights[8];
+		weights[19] = weights[9];
+		// line 5 is the  same as line 1
+		weights[20] = weights[0];
+		weights[21] = weights[1];
+		weights[22] = weights[2];
+		weights[23] = weights[3];
+		weights[24] = weights[4];
+
+		int points[25];
+		double pointValues[25];
+
+		double valcx = 0.0;
+		double valcy = 0.0;
+		double valcz = 0.0;
+
+		double valcl = 0.0;
+		double valca = 0.0;
+		double valcb = 0.0;
+
+		double valnl = 0.0;
+		double valna = 0.0;
+		double valnb = 0.0;
+
+		double gaussL1 = 0.0;
+		double gaussL2 = 0.0;
+		double gaussL3 = 0.0;
+		double gaussL4 = 0.0;
+		double gaussL5 = 0.0;
+		double gaussAll = 0.0;
+
+		for (int j = 0; j < imageHeight; ++j) {
+			for (int i = 0; i < imageWidth; ++i) {
+				currentPixel = (j * imageWidth) + i;
+
+				points[0] = currentPixel - imageWidth - imageWidth - 1 - 1;
+				points[1] = currentPixel - imageWidth - imageWidth - 1;
+				points[2] = currentPixel - imageWidth - imageWidth;
+				points[3] = currentPixel - imageWidth - imageWidth + 1;
+				points[4] = currentPixel - imageWidth - imageWidth + 1 + 1;
+				
+				points[5] = currentPixel - imageWidth - 1 - 1;
+				points[6] = currentPixel - imageWidth - 1;
+				points[7] = currentPixel - imageWidth;
+				points[8] = currentPixel - imageWidth + 1;
+				points[9] = currentPixel - imageWidth + 1 + 1;
+				
+				points[10] = currentPixel - 1 - 1;
+				points[11] = currentPixel - 1;
+				points[12] = currentPixel;
+				points[13] = currentPixel + 1;
+				points[14] = currentPixel + 1 + 1;
+				
+				points[15] = currentPixel + imageWidth - 1 - 1;
+				points[16] = currentPixel + imageWidth - 1;
+				points[17] = currentPixel + imageWidth;
+				points[18] = currentPixel + imageWidth + 1;
+				points[19] = currentPixel + imageWidth + 1 + 1;
+				
+				points[20] = currentPixel + imageWidth + imageWidth - 1 - 1;
+				points[21] = currentPixel + imageWidth + imageWidth - 1;
+				points[22] = currentPixel + imageWidth + imageWidth;
+				points[23] = currentPixel + imageWidth + imageWidth + 1;
+				points[24] = currentPixel + imageWidth + imageWidth + 1 + 1;
+
+				// TODO: this is wrong, fix it
+				for (int i = 0; i < 25; ++i) {
+					if (points[i] < 0) {
+						points[i] = 0;
+					} else if (points[i] >= (imageHeight * imageWidth)) {
+						points[i] = (imageHeight * imageWidth);
+					}
+				}
+
+				valcx = rgbToXyzX(workingImage[currentPixel].r, workingImage[currentPixel].g, workingImage[currentPixel].b);
+				valcy = rgbToXyzY(workingImage[currentPixel].r, workingImage[currentPixel].g, workingImage[currentPixel].b);
+				valcz = rgbToXyzZ(workingImage[currentPixel].r, workingImage[currentPixel].g, workingImage[currentPixel].b);
+
+				// What Bob Ross would call a happy accident
+				// notice the bug, which is there in purpose now (all xyzToLabL)
+				valcl = xyzToLabL(valcx, valcy, valcz);
+				valca = xyzToLabL(valcx, valcy, valcz);
+				valcb = xyzToLabL(valcx, valcy, valcz);
+
+				valnl = valcl - workingImage[points[0]].L;
+				valna = valca - workingImage[points[0]].A;
+				valnb = valcb - workingImage[points[0]].B;
+				pointValues[0] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+				valnl = valcl - workingImage[points[1]].L;
+				valna = valca - workingImage[points[1]].A;
+				valnb = valcb - workingImage[points[1]].B;
+				pointValues[1] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+				valnl = valcl - workingImage[points[2]].L;
+				valna = valca - workingImage[points[2]].A;
+				valnb = valcb - workingImage[points[2]].B;
+				pointValues[2] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+				valnl = valcl - workingImage[points[3]].L;
+				valna = valca - workingImage[points[3]].A;
+				valnb = valcb - workingImage[points[3]].B;
+				pointValues[3] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+				valnl = valcl - workingImage[points[4]].L;
+				valna = valca - workingImage[points[4]].A;
+				valnb = valcb - workingImage[points[4]].B;
+				pointValues[4] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+				valnl = valcl - workingImage[points[5]].L;
+				valna = valca - workingImage[points[5]].A;
+				valnb = valcb - workingImage[points[5]].B;
+				pointValues[5] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+				valnl = valcl - workingImage[points[6]].L;
+				valna = valca - workingImage[points[6]].A;
+				valnb = valcb - workingImage[points[6]].B;
+				pointValues[6] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+				valnl = valcl - workingImage[points[7]].L;
+				valna = valca - workingImage[points[7]].A;
+				valnb = valcb - workingImage[points[7]].B;
+				pointValues[7] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+				valnl = valcl - workingImage[points[8]].L;
+				valna = valca - workingImage[points[8]].A;
+				valnb = valcb - workingImage[points[8]].B;
+				pointValues[8] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+				valnl = valcl - workingImage[points[9]].L;
+				valna = valca - workingImage[points[9]].A;
+				valnb = valcb - workingImage[points[9]].B;
+				pointValues[9] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+				valnl = valcl - workingImage[points[10]].L;
+				valna = valca - workingImage[points[10]].A;
+				valnb = valcb - workingImage[points[10]].B;
+				pointValues[10] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+				valnl = valcl - workingImage[points[11]].L;
+				valna = valca - workingImage[points[11]].A;
+				valnb = valcb - workingImage[points[11]].B;
+				pointValues[11] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+				pointValues[12] = 0;
+
+				valnl = valcl - workingImage[points[13]].L;
+				valna = valca - workingImage[points[13]].A;
+				valnb = valcb - workingImage[points[13]].B;
+				pointValues[13] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+				valnl = valcl - workingImage[points[14]].L;
+				valna = valca - workingImage[points[14]].A;
+				valnb = valcb - workingImage[points[14]].B;
+				pointValues[14] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+				valnl = valcl - workingImage[points[15]].L;
+				valna = valca - workingImage[points[15]].A;
+				valnb = valcb - workingImage[points[15]].B;
+				pointValues[15] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+				valnl = valcl - workingImage[points[16]].L;
+				valna = valca - workingImage[points[16]].A;
+				valnb = valcb - workingImage[points[16]].B;
+				pointValues[16] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+				valnl = valcl - workingImage[points[17]].L;
+				valna = valca - workingImage[points[17]].A;
+				valnb = valcb - workingImage[points[17]].B;
+				pointValues[17] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+				valnl = valcl - workingImage[points[18]].L;
+				valna = valca - workingImage[points[18]].A;
+				valnb = valcb - workingImage[points[18]].B;
+				pointValues[18] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+				valnl = valcl - workingImage[points[19]].L;
+				valna = valca - workingImage[points[19]].A;
+				valnb = valcb - workingImage[points[19]].B;
+				pointValues[19] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+				valnl = valcl - workingImage[points[20]].L;
+				valna = valca - workingImage[points[20]].A;
+				valnb = valcb - workingImage[points[20]].B;
+				pointValues[20] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+				valnl = valcl - workingImage[points[21]].L;
+				valna = valca - workingImage[points[21]].A;
+				valnb = valcb - workingImage[points[21]].B;
+				pointValues[21] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+				valnl = valcl - workingImage[points[22]].L;
+				valna = valca - workingImage[points[22]].A;
+				valnb = valcb - workingImage[points[22]].B;
+				pointValues[22] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+				valnl = valcl - workingImage[points[23]].L;
+				valna = valca - workingImage[points[23]].A;
+				valnb = valcb - workingImage[points[23]].B;
+				pointValues[23] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+				valnl = valcl - workingImage[points[24]].L;
+				valna = valca - workingImage[points[24]].A;
+				valnb = valcb - workingImage[points[24]].B;
+				pointValues[24] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
+
+				gaussL1 = (weights[0]  * pointValues[0])  + (weights[1]  * pointValues[1])  + (weights[2]  * pointValues[2])  + (weights[3]  * pointValues[3])  + (weights[4]  * pointValues[4]);
+				gaussL2 = (weights[5]  * pointValues[5])  + (weights[6]  * pointValues[6])  + (weights[7]  * pointValues[7])  + (weights[8]  * pointValues[8])  + (weights[9]  * pointValues[9]);
+				gaussL3 = (weights[10] * pointValues[10]) + (weights[11] * pointValues[11]) + (weights[12] * pointValues[12]) + (weights[13] * pointValues[13]) + (weights[14] * pointValues[14]);
+				gaussL4 = (weights[15] * pointValues[15]) + (weights[16] * pointValues[16]) + (weights[17] * pointValues[17]) + (weights[18] * pointValues[18]) + (weights[19] * pointValues[19]);
+				gaussL5 = (weights[20] * pointValues[20]) + (weights[21] * pointValues[21]) + (weights[22] * pointValues[22]) + (weights[23] * pointValues[23]) + (weights[24] * pointValues[24]);
+				gaussAll = (gaussL1 + gaussL2 + gaussL3 + gaussL4 + gaussL5) * 2.2;
+
+				workingImage[currentPixel].bright = min(max((int)gaussAll, 0), 255);
+				//printf("%d\n", workingImage[currentPixel].bright );
+			}
+		}
+	}
+	/* */
 	
 	// binarize the image as/if requested
 	if (contrastMode == 1) {
@@ -1154,7 +1416,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				currentUseCountH = workingImage[currentPixel].usecountH;
 				currentUseCountV = workingImage[currentPixel].usecountV;
 				currentUseCount = currentUseCountH + currentUseCountV;
-				if ((currentUseCountH <= 0) && (currentUseCountV <= 0)) {
+				if ((currentUseCountH <= 0) || (currentUseCountV <= 0)) {
 					resultImage[outputPixel] = workingImage[currentPixel].r;
 					resultImage[outputPixel+1] = workingImage[currentPixel].g;
 					resultImage[outputPixel+2] = workingImage[currentPixel].b;

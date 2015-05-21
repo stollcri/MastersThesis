@@ -108,6 +108,7 @@ int main(int argc, char const *argv[])
 				printf("         '-b 6' Euclidian distance (generally poor results) \n");
 				printf("         '-b 7' Estimated relative luminance \n");
 				printf("         '-b 8' Estimated luma luminance - NTSC / BT.601 \n");
+				printf("         '-b 9' Euclidean dist. of Lab color over Gaussian dist. \n");
 				printf("          \n");
 				printf("       Contrast Adjustments \n");
 				printf("         '-c 0' none (default) \n");

@@ -19,6 +19,9 @@ struct pixel {
 	int usecountV;
 	int areaBoundaryH;
 	int areaBoundaryV;
+	double L;
+	double A;
+	double B;
 };
 
 #endif
