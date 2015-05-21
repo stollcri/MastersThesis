@@ -670,6 +670,31 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 		}
 	}
 
+	double tmp1 = 0.0;
+	double tmp2 = 0.0;
+	
+	// tmp1 = rgbToXyzX(0, 0, 0); // 0
+	// tmp2 = rgbToXyzX(255, 255, 255); // 0.950456
+	// printf("rgbToXyzX: %f, %f\n", tmp1, tmp2);
+	// tmp1 = rgbToXyzY(0, 0, 0); // 0 
+	// tmp2 = rgbToXyzY(255, 255, 255); // 1.000000
+	// printf("rgbToXyzY: %f, %f\n", tmp1, tmp2);
+	// tmp1 = rgbToXyzZ(0, 0, 0); // 0
+	// tmp2 = rgbToXyzZ(255, 255, 255); // 1.088754
+	// printf("rgbToXyzZ: %f, %f\n", tmp1, tmp2);
+
+	// tmp1 = xyzToLabL(0, 0, 0); // 0
+	// tmp2 = xyzToLabL(0.950456, 1.000000, 1.088754); // 100.000000 (10,000)
+	// printf("xyzToLabL: %f, %f\n", tmp1, tmp2);
+	// tmp1 = xyzToLabA(0, 0, 0); // 0
+	// tmp2 = xyzToLabA(0.950456, 1.000000, 1.088754); // -8.397583 (70.519400242)
+	// printf("xyzToLabA: %f, %f\n", tmp1, tmp2);
+	// tmp1 = xyzToLabB(0, 0, 0); // 0
+	// tmp2 = xyzToLabB(0.950456, 1.000000, 1.088754); // -5.750035 (33.062902501)
+	// printf("xyzToLabB: %f, %f\n", tmp1, tmp2);
+
+	// each difference has a range of 0 - 100.52
+
 	// calculate the birghtness based upon the difference between pixels over a Guassian area
 	// /* */
 	if (brightnessMode == 9) {
@@ -781,6 +806,9 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				valcl = xyzToLabL(valcx, valcy, valcz);
 				valca = xyzToLabL(valcx, valcy, valcz);
 				valcb = xyzToLabL(valcx, valcy, valcz);
+				// valcl = xyzToLabL(valcx, valcy, valcz);
+				// valca = xyzToLabA(valcx, valcy, valcz);
+				// valcb = xyzToLabB(valcx, valcy, valcz);
 
 				valnl = valcl - workingImage[points[0]].L;
 				valna = valca - workingImage[points[0]].A;
@@ -909,7 +937,19 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				gaussL3 = (weights[10] * pointValues[10]) + (weights[11] * pointValues[11]) + (weights[12] * pointValues[12]) + (weights[13] * pointValues[13]) + (weights[14] * pointValues[14]);
 				gaussL4 = (weights[15] * pointValues[15]) + (weights[16] * pointValues[16]) + (weights[17] * pointValues[17]) + (weights[18] * pointValues[18]) + (weights[19] * pointValues[19]);
 				gaussL5 = (weights[20] * pointValues[20]) + (weights[21] * pointValues[21]) + (weights[22] * pointValues[22]) + (weights[23] * pointValues[23]) + (weights[24] * pointValues[24]);
-				gaussAll = (gaussL1 + gaussL2 + gaussL3 + gaussL4 + gaussL5) * 2.2;
+
+				gaussAll = (gaussL1 + gaussL2 + gaussL3 + gaussL4 + gaussL5);
+				// if(gaussAll < 25) printf("%f\n", gaussAll);
+				// if(gaussAll > 150) printf("%f\n", gaussAll);
+
+				// gaussAll = gaussAll / 24;
+				// if(gaussAll < 1.05) printf("%f\n", gaussAll);
+				// if(gaussAll > 6.25) printf("%f\n", gaussAll);
+
+				gaussAll = (gaussAll - 25) * 2;
+				// if(gaussAll < 2) printf("%f\n", gaussAll);
+				// if(gaussAll > 250) printf("%f\n", gaussAll);
+				
 
 				workingImage[currentPixel].bright = min(max((int)gaussAll, 0), 255);
 				//printf("%d\n", workingImage[currentPixel].bright );
