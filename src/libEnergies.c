@@ -92,7 +92,13 @@ static int getPixelEnergySobel(struct pixel *imageVector, int imageWidth, int im
 	int sobelY = (p1val + (p2val + p2val) + p3val - p7val - (p8val + p8val) - p9val);
 
 	// bounded gradient magnitude
-	return min(max((int)(sqrt((sobelX * sobelX) + (sobelY * sobelY))/2), 0), 255);
+	// 
+	// to get the proper range
+	// (255 * 4) - (0 * 4) = 1024
+	// (1024 * 1024) + (1024 * 1024) = 2,097,152
+	// srt(2,097,152) = 1448.154687870049
+	// 1448.154687870049 / 255 = 5.67903799164725 ~= 5.679
+	return min(max((int)(sqrt((sobelX * sobelX) + (sobelY * sobelY))/5.679), 0), 255);
 
 	// alt method - laplacian
 	// double sobelX = p5val + p5val + p5val + p5val - p2val - p4val - p6val - p8val;
@@ -762,7 +768,7 @@ static int getPixelEnergyStoll(struct pixel *imageVector, int imageWidth, int im
 	valna = valca - xyzToLabA(valnx, valny, valnz);
 	valnb = valcb - xyzToLabB(valnx, valny, valnz);
 	pointValues[24] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
-	
+
 	double gaussL1 = 0.0;
 	double gaussL2 = 0.0;
 	double gaussL3 = 0.0;
