@@ -27,7 +27,7 @@ build:
 	$(CC) $(CFLAGS) $(LFLAGS) -o $(AOFILE) $(CFILES)
 
 run:
-	$(AOFILE_DBG) tst/sc3d/headsq/quarter.nhdr out/sc3d/headsq/quarter.vtk
+	$(AOFILE_DBG) tst/sc3d/headsq/quarter.nhdr out/headsq/quarter.vtk
 
 .PHONY: default test testbuild build run all sc test-sc test-sc-all clean-sc
 
@@ -57,13 +57,13 @@ test-sc-all:
 	# ./bin/sc -b 0 -c 2 -d a -e 0 -g 0 ./tst/sc/BPD-01d.png ./tst/sc/out_BPD-01.png
 	# ./bin/sc -b 0 -c 2 -d b -e 0 -g 0 ./tst/sc/BPD-01d-01.png ./tst/sc/out_BPD-02.png
 	# ./bin/sc -b 0 -c 2 -d b -e 0 -g 0 ./tst/sc/BPD-01d-02.png ./tst/sc/out_BPD-03.png
-	
+
 	# ./bin/sc -b 0 -c 2 -d 5 -e 0 -g 0 ./tst/sc/BPD-01d.png ./tst/sc/out_BPD-01-Energy-0_DoG.png
 	# ./bin/sc -b 0 -c 2 -d 5 -e 1 -g 0 ./tst/sc/BPD-01d.png ./tst/sc/out_BPD-01-Energy-1_LoG.png
 	# ./bin/sc -b 0 -c 2 -d 5 -e 4 -g 0 ./tst/sc/BPD-01d.png ./tst/sc/out_BPD-01-Energy-4_Sobel.png
 	# ./bin/sc -b 0 -c 2 -d 5 -e 6 -g 0 ./tst/sc/BPD-01d.png ./tst/sc/out_BPD-01-Energy-6_Grad.png
 	# ./bin/sc -b 0 -c 2 -d 5 -e 7 -g 0 ./tst/sc/BPD-01d.png ./tst/sc/out_BPD-01-Energy-7_DoG-Sobel.png
-	
+
 	# ./bin/sc -b 0 -c 0 -d 7 -e 0 ./tst/sc/RightsOfManB-352degree.png ./tst/sc/out_ROMB-352.png
 	# ./bin/sc -b 0 -c 0 -d 7 -e 0 ./tst/sc/RightsOfManB-356degree.png ./tst/sc/out_ROMB-356.png
 	# ./bin/sc -b 0 -c 0 -d 7 -e 0 ./tst/sc/RightsOfManB-357degree.png ./tst/sc/out_ROMB-357.png
@@ -81,7 +81,7 @@ test-sc-all:
 	# time ./bin/sc -b 0 -c 0 -d 2 -e 0 ./tst/sc/Broadway_tower_edit.png ./tst/sc/out_Broadway-2.png
 	# time ./bin/sc -b 0 -c 0 -d 3 -e 0 ./tst/sc/Broadway_tower_edit.png ./tst/sc/out_Broadway-3.png
 	# time ./bin/sc -b 0 -c 0 -d 0 -e 0 ./tst/sc/Broadway_tower_edit.png ./tst/sc/out_Broadway-4.png
-	
+
 	# time ./bin/sc      -d 0 -e 0 ./tst/sc/BPD-01c.png ./tst/sc/out_BPD-01c-0.png
 	# time ./bin/sc -b 0 -c 0 -d 1 -e 0 ./tst/sc/BPD-01c.png ./tst/sc/out_BPD-01c-1.png
 	# time ./bin/sc -b 0 -c 0 -d 2 -e 0 ./tst/sc/BPD-01c.png ./tst/sc/out_BPD-01c-2.png
