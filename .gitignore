@@ -23,4 +23,7 @@
 *.hex
 bin/
 
+.DS_Store
+*.xcuserstate
+
 tst/sc/test/
