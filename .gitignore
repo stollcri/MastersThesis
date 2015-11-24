@@ -23,4 +23,4 @@
 *.hex
 bin/
 
-tst/test/
+tst/sc/test/
