@@ -107,7 +107,7 @@ static int *readPNGFile(char *filename, int *imageWidth, int *imageHeight, int *
 	int bPixel = 0;
 	int gPixel = 0;
 	int aPixel = 0;
-	
+
 	double greyPixel = 0.0;
 	double radianShift = 3.14159265;
 	double radianRange = 3.14159265;
@@ -122,7 +122,7 @@ static int *readPNGFile(char *filename, int *imageWidth, int *imageHeight, int *
 			gPixel = (int)pixel[1];
 			bPixel = (int)pixel[2];
 			aPixel = (int)pixel[3];
-			
+
 			n = ((y * width) + x) * pixelDepth;
 			/*
 			if (aPixel >= 0) {
@@ -147,7 +147,7 @@ static int *readPNGFile(char *filename, int *imageWidth, int *imageHeight, int *
 			imagePixels[n+1] = gPixel;
 			imagePixels[n+2] = bPixel;
 			imagePixels[n+3] = aPixel;//(int)greyPixel;
-			
+
 			// RGB_TO_GRAY_CIE_1931
 			// imagePixels[n] = rPixel * 0.2126;
 			// imagePixels[n] += gPixel * 0.7152;
@@ -195,17 +195,31 @@ static void write_png_file(int *imageVector, int width, int height, char *filena
 
 	png_init_io(png, fp);
 
-	// Output is 8bit depth, RGBA format.
-	png_set_IHDR(
-		png,
-		info,
-		(png_uint_32)width, (png_uint_32)height,
-		8,
-		PNG_COLOR_TYPE_RGBA,
-		PNG_INTERLACE_NONE,
-		PNG_COMPRESSION_TYPE_DEFAULT,
-		PNG_FILTER_TYPE_DEFAULT
-	);
+	#ifdef PNG16BIT
+		// Output is 16-bit depth, RGBA format.
+		png_set_IHDR(
+			png,
+			info,
+			(png_uint_32)width, (png_uint_32)height,
+			16,
+			PNG_COLOR_TYPE_RGBA,
+			PNG_INTERLACE_NONE,
+			PNG_COMPRESSION_TYPE_DEFAULT,
+			PNG_FILTER_TYPE_DEFAULT
+		);
+	#else
+		// Output is 8bit depth, RGBA format.
+		png_set_IHDR(
+			png,
+			info,
+			(png_uint_32)width, (png_uint_32)height,
+			8,
+			PNG_COLOR_TYPE_RGBA,
+			PNG_INTERLACE_NONE,
+			PNG_COMPRESSION_TYPE_DEFAULT,
+			PNG_FILTER_TYPE_DEFAULT
+		);
+	#endif
 	png_write_info(png, info);
 
 	png_bytep *row_pointers;
@@ -217,11 +231,21 @@ static void write_png_file(int *imageVector, int width, int height, char *filena
 	int i = 0;
 	for(int y = 0; y < height; y++) {
 		for(int z = 0; z < width; z++) {
-			row_pointers[y][z*4+0] = (png_byte)imageVector[i];
-			row_pointers[y][z*4+1] = (png_byte)imageVector[i+1];
-			row_pointers[y][z*4+2] = (png_byte)imageVector[i+2];
-			row_pointers[y][z*4+3] = (png_byte)imageVector[i+3];
-			i += 4;
+			#ifdef PNG16BIT
+				// 16-bit
+				png_save_uint_16(&row_pointers[y][z*8+0],(unsigned int)imageVector[i+0]);
+				png_save_uint_16(&row_pointers[y][z*8+2],(unsigned int)imageVector[i+1]);
+				png_save_uint_16(&row_pointers[y][z*8+4],(unsigned int)imageVector[i+2]);
+				png_save_uint_16(&row_pointers[y][z*8+6],(unsigned int)imageVector[i+3]);
+				i += 4;
+			#else
+				// 8-bit
+				row_pointers[y][z*4+0] = (png_byte)imageVector[i];
+				row_pointers[y][z*4+1] = (png_byte)imageVector[i+1];
+				row_pointers[y][z*4+2] = (png_byte)imageVector[i+2];
+				row_pointers[y][z*4+3] = (png_byte)imageVector[i+3];
+				i += 4;
+			#endif
 		}
 	}
 

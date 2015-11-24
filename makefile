@@ -5,13 +5,13 @@
 
 CC = cc
 
-CFLAGS = -O3 -Wall -D NDEBUG
+CFLAGS = -O3 -Wall -D PNG16BIT
 IFLAGS = -I /usr/local/include/libpng16
 LFLAGS = -l ncurses -l teem -l png -l bz2 -l z -l m
 AOFILE = ./bin/sc3d
 CFILES = src/sc3d.c src/libColorConv.c src/libEnergies3D.c src/libMinMax.c src/libpngHelper.c
 
-CFLAGS_DBG = -O0 -g -Weverything
+CFLAGS_DBG = -O0 -g -Weverything -D PNG16BIT
 IFLAGS_DBG = $(IFLAGS)
 LFLAGS_DBG = $(LFLAGS)
 AOFILE_DBG = $(AOFILE)
