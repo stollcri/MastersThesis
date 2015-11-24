@@ -1,0 +1,12 @@
+NRRD0004
+# Complete NRRD file format specification at:
+# http://teem.sourceforge.net/nrrd/format.html
+type: short
+dimension: 3
+space: 3D-left-handed
+sizes: 64 64 93
+spacings: 3.2000000000000002 3.2000000000000002 1.5
+space directions: none none none
+endian: little
+encoding: raw
+data file: quarter.raw
