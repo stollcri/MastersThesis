@@ -6,6 +6,8 @@
 #ifndef LIBCOLORCONV_C
 #define LIBCOLORCONV_C
 
+#include <math.h>
+ 
 // [ X ]   [  0.412453  0.357580  0.180423 ]   [ R ] **
 // [ Y ] = [  0.212671  0.715160  0.072169 ] * [ G ]
 // [ Z ]   [  0.019334  0.119193  0.950227 ]   [ B ].
