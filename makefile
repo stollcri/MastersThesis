@@ -13,6 +13,7 @@ CFILES = src/sc3d.c src/libColorConv.c src/libEnergies3D.c src/libMinMax.c src/l
 
 CFLAGS_DBG = -O0 -g -Weverything -D PNG16BIT
 CFLAGS_DBG = -O0 -g -D PNG16BIT
+# CFLAGS_DBG = -O0 -g
 IFLAGS_DBG = $(IFLAGS)
 LFLAGS_DBG = $(LFLAGS)
 AOFILE_DBG = $(AOFILE)

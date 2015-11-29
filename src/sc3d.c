@@ -11,8 +11,9 @@
 #include <teem/nrrd.h>
 #include <teem/biff.h>
 
-#include "libEnergies3D.h"
+#include "libEnergies.c"
 #include "libpngHelper.c"
+#include "libSeamCarve.c"
 
 #define PROGRAM_NAME "Experiments with Seam Carving in 3D"
 #define PROGRAM_VERS "0.1"
@@ -60,7 +61,8 @@ static void sc3d(char *sourceFile, char *resultFile, int verbose)
 	int imageDepth = 4;
 	int pixelsPerSlice = imageWidth * imageHeight;
 
-	for(int slice = 0; slice < (93 - 1); ++slice) {
+	int slice = 55;
+	// for(int slice = 0; slice < (93 - 1); ++slice) {
 		int startPixel = pixelsPerSlice * slice;
 		int endPixel = startPixel + pixelsPerSlice;
 
@@ -85,7 +87,8 @@ static void sc3d(char *sourceFile, char *resultFile, int verbose)
 		for (int j = 0; j < imageHeight; ++j) {
 			for (int i = 0; i < imageWidth; ++i) {
 				currentPixel = (j * imageDepth * imageWidth) + (i * imageDepth);
-				edgeImage[currentPixel] = getPixelEnergySobel(sourceImage, imageWidth, imageHeight, imageDepth, currentPixel);
+				// edgeImage[currentPixel] = getPixelEnergySobel(sourceImage, imageWidth, imageHeight, imageDepth, currentPixel);
+				edgeImage[currentPixel] = sourceImage[currentPixel] * 8;
 				edgeImage[currentPixel+1] = edgeImage[currentPixel];
 				edgeImage[currentPixel+2] = edgeImage[currentPixel];
 				edgeImage[currentPixel+3] = INT_MAX;
@@ -100,17 +103,22 @@ static void sc3d(char *sourceFile, char *resultFile, int verbose)
 			ins(nin->data, i, val);
 			++k;
 		}
-	}
+
+		int *newImageVector;
+		newImageVector = seamCarve(edgeImage, imageWidth, imageHeight, imageDepth, 0, 0, 3, 0, 0);
+
+	// }
 
 	printf(": \"%s\" is a %d-dimensional nrrd of type %d (%s)\n", sourceFile, nin->dim, nin->type, airEnumStr(nrrdType, nin->type));
 	printf(": the array contains %d elements, each %d bytes in size\n", (int)nrrdElementNumber(nin), (int)nrrdElementSize(nin));
 
-	if (nrrdSave(resultFile, nin, NULL)) {
-		char *err = biffGetDone(NRRD);
-		fprintf(stderr, "Trouble writing \"%s\":\n%s", resultFile, err);
-		free(err);
-	}
+	// if (nrrdSave(resultFile, nin, NULL)) {
+	// 	char *err = biffGetDone(NRRD);
+	// 	fprintf(stderr, "Trouble writing \"%s\":\n%s", resultFile, err);
+	// 	free(err);
+	// }
 	// write_png_file(edgeImage, imageWidth, imageHeight, resultFile);
+	write_png_file(newImageVector, imageWidth, imageHeight, resultFile);
 	nrrdNuke(nin);
 }
 
