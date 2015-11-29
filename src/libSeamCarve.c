@@ -149,7 +149,7 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 			}
 
 			// get the possible next pixles
-            if ((minValueLocation - nextPixelDistR) > 0) {
+            if (((minValueLocation - nextPixelDistR) > 0) && ((minValueLocation - nextPixelDistR) < loopEnd) ) {
             	if (direction == directionVertical) {
                 	nextPixelR = imageVector[minValueLocation - nextPixelDistR].seamvalV;
                 } else {
@@ -159,13 +159,17 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
                 nextPixelR = INT_MAX;
             }
 
-            if (direction == directionVertical) {
-	            nextPixelC = imageVector[minValueLocation - nextPixelDistC].seamvalV;
-	        } else {
-	        	nextPixelC = imageVector[minValueLocation - nextPixelDistC].seamvalH;
-	        }
-            
-            if ((minValueLocation - nextPixelDistL) < loopEnd) {
+            if (((minValueLocation - nextPixelDistC) > 0) && ((minValueLocation - nextPixelDistC) < loopEnd) ) {
+	            if (direction == directionVertical) {
+		            nextPixelC = imageVector[minValueLocation - nextPixelDistC].seamvalV;
+		        } else {
+		        	nextPixelC = imageVector[minValueLocation - nextPixelDistC].seamvalH;
+		        }
+		    } else {
+                nextPixelC = INT_MAX;
+            }
+
+            if (((minValueLocation - nextPixelDistL) > 0) && ((minValueLocation - nextPixelDistL) < loopEnd) ) {
                 if (direction == directionVertical) {
 	                nextPixelL = imageVector[minValueLocation - nextPixelDistL].seamvalV;
 	            } else {
