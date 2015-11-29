@@ -12,6 +12,7 @@ AOFILE = ./bin/sc3d
 CFILES = src/sc3d.c src/libColorConv.c src/libEnergies3D.c src/libMinMax.c src/libpngHelper.c
 
 CFLAGS_DBG = -O0 -g -Weverything -D PNG16BIT
+CFLAGS_DBG = -O0 -g -D PNG16BIT
 IFLAGS_DBG = $(IFLAGS)
 LFLAGS_DBG = $(LFLAGS)
 AOFILE_DBG = $(AOFILE)
@@ -27,7 +28,8 @@ build:
 	$(CC) $(CFLAGS) $(LFLAGS) -o $(AOFILE) $(CFILES)
 
 run:
-	$(AOFILE_DBG) tst/sc3d/headsq/quarter.nhdr out/headsq/quarter.vtk
+	# $(AOFILE_DBG) tst/sc3d/headsq/quarter.nhdr out/headsq/sc3d.vtk
+	$(AOFILE_DBG) tst/sc3d/headsq/quarter.nhdr out/headsq/sc3d.png
 
 .PHONY: default test testbuild build run all sc test-sc test-sc-all clean-sc
 
@@ -40,14 +42,14 @@ CFLAGS_SC = -I/usr/local/include/libpng16 -L/usr/local/lib -lpng16
 CFLAGS_SC_FULL = -Weverything -I/usr/local/include/libpng16 -L/usr/local/lib -lpng16
 CFLAGS_SC_SYNTAX = -fsyntax-only -Weverything -I/usr/local/include/libpng16 -L/usr/local/lib -lpng16
 
-scall: sc test
+scall: sc test-sc
 
 sc:
-	mkdir -p ./bin/
+	# mkdir -p ./bin/
 	${CC} ${CFLAGS_SC} -o ./bin/sc ./src/sc.c
 
 test-sc:
-	./bin/sc -b 8 -c 2 -d 4 -e 0 -g 0 ./tst/sc/1.png ./tst/sc/out.png
+	./bin/sc -b 8 -c 2 -d 4 -e 0 -g 0 tst/sc/Fig2a.png out/headsq/sc.png
 	# ./bin/sc -b 9 -c 0 -d a -e 4 -g 0 ./tst/sc/BPD-01c.png ./tst/sc/out.png
 	# ./bin/sc -b 9 -c 0 -d c -e 4 -g 0 ./tst/sc/Broadway_tower_edit_small.png ./tst/sc/out-00.png
 	# ./bin/sc -b 9 -c 0 -d c -e 4 -g 0 ./tst/sc/Fig2a.png ./tst/sc/out-01.png
