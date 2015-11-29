@@ -10,6 +10,12 @@
 #include "libMinMax.c"
 #include "libColorConv.c"
 
+#ifdef PNG16BIT
+#define PNG_MAX INT_MAX
+#else
+#define PNG_MAX 255
+#endif
+
 // Simple energy function, basically a gradient magnitude calculation
 static int getPixelEnergySimple(struct pixel *imageVector, int imageWidth, int imageHeight, int currentPixel, int gradientSize)
 {
@@ -42,7 +48,7 @@ static int getPixelEnergySimple(struct pixel *imageVector, int imageWidth, int i
 		}
 	}
 
-	return min((yDif + xDif), 255);
+	return min((yDif + xDif), PNG_MAX);
 }
 
 static int getPixelEnergySobel(struct pixel *imageVector, int imageWidth, int imageHeight, int currentPixel)
@@ -98,7 +104,7 @@ static int getPixelEnergySobel(struct pixel *imageVector, int imageWidth, int im
 	// (1024 * 1024) + (1024 * 1024) = 2,097,152
 	// srt(2,097,152) = 1448.154687870049
 	// 1448.154687870049 / 255 = 5.67903799164725 ~= 5.679
-	return min(max((int)(sqrt((sobelX * sobelX) + (sobelY * sobelY))/5.679), 0), 255);
+	return min(max((int)(sqrt((sobelX * sobelX) + (sobelY * sobelY))/5.679), 0), PNG_MAX);
 
 	// alt method - laplacian
 	// double sobelX = p5val + p5val + p5val + p5val - p2val - p4val - p6val - p8val;
@@ -157,7 +163,7 @@ static int getPixelEnergyLaplacian(struct pixel *imageVector, int imageWidth, in
 	// int laplace = (8 * p5val) - p1val - p2val - p3val - p4val - p6val - p7val - p8val - p9val;
 	// int laplace = (p2val + p2val) + (p4val + p4val) + (p6val + p6val) + (p8val + p8val) - (4 * p5val) - p1val - p3val - p7val - p9val;
 
-	return min(max(laplace, 0), 255);
+	return min(max(laplace, 0), PNG_MAX);
 }
 
 static int getPixelGaussian(struct pixel *imageVector, int imageWidth, int imageHeight, int pixelDepth, int currentPixel, int sigma)
@@ -419,7 +425,7 @@ static int getPixelGaussian(struct pixel *imageVector, int imageWidth, int image
 	gaussL4 = (weights[15] * pointValues[15]) + (weights[16] * pointValues[16]) + (weights[17] * pointValues[17]) + (weights[18] * pointValues[18]) + (weights[19] * pointValues[19]);
 	gaussL5 = (weights[20] * pointValues[20]) + (weights[21] * pointValues[21]) + (weights[22] * pointValues[22]) + (weights[23] * pointValues[23]) + (weights[24] * pointValues[24]);
 	gaussAll = (gaussL1 + gaussL2 + gaussL3 + gaussL4 + gaussL5) / gaussDvsr;
-	return min(max((int)gaussAll, 0), 255);
+	return min(max((int)gaussAll, 0), PNG_MAX);
 }
 
 static int getPixelEnergyDoG(int gaussianValue1, int gaussianValue2)
@@ -430,7 +436,7 @@ static int getPixelEnergyDoG(int gaussianValue1, int gaussianValue2)
 	} else {
 		greyPixel = (gaussianValue2 - gaussianValue1);
 	}
-	return min(max(greyPixel, 0), 255);
+	return min(max(greyPixel, 0), PNG_MAX);
 }
 
 static int getPixelEnergyStoll(struct pixel *imageVector, int imageWidth, int imageHeight, int pixelDepth, int currentPixel)
@@ -840,7 +846,7 @@ static int getPixelEnergyStoll(struct pixel *imageVector, int imageWidth, int im
 	//gaussAll = sqrt((gaussL1 + gaussL2 + gaussL3 + gaussL4 + gaussL5) / gaussDvsr);
 	//gaussAll = sqrt(sqrt((gaussL1 + gaussL2 + gaussL3 + gaussL4 + gaussL5) / gaussDvsr));
 	//gaussAll = ((gaussL1 + gaussL2 + gaussL3 + gaussL4 + gaussL5) / gaussDvsr) * ((gaussL1 + gaussL2 + gaussL3 + gaussL4 + gaussL5) / gaussDvsr);
-	return min(max((int)gaussAll, 0), 255);
+	return min(max((int)gaussAll, 0), PNG_MAX);
 
 	// double currentBrightness = gaussAll;
 	// double currentRadians = ((double)currentBrightness / 255.0) * 3.14159265359;

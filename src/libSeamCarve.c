@@ -24,6 +24,12 @@
 #define THRESHHOLD_USECOUNT 64
 #define PI 3.14159265359
 
+#ifdef PNG16BIT
+#define PNG_MAX INT_MAX
+#else
+#define PNG_MAX 255
+#endif
+
 #define DEFAULT_CLIP_AREA_BOUND 1
 
 /*
@@ -138,11 +144,11 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 
 			// THIS IS THE CRUCIAL PART
 			if (direction == directionVertical) {
-				if (imageVector[minValueLocation].usecountV < (255-SEAM_TRACE_INCREMENT)) {
+				if (imageVector[minValueLocation].usecountV < (PNG_MAX-SEAM_TRACE_INCREMENT)) {
 					imageVector[minValueLocation].usecountV += SEAM_TRACE_INCREMENT;
 				}
 			} else {
-				if (imageVector[minValueLocation].usecountH < (255-SEAM_TRACE_INCREMENT)) {
+				if (imageVector[minValueLocation].usecountH < (PNG_MAX-SEAM_TRACE_INCREMENT)) {
 					imageVector[minValueLocation].usecountH += SEAM_TRACE_INCREMENT;
 				}
 			}
@@ -954,7 +960,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				// if(gaussAll > 250) printf("%f\n", gaussAll);
 
 
-				workingImage[currentPixel].bright = min(max((int)gaussAll, 0), 255);
+				workingImage[currentPixel].bright = min(max((int)gaussAll, 0), PNG_MAX);
 				//printf("%d\n", workingImage[currentPixel].bright );
 			}
 		}
@@ -972,8 +978,8 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				currentPixel = (j * imageWidth) + i;
 
 				currentBrightness = workingImage[currentPixel].bright;
-				currentRadians = ((double)currentBrightness / 255.0) * PI;
-				currentBrightness = (int)(((1.0 - cos(currentRadians)) / 2.0) * 255.0);
+				currentRadians = ((double)currentBrightness / (double)PNG_MAX) * PI;
+				currentBrightness = (int)(((1.0 - cos(currentRadians)) / 2.0) * (double)PNG_MAX);
 				workingImage[currentPixel].bright = currentBrightness;
 			}
 		}
@@ -986,11 +992,11 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				currentPixel = (j * imageWidth) + i;
 
 				currentBrightness = workingImage[currentPixel].bright;
-				currentRadians = ((double)currentBrightness / 255.0) * PI;
-				currentBrightness = (int)(((1.0 - cos(currentRadians)) / 2.0) * 255.0);
+				currentRadians = ((double)currentBrightness / (double)PNG_MAX) * PI;
+				currentBrightness = (int)(((1.0 - cos(currentRadians)) / 2.0) * (double)PNG_MAX);
 
-				currentRadians = ((double)currentBrightness / 255.0) * PI;
-				currentBrightness = (int)(((1.0 - cos(currentRadians)) / 2.0) * 255.0);
+				currentRadians = ((double)currentBrightness / (double)PNG_MAX) * PI;
+				currentBrightness = (int)(((1.0 - cos(currentRadians)) / 2.0) * (double)PNG_MAX);
 
 				workingImage[currentPixel].bright = currentBrightness;
 			}
@@ -1004,14 +1010,14 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				currentPixel = (j * imageWidth) + i;
 
 				currentBrightness = workingImage[currentPixel].bright;
-				currentRadians = ((double)currentBrightness / 255.0) * PI;
-				currentBrightness = (int)(((1.0 - cos(currentRadians)) / 2.0) * 255.0);
+				currentRadians = ((double)currentBrightness / (double)PNG_MAX) * PI;
+				currentBrightness = (int)(((1.0 - cos(currentRadians)) / 2.0) * (double)PNG_MAX);
 
-				currentRadians = ((double)currentBrightness / 255.0) * PI;
-				currentBrightness = (int)(((1.0 - cos(currentRadians)) / 2.0) * 255.0);
+				currentRadians = ((double)currentBrightness / (double)PNG_MAX) * PI;
+				currentBrightness = (int)(((1.0 - cos(currentRadians)) / 2.0) * (double)PNG_MAX);
 
-				currentRadians = ((double)currentBrightness / 255.0) * PI;
-				currentBrightness = (int)(((1.0 - cos(currentRadians)) / 2.0) * 255.0);
+				currentRadians = ((double)currentBrightness / (double)PNG_MAX) * PI;
+				currentBrightness = (int)(((1.0 - cos(currentRadians)) / 2.0) * (double)PNG_MAX);
 
 				workingImage[currentPixel].bright = currentBrightness;
 			}
@@ -1025,17 +1031,17 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				currentPixel = (j * imageWidth) + i;
 
 				currentBrightness = workingImage[currentPixel].bright;
-				currentRadians = ((double)currentBrightness / 255.0) * PI;
-				currentBrightness = (int)(((1.0 - cos(currentRadians)) / 2.0) * 255.0);
+				currentRadians = ((double)currentBrightness / (double)PNG_MAX) * PI;
+				currentBrightness = (int)(((1.0 - cos(currentRadians)) / 2.0) * (double)PNG_MAX);
 
-				currentRadians = ((double)currentBrightness / 255.0) * PI;
-				currentBrightness = (int)(((1.0 - cos(currentRadians)) / 2.0) * 255.0);
+				currentRadians = ((double)currentBrightness / (double)PNG_MAX) * PI;
+				currentBrightness = (int)(((1.0 - cos(currentRadians)) / 2.0) * (double)PNG_MAX);
 
-				currentRadians = ((double)currentBrightness / 255.0) * PI;
-				currentBrightness = (int)(((1.0 - cos(currentRadians)) / 2.0) * 255.0);
+				currentRadians = ((double)currentBrightness / (double)PNG_MAX) * PI;
+				currentBrightness = (int)(((1.0 - cos(currentRadians)) / 2.0) * (double)PNG_MAX);
 
-				currentRadians = ((double)currentBrightness / 255.0) * PI;
-				currentBrightness = (int)(((1.0 - cos(currentRadians)) / 2.0) * 255.0);
+				currentRadians = ((double)currentBrightness / (double)PNG_MAX) * PI;
+				currentBrightness = (int)(((1.0 - cos(currentRadians)) / 2.0) * (double)PNG_MAX);
 
 				workingImage[currentPixel].bright = currentBrightness;
 			}
@@ -1064,7 +1070,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				currentPixel = (j * imageWidth) + i;
 				currentBrightness = workingImage[currentPixel].bright;
 				if (currentBrightness > threshold) {
-					workingImage[currentPixel].bright = 255;
+					workingImage[currentPixel].bright = PNG_MAX;
 				} else {
 					workingImage[currentPixel].bright = 0;
 				}
@@ -1187,15 +1193,15 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				outputPixel = currentPixel * imageDepth;
 
 				if (workingImage[currentPixel].usecountH > THRESHHOLD_USECOUNT) {
-					resultImage[outputPixel] = 255;
+					resultImage[outputPixel] = PNG_MAX;
 					resultImage[outputPixel+1] = 0;
 					resultImage[outputPixel+2] = 0;
-					resultImage[outputPixel+3] = 255;
+					resultImage[outputPixel+3] = PNG_MAX;
 				} else {
 					resultImage[outputPixel] = workingImage[currentPixel].r / 2;
 					resultImage[outputPixel+1] = workingImage[currentPixel].g / 2;
 					resultImage[outputPixel+2] = workingImage[currentPixel].b / 2;
-					resultImage[outputPixel+3] = 255;
+					resultImage[outputPixel+3] = PNG_MAX;
 				}
 			}
 		}
@@ -1207,15 +1213,15 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				outputPixel = currentPixel * imageDepth;
 
 				if (workingImage[currentPixel].usecountV > THRESHHOLD_USECOUNT) {
-					resultImage[outputPixel] = 255;
+					resultImage[outputPixel] = PNG_MAX;
 					resultImage[outputPixel+1] = 0;
 					resultImage[outputPixel+2] = 0;
-					resultImage[outputPixel+3] = 255;
+					resultImage[outputPixel+3] = PNG_MAX;
 				} else {
 					resultImage[outputPixel] = workingImage[currentPixel].r / 2;
 					resultImage[outputPixel+1] = workingImage[currentPixel].g / 2;
 					resultImage[outputPixel+2] = workingImage[currentPixel].b / 2;
-					resultImage[outputPixel+3] = 255;
+					resultImage[outputPixel+3] = PNG_MAX;
 				}
 			}
 		}
@@ -1229,30 +1235,31 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 
 				currentUseCount = workingImage[currentPixel].usecountH + workingImage[currentPixel].usecountV;
 				if (currentUseCount > THRESHHOLD_USECOUNT) {
-					resultImage[outputPixel] = 255;
+					resultImage[outputPixel] = PNG_MAX;
 					resultImage[outputPixel+1] = 0;
 					resultImage[outputPixel+2] = 0;
-					resultImage[outputPixel+3] = 255;
+					resultImage[outputPixel+3] = PNG_MAX;
 				} else {
 					resultImage[outputPixel] = workingImage[currentPixel].r / 2;
 					resultImage[outputPixel+1] = workingImage[currentPixel].g / 2;
 					resultImage[outputPixel+2] = workingImage[currentPixel].b / 2;
-					resultImage[outputPixel+3] = 255;
+					resultImage[outputPixel+3] = PNG_MAX;
 				}
 			}
 		}
 
 	} else if (resultDirection == 4) {
+		printf("\n\n%d\n\n", resultDirection);
 		int currentUseCount = 0;
 		for (int j = 0; j < imageHeight; ++j) {
 			for (int i = 0; i < imageWidth; ++i) {
 				currentPixel = (j * imageWidth) + i;
 				outputPixel = currentPixel * imageDepth;
 
-				resultImage[outputPixel] = min(max(workingImage[currentPixel].bright, 0), 255);
-				resultImage[outputPixel+1] = min(max(workingImage[currentPixel].bright, 0), 255);
-				resultImage[outputPixel+2] = min(max(workingImage[currentPixel].bright, 0), 255);
-				resultImage[outputPixel+3] = 255;
+				resultImage[outputPixel] = min(max(workingImage[currentPixel].bright, 0), PNG_MAX);
+				resultImage[outputPixel+1] = min(max(workingImage[currentPixel].bright, 0), PNG_MAX);
+				resultImage[outputPixel+2] = min(max(workingImage[currentPixel].bright, 0), PNG_MAX);
+				resultImage[outputPixel+3] = PNG_MAX;
 			}
 		}
 
@@ -1264,10 +1271,10 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				currentPixel = (j * imageWidth) + i;
 				outputPixel = currentPixel * imageDepth;
 
-				resultImage[outputPixel] = min(max((workingImage[currentPixel].energy * energyScale), 0), 255);
-				resultImage[outputPixel+1] = min(max((workingImage[currentPixel].energy * energyScale), 0), 255);
-				resultImage[outputPixel+2] = min(max((workingImage[currentPixel].energy * energyScale), 0), 255);
-				resultImage[outputPixel+3] = 255;
+				resultImage[outputPixel] = min(max((workingImage[currentPixel].energy * energyScale), 0), PNG_MAX);
+				resultImage[outputPixel+1] = min(max((workingImage[currentPixel].energy * energyScale), 0), PNG_MAX);
+				resultImage[outputPixel+2] = min(max((workingImage[currentPixel].energy * energyScale), 0), PNG_MAX);
+				resultImage[outputPixel+3] = PNG_MAX;
 			}
 		}
 
@@ -1281,15 +1288,15 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 
 				currentUseCount = workingImage[currentPixel].usecountH;
 				if (currentUseCount > 256) {
-					resultImage[outputPixel] = 255;
+					resultImage[outputPixel] = PNG_MAX;
 					resultImage[outputPixel+1] = 0;
 					resultImage[outputPixel+2] = 0;
-					resultImage[outputPixel+3] = 255;
+					resultImage[outputPixel+3] = PNG_MAX;
 				} else {
-					resultImage[outputPixel] = min(max((workingImage[currentPixel].seamvalH * seamValueScale), 0), 255);
-					resultImage[outputPixel+1] = min(max((workingImage[currentPixel].seamvalH * seamValueScale), 0), 255);
-					resultImage[outputPixel+2] = min(max((workingImage[currentPixel].seamvalH * seamValueScale), 0), 255);
-					resultImage[outputPixel+3] = 255;
+					resultImage[outputPixel] = min(max((workingImage[currentPixel].seamvalH * seamValueScale), 0), PNG_MAX);
+					resultImage[outputPixel+1] = min(max((workingImage[currentPixel].seamvalH * seamValueScale), 0), PNG_MAX);
+					resultImage[outputPixel+2] = min(max((workingImage[currentPixel].seamvalH * seamValueScale), 0), PNG_MAX);
+					resultImage[outputPixel+3] = PNG_MAX;
 				}
 			}
 		}
@@ -1304,15 +1311,15 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 
 				currentUseCount = workingImage[currentPixel].usecountV;
 				if (currentUseCount > 256) {
-					resultImage[outputPixel] = 255;
+					resultImage[outputPixel] = PNG_MAX;
 					resultImage[outputPixel+1] = 0;
 					resultImage[outputPixel+2] = 0;
-					resultImage[outputPixel+3] = 255;
+					resultImage[outputPixel+3] = PNG_MAX;
 				} else {
-					resultImage[outputPixel] = min(max((workingImage[currentPixel].seamvalV * seamValueScale), 0), 255);
-					resultImage[outputPixel+1] = min(max((workingImage[currentPixel].seamvalV * seamValueScale), 0), 255);
-					resultImage[outputPixel+2] = min(max((workingImage[currentPixel].seamvalV * seamValueScale), 0), 255);
-					resultImage[outputPixel+3] = 255;
+					resultImage[outputPixel] = min(max((workingImage[currentPixel].seamvalV * seamValueScale), 0), PNG_MAX);
+					resultImage[outputPixel+1] = min(max((workingImage[currentPixel].seamvalV * seamValueScale), 0), PNG_MAX);
+					resultImage[outputPixel+2] = min(max((workingImage[currentPixel].seamvalV * seamValueScale), 0), PNG_MAX);
+					resultImage[outputPixel+3] = PNG_MAX;
 				}
 			}
 		}
@@ -1328,21 +1335,21 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 
 				currentUseCount = workingImage[currentPixel].usecountH;
 				if (currentUseCount > 256) {
-					resultImage[outputPixel] = 255;
+					resultImage[outputPixel] = PNG_MAX;
 					resultImage[outputPixel+1] = 0;
 					resultImage[outputPixel+2] = 0;
-					resultImage[outputPixel+3] = 255;
+					resultImage[outputPixel+3] = PNG_MAX;
 				} else {
 					if (invertOutput) {
-						resultImage[outputPixel] = 255-min(max((workingImage[currentPixel].usecountH), 0), 255);
-						resultImage[outputPixel+1] = 255-min(max((workingImage[currentPixel].usecountH), 0), 255);
-						resultImage[outputPixel+2] = 255-min(max((workingImage[currentPixel].usecountH), 0), 255);
-						resultImage[outputPixel+3] = 255;
+						resultImage[outputPixel] = PNG_MAX-min(max((workingImage[currentPixel].usecountH), 0), PNG_MAX);
+						resultImage[outputPixel+1] = PNG_MAX-min(max((workingImage[currentPixel].usecountH), 0), PNG_MAX);
+						resultImage[outputPixel+2] = PNG_MAX-min(max((workingImage[currentPixel].usecountH), 0), PNG_MAX);
+						resultImage[outputPixel+3] = PNG_MAX;
 					} else {
-						resultImage[outputPixel] = min(max((workingImage[currentPixel].usecountH), 0), 255);
-						resultImage[outputPixel+1] = min(max((workingImage[currentPixel].usecountH), 0), 255);
-						resultImage[outputPixel+2] = min(max((workingImage[currentPixel].usecountH), 0), 255);
-						resultImage[outputPixel+3] = 255;
+						resultImage[outputPixel] = min(max((workingImage[currentPixel].usecountH), 0), PNG_MAX);
+						resultImage[outputPixel+1] = min(max((workingImage[currentPixel].usecountH), 0), PNG_MAX);
+						resultImage[outputPixel+2] = min(max((workingImage[currentPixel].usecountH), 0), PNG_MAX);
+						resultImage[outputPixel+3] = PNG_MAX;
 					}
 				}
 			}
@@ -1359,21 +1366,21 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 
 				currentUseCount = workingImage[currentPixel].usecountV;
 				if (currentUseCount > 256) {
-					resultImage[outputPixel] = 255;
+					resultImage[outputPixel] = PNG_MAX;
 					resultImage[outputPixel+1] = 0;
 					resultImage[outputPixel+2] = 0;
-					resultImage[outputPixel+3] = 255;
+					resultImage[outputPixel+3] = PNG_MAX;
 				} else {
 					if (invertOutput) {
-						resultImage[outputPixel] = 255-min(max((workingImage[currentPixel].usecountV), 0), 255);
-						resultImage[outputPixel+1] = 255-min(max((workingImage[currentPixel].usecountV), 0), 255);
-						resultImage[outputPixel+2] = 255-min(max((workingImage[currentPixel].usecountV), 0), 255);
-						resultImage[outputPixel+3] = 255;
+						resultImage[outputPixel] = PNG_MAX-min(max((workingImage[currentPixel].usecountV), 0), PNG_MAX);
+						resultImage[outputPixel+1] = PNG_MAX-min(max((workingImage[currentPixel].usecountV), 0), PNG_MAX);
+						resultImage[outputPixel+2] = PNG_MAX-min(max((workingImage[currentPixel].usecountV), 0), PNG_MAX);
+						resultImage[outputPixel+3] = PNG_MAX;
 					} else {
-						resultImage[outputPixel] = min(max((workingImage[currentPixel].usecountV), 0), 255);
-						resultImage[outputPixel+1] = min(max((workingImage[currentPixel].usecountV), 0), 255);
-						resultImage[outputPixel+2] = min(max((workingImage[currentPixel].usecountV), 0), 255);
-						resultImage[outputPixel+3] = 255;
+						resultImage[outputPixel] = min(max((workingImage[currentPixel].usecountV), 0), PNG_MAX);
+						resultImage[outputPixel+1] = min(max((workingImage[currentPixel].usecountV), 0), PNG_MAX);
+						resultImage[outputPixel+2] = min(max((workingImage[currentPixel].usecountV), 0), PNG_MAX);
+						resultImage[outputPixel+3] = PNG_MAX;
 					}
 				}
 			}
@@ -1389,25 +1396,25 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				outputPixel = currentPixel * imageDepth;
 
 				if (workingImage[currentPixel].areaBoundaryH == 1) {
-					resultImage[outputPixel] = 255;
+					resultImage[outputPixel] = PNG_MAX;
 					resultImage[outputPixel+1] = 0;
 					resultImage[outputPixel+2] = 0;
-					resultImage[outputPixel+3] = 255;
+					resultImage[outputPixel+3] = PNG_MAX;
 				} else if (workingImage[currentPixel].areaBoundaryH == 2) {
 					resultImage[outputPixel] = 0;
-					resultImage[outputPixel+1] = 255;
+					resultImage[outputPixel+1] = PNG_MAX;
 					resultImage[outputPixel+2] = 0;
-					resultImage[outputPixel+3] = 255;
+					resultImage[outputPixel+3] = PNG_MAX;
 				} else if (workingImage[currentPixel].areaBoundaryH == 3) {
 					resultImage[outputPixel] = 0;
 					resultImage[outputPixel+1] = 0;
-					resultImage[outputPixel+2] = 255;
-					resultImage[outputPixel+3] = 255;
+					resultImage[outputPixel+2] = PNG_MAX;
+					resultImage[outputPixel+3] = PNG_MAX;
 				} else {
 					resultImage[outputPixel] = workingImage[currentPixel].r;
 					resultImage[outputPixel+1] = workingImage[currentPixel].g;
 					resultImage[outputPixel+2] = workingImage[currentPixel].b;
-					resultImage[outputPixel+3] = 255;
+					resultImage[outputPixel+3] = PNG_MAX;
 				}
 			}
 		}
@@ -1422,25 +1429,25 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				outputPixel = currentPixel * imageDepth;
 
 				if (workingImage[currentPixel].areaBoundaryV == 1) {
-					resultImage[outputPixel] = 255;
+					resultImage[outputPixel] = PNG_MAX;
 					resultImage[outputPixel+1] = 0;
 					resultImage[outputPixel+2] = 0;
-					resultImage[outputPixel+3] = 255;
+					resultImage[outputPixel+3] = PNG_MAX;
 				} else if (workingImage[currentPixel].areaBoundaryV == 2) {
 					resultImage[outputPixel] = 0;
-					resultImage[outputPixel+1] = 255;
+					resultImage[outputPixel+1] = PNG_MAX;
 					resultImage[outputPixel+2] = 0;
-					resultImage[outputPixel+3] = 255;
+					resultImage[outputPixel+3] = PNG_MAX;
 				} else if (workingImage[currentPixel].areaBoundaryV == 3) {
 					resultImage[outputPixel] = 0;
 					resultImage[outputPixel+1] = 0;
-					resultImage[outputPixel+2] = 255;
-					resultImage[outputPixel+3] = 255;
+					resultImage[outputPixel+2] = PNG_MAX;
+					resultImage[outputPixel+3] = PNG_MAX;
 				} else {
 					resultImage[outputPixel] = workingImage[currentPixel].r;
 					resultImage[outputPixel+1] = workingImage[currentPixel].g;
 					resultImage[outputPixel+2] = workingImage[currentPixel].b;
-					resultImage[outputPixel+3] = 255;
+					resultImage[outputPixel+3] = PNG_MAX;
 				}
 			}
 		}
@@ -1463,7 +1470,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 					resultImage[outputPixel] = workingImage[currentPixel].r;
 					resultImage[outputPixel+1] = workingImage[currentPixel].g;
 					resultImage[outputPixel+2] = workingImage[currentPixel].b;
-					resultImage[outputPixel+3] = 255;
+					resultImage[outputPixel+3] = PNG_MAX;
 				// } else if ((currentUseCountH <= 0) || (currentUseCountV <= 0)) {
 				// 	resultImage[outputPixel] = workingImage[currentPixel].r;
 				// 	resultImage[outputPixel+1] = workingImage[currentPixel].g;
@@ -1475,15 +1482,15 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 					resultImage[outputPixel+2] = workingImage[currentPixel].b;
 					resultImage[outputPixel+3] = 64;
 					// if (invertOutput) {
-					// 	resultImage[outputPixel] = 255-min(max((currentUseCount), 0), 255);
-					// 	resultImage[outputPixel+1] = 255-min(max((currentUseCount), 0), 255);
-					// 	resultImage[outputPixel+2] = 255-min(max((currentUseCount), 0), 255);
-					// 	resultImage[outputPixel+3] = 255;
+					// 	resultImage[outputPixel] = PNG_MAX-min(max((currentUseCount), 0), PNG_MAX);
+					// 	resultImage[outputPixel+1] = PNG_MAX-min(max((currentUseCount), 0), PNG_MAX);
+					// 	resultImage[outputPixel+2] = PNG_MAX-min(max((currentUseCount), 0), PNG_MAX);
+					// 	resultImage[outputPixel+3] = PNG_MAX;
 					// } else {
-					// 	resultImage[outputPixel] = min(max((currentUseCount), 0), 255);
-					// 	resultImage[outputPixel+1] = min(max((currentUseCount), 0), 255);
-					// 	resultImage[outputPixel+2] = min(max((currentUseCount), 0), 255);
-					// 	resultImage[outputPixel+3] = 255;
+					// 	resultImage[outputPixel] = min(max((currentUseCount), 0), PNG_MAX);
+					// 	resultImage[outputPixel+1] = min(max((currentUseCount), 0), PNG_MAX);
+					// 	resultImage[outputPixel+2] = min(max((currentUseCount), 0), PNG_MAX);
+					// 	resultImage[outputPixel+3] = PNG_MAX;
 					// }
 				}
 			}
