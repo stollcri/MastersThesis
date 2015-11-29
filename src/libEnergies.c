@@ -8,7 +8,7 @@
 
 #include "pixel.h"
 #include "libMinMax.c"
-#include "libColorConv.c" 
+#include "libColorConv.c"
 
 // Simple energy function, basically a gradient magnitude calculation
 static int getPixelEnergySimple(struct pixel *imageVector, int imageWidth, int imageHeight, int currentPixel, int gradientSize)
@@ -61,11 +61,11 @@ static int getPixelEnergySobel(struct pixel *imageVector, int imageWidth, int im
 		p1 = currentPixel - imageByteWidth - pixelDepth;
 		p2 = currentPixel - imageByteWidth;
 		p3 = currentPixel - imageByteWidth + pixelDepth;
-		
+
 		p4 = currentPixel - pixelDepth;
 		p5 = currentPixel;
 		p6 = currentPixel + pixelDepth;
-		
+
 		p7 = currentPixel + imageByteWidth - pixelDepth;
 		p8 = currentPixel + imageByteWidth;
 		p9 = currentPixel + imageByteWidth + pixelDepth;
@@ -73,12 +73,12 @@ static int getPixelEnergySobel(struct pixel *imageVector, int imageWidth, int im
 		// TODO: consider attempting to evaluate border pixels
 		return 0;//33; // zero and INT_MAX are significant, so return 1
 	}
-	
+
 	// get the pixel values from the image array
 	int p1val = imageVector[p1].bright;
 	int p2val = imageVector[p2].bright;
 	int p3val = imageVector[p3].bright;
-	
+
 	int p4val = imageVector[p4].bright;
 	int p5val = imageVector[p5].bright;
 	int p6val = imageVector[p6].bright;
@@ -86,13 +86,13 @@ static int getPixelEnergySobel(struct pixel *imageVector, int imageWidth, int im
 	int p7val = imageVector[p7].bright;
 	int p8val = imageVector[p8].bright;
 	int p9val = imageVector[p9].bright;
-	
+
 	// apply the sobel filter
 	int sobelX = (p3val + (p6val + p6val) + p9val - p1val - (p4val + p4val) - p7val);
 	int sobelY = (p1val + (p2val + p2val) + p3val - p7val - (p8val + p8val) - p9val);
 
 	// bounded gradient magnitude
-	// 
+	//
 	// to get the proper range
 	// (255 * 4) - (0 * 4) = 1024
 	// (1024 * 1024) + (1024 * 1024) = 2,097,152
@@ -126,11 +126,11 @@ static int getPixelEnergyLaplacian(struct pixel *imageVector, int imageWidth, in
 		p1 = currentPixel - imageByteWidth - pixelDepth;
 		p2 = currentPixel - imageByteWidth;
 		p3 = currentPixel - imageByteWidth + pixelDepth;
-		
+
 		p4 = currentPixel - pixelDepth;
 		p5 = currentPixel;
 		p6 = currentPixel + pixelDepth;
-		
+
 		p7 = currentPixel + imageByteWidth - pixelDepth;
 		p8 = currentPixel + imageByteWidth;
 		p9 = currentPixel + imageByteWidth + pixelDepth;
@@ -138,12 +138,12 @@ static int getPixelEnergyLaplacian(struct pixel *imageVector, int imageWidth, in
 		// TODO: consider attempting to evaluate border pixels
 		return 0;//33; // zero and INT_MAX are significant, so return 1
 	}
-	
+
 	// get the pixel values from the image array
 	int p1val = imageVector[p1].bright;
 	int p2val = imageVector[p2].bright;
 	int p3val = imageVector[p3].bright;
-	
+
 	int p4val = imageVector[p4].bright;
 	int p5val = imageVector[p5].bright;
 	int p6val = imageVector[p6].bright;
@@ -151,7 +151,7 @@ static int getPixelEnergyLaplacian(struct pixel *imageVector, int imageWidth, in
 	int p7val = imageVector[p7].bright;
 	int p8val = imageVector[p8].bright;
 	int p9val = imageVector[p9].bright;
-	
+
 	// apply the sobel filter
 	int laplace = (4 * p5val) - p1val - p4val - p6val - p8val;
 	// int laplace = (8 * p5val) - p1val - p2val - p3val - p4val - p6val - p7val - p8val - p9val;
@@ -165,43 +165,43 @@ static int getPixelGaussian(struct pixel *imageVector, int imageWidth, int image
 	int imageByteWidth = imageWidth * pixelDepth;
 	int points[25];
 	double pointValues[25];
-		
+
 	points[0] = currentPixel - imageByteWidth - imageByteWidth - pixelDepth - pixelDepth;
 	points[1] = currentPixel - imageByteWidth - imageByteWidth - pixelDepth;
 	points[2] = currentPixel - imageByteWidth - imageByteWidth;
 	points[3] = currentPixel - imageByteWidth - imageByteWidth + pixelDepth;
 	points[4] = currentPixel - imageByteWidth - imageByteWidth + pixelDepth + pixelDepth;
-	
+
 	points[5] = currentPixel - imageByteWidth - pixelDepth - pixelDepth;
 	points[6] = currentPixel - imageByteWidth - pixelDepth;
 	points[7] = currentPixel - imageByteWidth;
 	points[8] = currentPixel - imageByteWidth + pixelDepth;
 	points[9] = currentPixel - imageByteWidth + pixelDepth + pixelDepth;
-	
+
 	points[10] = currentPixel - pixelDepth - pixelDepth;
 	points[11] = currentPixel - pixelDepth;
 	points[12] = currentPixel;
 	points[13] = currentPixel + pixelDepth;
 	points[14] = currentPixel + pixelDepth + pixelDepth;
-	
+
 	points[15] = currentPixel + imageByteWidth - pixelDepth - pixelDepth;
 	points[16] = currentPixel + imageByteWidth - pixelDepth;
 	points[17] = currentPixel + imageByteWidth;
 	points[18] = currentPixel + imageByteWidth + pixelDepth;
 	points[19] = currentPixel + imageByteWidth + pixelDepth + pixelDepth;
-	
+
 	points[20] = currentPixel + imageByteWidth + imageByteWidth - pixelDepth - pixelDepth;
 	points[21] = currentPixel + imageByteWidth + imageByteWidth - pixelDepth;
 	points[22] = currentPixel + imageByteWidth + imageByteWidth;
 	points[23] = currentPixel + imageByteWidth + imageByteWidth + pixelDepth;
 	points[24] = currentPixel + imageByteWidth + imageByteWidth + pixelDepth + pixelDepth;
-	
+
 	// TODO: this is wrong, fix it
 	for (int i = 0; i < 25; ++i) {
 		if (points[i] < 0) {
 			points[i] = 0;
 		} else if (points[i] >= (imageHeight * imageWidth * pixelDepth)) {
-			points[i] = (imageHeight * imageWidth * pixelDepth);
+			points[i] = (imageHeight * imageWidth * pixelDepth) - 1;
 		}
 	}
 
@@ -231,7 +231,7 @@ static int getPixelGaussian(struct pixel *imageVector, int imageWidth, int image
 	pointValues[22] = (double)imageVector[points[22]].bright;
 	pointValues[23] = (double)imageVector[points[23]].bright;
 	pointValues[24] = (double)imageVector[points[24]].bright;
-	
+
 	double gaussL1 = 0.0;
 	double gaussL2 = 0.0;
 	double gaussL3 = 0.0;
@@ -438,37 +438,37 @@ static int getPixelEnergyStoll(struct pixel *imageVector, int imageWidth, int im
 	int imageByteWidth = imageWidth * pixelDepth;
 	int points[25];
 	double pointValues[25];
-		
+
 	points[0] = currentPixel - imageByteWidth - imageByteWidth - pixelDepth - pixelDepth;
 	points[1] = currentPixel - imageByteWidth - imageByteWidth - pixelDepth;
 	points[2] = currentPixel - imageByteWidth - imageByteWidth;
 	points[3] = currentPixel - imageByteWidth - imageByteWidth + pixelDepth;
 	points[4] = currentPixel - imageByteWidth - imageByteWidth + pixelDepth + pixelDepth;
-	
+
 	points[5] = currentPixel - imageByteWidth - pixelDepth - pixelDepth;
 	points[6] = currentPixel - imageByteWidth - pixelDepth;
 	points[7] = currentPixel - imageByteWidth;
 	points[8] = currentPixel - imageByteWidth + pixelDepth;
 	points[9] = currentPixel - imageByteWidth + pixelDepth + pixelDepth;
-	
+
 	points[10] = currentPixel - pixelDepth - pixelDepth;
 	points[11] = currentPixel - pixelDepth;
 	points[12] = currentPixel;
 	points[13] = currentPixel + pixelDepth;
 	points[14] = currentPixel + pixelDepth + pixelDepth;
-	
+
 	points[15] = currentPixel + imageByteWidth - pixelDepth - pixelDepth;
 	points[16] = currentPixel + imageByteWidth - pixelDepth;
 	points[17] = currentPixel + imageByteWidth;
 	points[18] = currentPixel + imageByteWidth + pixelDepth;
 	points[19] = currentPixel + imageByteWidth + pixelDepth + pixelDepth;
-	
+
 	points[20] = currentPixel + imageByteWidth + imageByteWidth - pixelDepth - pixelDepth;
 	points[21] = currentPixel + imageByteWidth + imageByteWidth - pixelDepth;
 	points[22] = currentPixel + imageByteWidth + imageByteWidth;
 	points[23] = currentPixel + imageByteWidth + imageByteWidth + pixelDepth;
 	points[24] = currentPixel + imageByteWidth + imageByteWidth + pixelDepth + pixelDepth;
-	
+
 	// TODO: this is wrong, fix it
 	for (int i = 0; i < 25; ++i) {
 		if (points[i] < 0) {
@@ -501,7 +501,7 @@ static int getPixelEnergyStoll(struct pixel *imageVector, int imageWidth, int im
 	double valnl = 0;
 	double valna = 0;
 	double valnb = 0;
-	
+
 	// get the pixel values from the image array
 	valnR = imageVector[points[0]].r;
 	valnG = imageVector[points[0]].g;
@@ -636,7 +636,7 @@ static int getPixelEnergyStoll(struct pixel *imageVector, int imageWidth, int im
 	pointValues[11] = sqrt((valnl * valnl) + (valna * valna) + (valnb * valnb));
 
 	pointValues[12] = 0;//(double)imageVector[points[12]].bright;
-	
+
 	valnR = imageVector[points[13]].r;
 	valnG = imageVector[points[13]].g;
 	valnB = imageVector[points[13]].b;

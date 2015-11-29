@@ -1,6 +1,6 @@
 /**
  * libSeabCarve.c
- * 
+ *
  * Masters Thesis Work
  * Christopher Stoll, 2015 -- v3, major refactoring
  */
@@ -17,7 +17,7 @@
 #include "libBinarization.c"
 #include "libEnergies.c"
 #include "libMinMax.c"
-#include "libColorConv.c" 
+#include "libColorConv.c"
 
 #define SEAM_TRACE_INCREMENT 16
 #define THRESHHOLD_SOBEL 96
@@ -54,7 +54,7 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 	int currentMin = 0; // the minimum of nextPixelR, nextPixelC, and nextPixelL
 	int countGoR = 0; // how many times the seam diverged upward
 	int countGoL = 0; // how many times the seam diverged downward
-	
+
 	int nextPixelDistR = 0; // memory distance to the next pixel to the right
 	int nextPixelDistC = 0; // memory distance to the next pixel to the center
 	int nextPixelDistL = 0; // memory distance to the next pixel to the left
@@ -130,7 +130,6 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 
 		// move right-to-left ot bottom-to-top across/up the image
 		for (int j = loopInBeg; j > loopInEnd; j -= loopInInc) {
-			
 			// // v5 experiemnts (based upon v2)
 			// if (findAreas) {
 			// 	currentSeam[seamPointer] = minValueLocation;
@@ -294,7 +293,7 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 									}
 								}
 							}
-							
+
 							// remove final straight edge
 							if (clipAreaBound && straightStart) {
 								for (int i = straightStart; i < seamLength; ++i) {
@@ -306,7 +305,7 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 								}
 							}
 						}
-					
+
 					// we don't have the top of an area yet
 					} else {
 						// present deviation (plus tolerance) is less than last deviation amount
@@ -353,7 +352,7 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 									}
 								}
 							}
-							
+
 							// remove final straight edge
 							if (clipAreaBound && straightStart) {
 								for (int i = straightStart; i < seamLength; ++i) {
@@ -366,7 +365,7 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 							}
 						}
 					}
-				
+
 				// persistently going right (top of an area)
 				// totalDeviationL <= totalDeviationR
 				} else {
@@ -491,7 +490,7 @@ static void setPixelPathVertical(struct pixel *imageVector, struct window *image
 	imageVector[currentPixel].seamvalV += newValue;
 	//
 	// This (below) is kinda a big deal
-	// 
+	//
 	if (imageVector[currentPixel].seamvalV > 0) {
 		imageVector[currentPixel].seamvalV -= 1;
 	}
@@ -523,7 +522,7 @@ static void findSeamsVertical(struct pixel *imageVector, struct window *imageWin
 static void setPixelPathHorizontal(struct pixel *imageVector, struct window *imageWindow, int currentPixel, int currentCol)
 {
 	//return;
-	
+
 	// avoid falling off the right
 	if (currentCol < imageWindow->xLength) {
 		int pixelLeft = 0;
@@ -556,7 +555,7 @@ static void setPixelPathHorizontal(struct pixel *imageVector, struct window *ima
 		imageVector[currentPixel].seamvalH += newValue;
 		//
 		// This (below) is kinda a big deal
-		// 
+		//
 		if (imageVector[currentPixel].seamvalH > 0) {
 			imageVector[currentPixel].seamvalH -= 1;
 		}
@@ -594,9 +593,9 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 {
 	struct pixel *workingImage = (struct pixel*)xmalloc((unsigned long)imageWidth * (unsigned long)imageHeight * sizeof(struct pixel));
 	int *resultImage = (int*)xmalloc((unsigned long)imageWidth * (unsigned long)imageHeight * (unsigned long)imageDepth * sizeof(int));
-	
+
 	int invertOutput = 1;
-	
+
 	double valcx = 0.0;
 	double valcy = 0.0;
 	double valcz = 0.0;
@@ -609,7 +608,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 		for (int i = 0; i < imageWidth; ++i) {
 			currentPixel = (j * imageWidth) + i;
 			inputPixel = currentPixel * imageDepth;
-			
+
 			struct pixel newPixel;
 			newPixel.r = imageVector[inputPixel];
 			newPixel.g = imageVector[inputPixel+1];
@@ -676,11 +675,11 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 
 	double tmp1 = 0.0;
 	double tmp2 = 0.0;
-	
+
 	// tmp1 = rgbToXyzX(0, 0, 0); // 0
 	// tmp2 = rgbToXyzX(255, 255, 255); // 0.950456
 	// printf("rgbToXyzX: %f, %f\n", tmp1, tmp2);
-	// tmp1 = rgbToXyzY(0, 0, 0); // 0 
+	// tmp1 = rgbToXyzY(0, 0, 0); // 0
 	// tmp2 = rgbToXyzY(255, 255, 255); // 1.000000
 	// printf("rgbToXyzY: %f, %f\n", tmp1, tmp2);
 	// tmp1 = rgbToXyzZ(0, 0, 0); // 0
@@ -767,25 +766,25 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				points[2] = currentPixel - imageWidth - imageWidth;
 				points[3] = currentPixel - imageWidth - imageWidth + 1;
 				points[4] = currentPixel - imageWidth - imageWidth + 1 + 1;
-				
+
 				points[5] = currentPixel - imageWidth - 1 - 1;
 				points[6] = currentPixel - imageWidth - 1;
 				points[7] = currentPixel - imageWidth;
 				points[8] = currentPixel - imageWidth + 1;
 				points[9] = currentPixel - imageWidth + 1 + 1;
-				
+
 				points[10] = currentPixel - 1 - 1;
 				points[11] = currentPixel - 1;
 				points[12] = currentPixel;
 				points[13] = currentPixel + 1;
 				points[14] = currentPixel + 1 + 1;
-				
+
 				points[15] = currentPixel + imageWidth - 1 - 1;
 				points[16] = currentPixel + imageWidth - 1;
 				points[17] = currentPixel + imageWidth;
 				points[18] = currentPixel + imageWidth + 1;
 				points[19] = currentPixel + imageWidth + 1 + 1;
-				
+
 				points[20] = currentPixel + imageWidth + imageWidth - 1 - 1;
 				points[21] = currentPixel + imageWidth + imageWidth - 1;
 				points[22] = currentPixel + imageWidth + imageWidth;
@@ -953,7 +952,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				gaussAll = (gaussAll - 25) * 2;
 				// if(gaussAll < 2) printf("%f\n", gaussAll);
 				// if(gaussAll > 250) printf("%f\n", gaussAll);
-				
+
 
 				workingImage[currentPixel].bright = min(max((int)gaussAll, 0), 255);
 				//printf("%d\n", workingImage[currentPixel].bright );
@@ -961,7 +960,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 		}
 	}
 	/* */
-	
+
 	// binarize the image as/if requested
 	if (contrastMode == 1) {
 		// not really binarized, but brightness passed though a cosine function
@@ -1044,7 +1043,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 
 	} else if (contrastMode == 5) {
 		// TODO: merge with above loops and below loops (split)
-		
+
 		int bins[256];
 		int currentBrightness = 0;
 
@@ -1132,7 +1131,6 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 			} else if (forceEdge == 9) {
 				workingImage[currentPixel].energy = getPixelEnergyStoll(workingImage, imageWidth, imageHeight, 1, currentPixel);
 			}
-
 			workingImage[currentPixel].seamvalH = workingImage[currentPixel].energy;
 			workingImage[currentPixel].seamvalV = workingImage[currentPixel].energy;
 		}
@@ -1149,7 +1147,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 
 		findSeamsHorizontal(workingImage, currentWindow, 0);
 		findSeamsVertical(workingImage, currentWindow, 0);
-		
+
 		if (horizontalSeamCost < verticalSeamCost) {
 			printf("Horizontal \n");
 			resultDirection = 1;
@@ -1228,7 +1226,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 			for (int i = 0; i < imageWidth; ++i) {
 				currentPixel = (j * imageWidth) + i;
 				outputPixel = currentPixel * imageDepth;
-				
+
 				currentUseCount = workingImage[currentPixel].usecountH + workingImage[currentPixel].usecountV;
 				if (currentUseCount > THRESHHOLD_USECOUNT) {
 					resultImage[outputPixel] = 255;
@@ -1250,7 +1248,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 			for (int i = 0; i < imageWidth; ++i) {
 				currentPixel = (j * imageWidth) + i;
 				outputPixel = currentPixel * imageDepth;
-				
+
 				resultImage[outputPixel] = min(max(workingImage[currentPixel].bright, 0), 255);
 				resultImage[outputPixel+1] = min(max(workingImage[currentPixel].bright, 0), 255);
 				resultImage[outputPixel+2] = min(max(workingImage[currentPixel].bright, 0), 255);
@@ -1265,7 +1263,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 			for (int i = 0; i < imageWidth; ++i) {
 				currentPixel = (j * imageWidth) + i;
 				outputPixel = currentPixel * imageDepth;
-				
+
 				resultImage[outputPixel] = min(max((workingImage[currentPixel].energy * energyScale), 0), 255);
 				resultImage[outputPixel+1] = min(max((workingImage[currentPixel].energy * energyScale), 0), 255);
 				resultImage[outputPixel+2] = min(max((workingImage[currentPixel].energy * energyScale), 0), 255);
@@ -1280,7 +1278,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 			for (int i = 0; i < imageWidth; ++i) {
 				currentPixel = (j * imageWidth) + i;
 				outputPixel = currentPixel * imageDepth;
-				
+
 				currentUseCount = workingImage[currentPixel].usecountH;
 				if (currentUseCount > 256) {
 					resultImage[outputPixel] = 255;
@@ -1303,7 +1301,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 			for (int i = 0; i < imageWidth; ++i) {
 				currentPixel = (j * imageWidth) + i;
 				outputPixel = currentPixel * imageDepth;
-				
+
 				currentUseCount = workingImage[currentPixel].usecountV;
 				if (currentUseCount > 256) {
 					resultImage[outputPixel] = 255;
@@ -1322,12 +1320,12 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 	} else if (resultDirection == 8) {
 		int seamValueScale = 4;
 		int currentUseCount = 0;
-		
+
 		for (int j = 0; j < imageHeight; ++j) {
 			for (int i = 0; i < imageWidth; ++i) {
 				currentPixel = (j * imageWidth) + i;
 				outputPixel = currentPixel * imageDepth;
-				
+
 				currentUseCount = workingImage[currentPixel].usecountH;
 				if (currentUseCount > 256) {
 					resultImage[outputPixel] = 255;
@@ -1353,12 +1351,12 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 	} else if (resultDirection == 9) {
 		int seamValueScale = 4;
 		int currentUseCount = 0;
-		
+
 		for (int j = 0; j < imageHeight; ++j) {
 			for (int i = 0; i < imageWidth; ++i) {
 				currentPixel = (j * imageWidth) + i;
 				outputPixel = currentPixel * imageDepth;
-				
+
 				currentUseCount = workingImage[currentPixel].usecountV;
 				if (currentUseCount > 256) {
 					resultImage[outputPixel] = 255;
@@ -1384,12 +1382,12 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 	} else if (resultDirection == 49) {
 		int seamValueScale = 4;
 		int currentUseCount = 0;
-		
+
 		for (int j = 0; j < imageHeight; ++j) {
 			for (int i = 0; i < imageWidth; ++i) {
 				currentPixel = (j * imageWidth) + i;
 				outputPixel = currentPixel * imageDepth;
-				
+
 				if (workingImage[currentPixel].areaBoundaryH == 1) {
 					resultImage[outputPixel] = 255;
 					resultImage[outputPixel+1] = 0;
@@ -1417,12 +1415,12 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 	} else if (resultDirection == 50) {
 		int seamValueScale = 4;
 		int currentUseCount = 0;
-		
+
 		for (int j = 0; j < imageHeight; ++j) {
 			for (int i = 0; i < imageWidth; ++i) {
 				currentPixel = (j * imageWidth) + i;
 				outputPixel = currentPixel * imageDepth;
-				
+
 				if (workingImage[currentPixel].areaBoundaryV == 1) {
 					resultImage[outputPixel] = 255;
 					resultImage[outputPixel+1] = 0;
@@ -1452,12 +1450,12 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 		int currentUseCountH = 0;
 		int currentUseCountV = 0;
 		int currentUseCount = 0;
-		
+
 		for (int j = 0; j < imageHeight; ++j) {
 			for (int i = 0; i < imageWidth; ++i) {
 				currentPixel = (j * imageWidth) + i;
 				outputPixel = currentPixel * imageDepth;
-				
+
 				currentUseCountH = workingImage[currentPixel].usecountH;
 				currentUseCountV = workingImage[currentPixel].usecountV;
 				currentUseCount = currentUseCountH + currentUseCountV;
