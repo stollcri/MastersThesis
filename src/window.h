@@ -45,7 +45,7 @@ struct window *newWindow(int x, int y, int width, int height, int fullWidth, int
 	newWindow->xStep = 1;
 	newWindow->yStep = fullWidth;
 	newWindow->firstPixel = (newWindow->yOrigin * fullWidth) + newWindow->xOrigin;
-	newWindow->lastPixel = (newWindow->yTerminus * fullWidth) + newWindow->xTerminus;
+	newWindow->lastPixel = (newWindow->yTerminus * fullWidth);// + newWindow->xTerminus;
 	newWindow->pixelCount = width * height;
 
 	if (newWindow->xTerminus > newWindow->fullWidth) {
