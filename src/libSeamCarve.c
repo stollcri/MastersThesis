@@ -24,6 +24,9 @@
 #define THRESHHOLD_USECOUNT 64
 #define PI 3.14159265359
 
+#define DIRECTION_VERTICAL 0
+#define DIRECTION_HORIZONTAL 1
+
 #ifdef PNG16BIT
 #define PNG_MAX INT_MAX
 #else
@@ -39,10 +42,7 @@
  */
 static void findSeams(struct pixel *imageVector, struct window *imageWindow, int direction, int findAreas)
 {
-	// TODO: create macro definition
-	int directionVertical = 0;
-	int directionHorizontal = 1;
-	if ((direction != directionVertical) && (direction != directionHorizontal)) {
+	if ((direction != DIRECTION_VERTICAL) && (direction != DIRECTION_HORIZONTAL)) {
 		return;
 	}
 
@@ -66,7 +66,7 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 	int nextPixelDistL = 0; // memory distance to the next pixel to the left
 
 	// loop conditions depend upon the direction
-	if (direction == directionVertical) {
+	if (direction == DIRECTION_VERTICAL) {
 		loopBeg = imageWindow->lastPixel - 1;
 		loopEnd = imageWindow->lastPixel - 1 - imageWindow->xLength;
 		loopInc = imageWindow->xStep * -1;
@@ -143,7 +143,7 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 			// }
 
 			// THIS IS THE CRUCIAL PART
-			if (direction == directionVertical) {
+			if (direction == DIRECTION_VERTICAL) {
 				if (imageVector[minValueLocation].usecountV < (PNG_MAX-SEAM_TRACE_INCREMENT)) {
 					imageVector[minValueLocation].usecountV += SEAM_TRACE_INCREMENT;
 				}
@@ -155,7 +155,7 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 
 			// get the possible next pixles
             if (((minValueLocation - nextPixelDistR) > 0) && ((minValueLocation - nextPixelDistR) < loopEnd) ) {
-            	if (direction == directionVertical) {
+            	if (direction == DIRECTION_VERTICAL) {
                 	nextPixelR = imageVector[minValueLocation - nextPixelDistR].seamvalV;
                 } else {
                 	nextPixelR = imageVector[minValueLocation - nextPixelDistR].seamvalH;
@@ -165,7 +165,7 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
             }
 
             if (((minValueLocation - nextPixelDistC) > 0) && ((minValueLocation - nextPixelDistC) < loopEnd) ) {
-	            if (direction == directionVertical) {
+	            if (direction == DIRECTION_VERTICAL) {
 		            nextPixelC = imageVector[minValueLocation - nextPixelDistC].seamvalV;
 		        } else {
 		        	nextPixelC = imageVector[minValueLocation - nextPixelDistC].seamvalH;
@@ -175,7 +175,7 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
             }
 
             if (((minValueLocation - nextPixelDistL) > 0) && ((minValueLocation - nextPixelDistL) < loopEnd) ) {
-                if (direction == directionVertical) {
+                if (direction == DIRECTION_VERTICAL) {
 	                nextPixelL = imageVector[minValueLocation - nextPixelDistL].seamvalV;
 	            } else {
 	            	nextPixelL = imageVector[minValueLocation - nextPixelDistL].seamvalH;
@@ -245,7 +245,7 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 		if (findAreas) {
 			// only consider seams with persistent deviations
 			if (totalDeviationL || totalDeviationR) {
-				// if (direction == directionVertical) {
+				// if (direction == DIRECTION_VERTICAL) {
 				// 	printf("%d\tdeviation: %d, L: %d, R: %d ", ((k + 1) % imageWindow->fullHeight), totalDeviation, totalDeviationL, totalDeviationR);
 				// } else {
 				// 	printf("%d\tdeviation: %d, L: %d, R: %d ", (k / imageWindow->fullWidth), totalDeviation, totalDeviationL, totalDeviationR);
@@ -263,7 +263,7 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 
 							straightDone = 0;
 							for (int i = 0; i < seamLength; ++i) {
-								if (direction == directionVertical) {
+								if (direction == DIRECTION_VERTICAL) {
 									if (clipAreaBound) {
 										if ((i > 0) && ((currentSeam[i-1] - currentSeam[i]) != imageWindow->yStep)) {
 											straightDone = 1;
@@ -303,7 +303,7 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 							// remove final straight edge
 							if (clipAreaBound && straightStart) {
 								for (int i = straightStart; i < seamLength; ++i) {
-									if (direction == directionVertical) {
+									if (direction == DIRECTION_VERTICAL) {
 										imageVector[currentSeam[i]].areaBoundaryV = 0;
 									} else {
 										imageVector[currentSeam[i]].areaBoundaryH = 0;
@@ -322,7 +322,7 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 
 							straightDone = 0;
 							for (int i = 0; i < seamLength; ++i) {
-								if (direction == directionVertical) {
+								if (direction == DIRECTION_VERTICAL) {
 									if (clipAreaBound) {
 										if ((i > 0) && ((currentSeam[i-1] - currentSeam[i]) != imageWindow->yStep)) {
 											straightDone = 1;
@@ -362,7 +362,7 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 							// remove final straight edge
 							if (clipAreaBound && straightStart) {
 								for (int i = straightStart; i < seamLength; ++i) {
-									if (direction == directionVertical) {
+									if (direction == DIRECTION_VERTICAL) {
 										imageVector[lastSeam[i]].areaBoundaryV = 0;
 									} else {
 										imageVector[lastSeam[i]].areaBoundaryH = 0;
@@ -385,7 +385,7 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 
 							straightDone = 0;
 							for (int i = 0; i < seamLength; ++i) {
-								if (direction == directionVertical) {
+								if (direction == DIRECTION_VERTICAL) {
 									if (clipAreaBound) {
 										if ((i > 0) && ((currentSeam[i-1] - currentSeam[i]) != imageWindow->yStep)) {
 											straightDone = 1;
@@ -425,7 +425,7 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 							// remove final straight edge
 							if (clipAreaBound && straightStart) {
 								for (int i = straightStart; i < seamLength; ++i) {
-									if (direction == directionVertical) {
+									if (direction == DIRECTION_VERTICAL) {
 										imageVector[lastSeam[i]].areaBoundaryV = 0;
 									} else {
 										imageVector[lastSeam[i]].areaBoundaryH = 0;
@@ -447,7 +447,7 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 
 		//for (int k = loopBeg; k < loopEnd; k += loopInc) {
 		k += loopInc;
-		if (direction == directionVertical) {
+		if (direction == DIRECTION_VERTICAL) {
 			if (k <= loopEnd) {
 				loopFinished = 1;
 			}
