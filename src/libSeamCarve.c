@@ -1175,6 +1175,11 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 		} else {
 			findSeamsVertical(workingImage, currentWindow, 0);
 		}
+	} else if (forceDirection == 51) {
+		fillSeamMatrixHorizontal(workingImage, currentWindow);
+		findSeamsHorizontal(workingImage, currentWindow, 1);
+		fillSeamMatrixVertical(workingImage, currentWindow);
+		findSeamsVertical(workingImage, currentWindow, 1);
 	} else if ((forceDirection == 4) || (forceDirection == 5)) {
 		// pass
 	} else {
@@ -1454,6 +1459,54 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 		}
 
 	} else if (resultDirection == 51) {
+		int seamValueScale = 4;
+		int currentUseCount = 0;
+
+		for (int j = 0; j < imageHeight; ++j) {
+			for (int i = 0; i < imageWidth; ++i) {
+				currentPixel = (j * imageWidth) + i;
+				outputPixel = currentPixel * imageDepth;
+
+				if (workingImage[currentPixel].areaBoundaryH == 1) {
+					resultImage[outputPixel] = PNG_MAX;
+					resultImage[outputPixel+1] = 0;
+					resultImage[outputPixel+2] = 0;
+					resultImage[outputPixel+3] = PNG_MAX;
+				} else if (workingImage[currentPixel].areaBoundaryH == 2) {
+					resultImage[outputPixel] = 0;
+					resultImage[outputPixel+1] = PNG_MAX;
+					resultImage[outputPixel+2] = 0;
+					resultImage[outputPixel+3] = PNG_MAX;
+				} else if (workingImage[currentPixel].areaBoundaryH == 3) {
+					resultImage[outputPixel] = 0;
+					resultImage[outputPixel+1] = 0;
+					resultImage[outputPixel+2] = PNG_MAX;
+					resultImage[outputPixel+3] = PNG_MAX;
+				} else if (workingImage[currentPixel].areaBoundaryV == 1) {
+					resultImage[outputPixel] = PNG_MAX;
+					resultImage[outputPixel+1] = 0;
+					resultImage[outputPixel+2] = 0;
+					resultImage[outputPixel+3] = PNG_MAX;
+				} else if (workingImage[currentPixel].areaBoundaryV == 2) {
+					resultImage[outputPixel] = 0;
+					resultImage[outputPixel+1] = PNG_MAX;
+					resultImage[outputPixel+2] = 0;
+					resultImage[outputPixel+3] = PNG_MAX;
+				} else if (workingImage[currentPixel].areaBoundaryV == 3) {
+					resultImage[outputPixel] = 0;
+					resultImage[outputPixel+1] = 0;
+					resultImage[outputPixel+2] = PNG_MAX;
+					resultImage[outputPixel+3] = PNG_MAX;
+				} else {
+					resultImage[outputPixel] = workingImage[currentPixel].r;
+					resultImage[outputPixel+1] = workingImage[currentPixel].g;
+					resultImage[outputPixel+2] = workingImage[currentPixel].b;
+					resultImage[outputPixel+3] = PNG_MAX;
+				}
+			}
+		}
+
+	} else if (resultDirection == 52) {
 		int seamValueScale = 4;
 		int currentUseCountH = 0;
 		int currentUseCountV = 0;
