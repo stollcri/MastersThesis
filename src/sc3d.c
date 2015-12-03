@@ -105,7 +105,7 @@ static void sc3d(char *sourceFile, char *resultFile, int verbose)
 		}
 
 		int *newImageVector;
-		newImageVector = seamCarve(edgeImage, imageWidth, imageHeight, imageDepth, 0, 0, 3, 0, 0);
+		newImageVector = seamCarve(edgeImage, imageWidth, imageHeight, imageDepth, 6, 0, 51, 7, 1);
 
 	// }
 
