@@ -1249,31 +1249,32 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 		}
 
 	} else if (resultDirection == 4) {
-		printf("\n\n%d\n\n", resultDirection);
+		int scaleFactor = 32;
 		int currentUseCount = 0;
 		for (int j = 0; j < imageHeight; ++j) {
 			for (int i = 0; i < imageWidth; ++i) {
 				currentPixel = (j * imageWidth) + i;
 				outputPixel = currentPixel * imageDepth;
 
-				resultImage[outputPixel] = min(max(workingImage[currentPixel].bright, 0), PNG_MAX);
-				resultImage[outputPixel+1] = min(max(workingImage[currentPixel].bright, 0), PNG_MAX);
-				resultImage[outputPixel+2] = min(max(workingImage[currentPixel].bright, 0), PNG_MAX);
+				resultImage[outputPixel] = min(max(workingImage[currentPixel].bright, 0), PNG_MAX) * scaleFactor;
+				resultImage[outputPixel+1] = min(max(workingImage[currentPixel].bright, 0), PNG_MAX) * scaleFactor;
+				resultImage[outputPixel+2] = min(max(workingImage[currentPixel].bright, 0), PNG_MAX) * scaleFactor;
 				resultImage[outputPixel+3] = PNG_MAX;
 			}
 		}
 
 	} else if (resultDirection == 5) {
 		int energyScale = 16;
+		int scaleFactor = 32;
 		int currentUseCount = 0;
 		for (int j = 0; j < imageHeight; ++j) {
 			for (int i = 0; i < imageWidth; ++i) {
 				currentPixel = (j * imageWidth) + i;
 				outputPixel = currentPixel * imageDepth;
 
-				resultImage[outputPixel] = min(max((workingImage[currentPixel].energy * energyScale), 0), PNG_MAX);
-				resultImage[outputPixel+1] = min(max((workingImage[currentPixel].energy * energyScale), 0), PNG_MAX);
-				resultImage[outputPixel+2] = min(max((workingImage[currentPixel].energy * energyScale), 0), PNG_MAX);
+				resultImage[outputPixel] = min(max((workingImage[currentPixel].energy * energyScale), 0), PNG_MAX) * scaleFactor;
+				resultImage[outputPixel+1] = min(max((workingImage[currentPixel].energy * energyScale), 0), PNG_MAX) * scaleFactor;
+				resultImage[outputPixel+2] = min(max((workingImage[currentPixel].energy * energyScale), 0), PNG_MAX) * scaleFactor;
 				resultImage[outputPixel+3] = PNG_MAX;
 			}
 		}
