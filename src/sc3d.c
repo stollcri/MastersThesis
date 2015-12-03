@@ -61,13 +61,16 @@ static void sc3d(char *sourceFile, char *resultFile, int verbose)
 	int imageDepth = 4;
 	int pixelsPerSlice = imageWidth * imageHeight;
 
-	int slice = 55;
-	// for(int slice = 0; slice < (93 - 1); ++slice) {
+	int *sourceImage = (int*)malloc((unsigned long)pixelsPerSlice * (unsigned long)imageDepth * sizeof(int));
+	int *edgeImage = (int*)malloc((unsigned long)pixelsPerSlice * (unsigned long)imageDepth * sizeof(int));
+
+	int *newImageVector = NULL;
+	char outfile[24];
+	// int slice = 55;
+	// for(int slice = 0; slice < 1; ++slice) {
+	for(int slice = 0; slice < 93; ++slice) {
 		int startPixel = pixelsPerSlice * slice;
 		int endPixel = startPixel + pixelsPerSlice;
-
-		int *sourceImage = (int*)malloc((unsigned long)pixelsPerSlice * (unsigned long)imageDepth * sizeof(int));
-		int *edgeImage = (int*)malloc((unsigned long)pixelsPerSlice * (unsigned long)imageDepth * sizeof(int));
 
 		double (*lup)(const void *, size_t I);
 		lup = nrrdDLookup[nin->type];
@@ -104,10 +107,14 @@ static void sc3d(char *sourceFile, char *resultFile, int verbose)
 			++k;
 		}
 
-		int *newImageVector;
-		newImageVector = seamCarve(edgeImage, imageWidth, imageHeight, imageDepth, 6, 0, 51, 7, 1);
+		newImageVector = seamCarve(edgeImage, imageWidth, imageHeight, imageDepth, 6, 0, 3, 7, 1);
 
-	// }
+		sprintf(outfile, "out/headsq/sc3d-%02d.png", (slice + 1));
+		write_png_file(newImageVector, imageWidth, imageHeight, outfile);
+
+		free(newImageVector);
+		newImageVector = NULL;
+	}
 
 	printf(": \"%s\" is a %d-dimensional nrrd of type %d (%s)\n", sourceFile, nin->dim, nin->type, airEnumStr(nrrdType, nin->type));
 	printf(": the array contains %d elements, each %d bytes in size\n", (int)nrrdElementNumber(nin), (int)nrrdElementSize(nin));
@@ -117,8 +124,7 @@ static void sc3d(char *sourceFile, char *resultFile, int verbose)
 	// 	fprintf(stderr, "Trouble writing \"%s\":\n%s", resultFile, err);
 	// 	free(err);
 	// }
-	// write_png_file(edgeImage, imageWidth, imageHeight, resultFile);
-	write_png_file(newImageVector, imageWidth, imageHeight, resultFile);
+	// write_png_file(newImageVector, imageWidth, imageHeight, resultFile);
 	nrrdNuke(nin);
 }
 
