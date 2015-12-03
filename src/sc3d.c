@@ -60,14 +60,15 @@ static void sc3d(char *sourceFile, char *resultFile, int verbose)
 	int imageHeight = (int)dimSizes[1];
 	int imageDepth = 4;
 	int pixelsPerSlice = imageWidth * imageHeight;
+	int multiplier = 8;
 
 	int *sourceImage = (int*)malloc((unsigned long)pixelsPerSlice * (unsigned long)imageDepth * sizeof(int));
-	int *edgeImage = (int*)malloc((unsigned long)pixelsPerSlice * (unsigned long)imageDepth * sizeof(int));
-
+	int *sourceImageLast = (int*)malloc((unsigned long)pixelsPerSlice * (unsigned long)imageDepth * sizeof(int));
+	int *sourceImageCurrent = (int*)malloc((unsigned long)pixelsPerSlice * (unsigned long)imageDepth * sizeof(int));
 	int *newImageVector = NULL;
+
 	char outfile[24];
-	// int slice = 55;
-	// for(int slice = 0; slice < 1; ++slice) {
+
 	for(int slice = 0; slice < 93; ++slice) {
 		int startPixel = pixelsPerSlice * slice;
 		int endPixel = startPixel + pixelsPerSlice;
@@ -78,36 +79,38 @@ static void sc3d(char *sourceFile, char *resultFile, int verbose)
 		int k = 0;
 		for(int i = startPixel; i < endPixel; ++i) {
 			val = lup(nin->data, i);
-			// printf("%4d: %6d: %d \n", k, i, val);
-			sourceImage[(k*imageDepth)] = val;
-			sourceImage[(k*imageDepth)+1] = val;
-			sourceImage[(k*imageDepth)+2] = val;
-			sourceImage[(k*imageDepth)+3] = INT_MAX;
+			sourceImageCurrent[(k*imageDepth)] = val * multiplier;
+			sourceImageCurrent[(k*imageDepth)+1] = val * multiplier;
+			sourceImageCurrent[(k*imageDepth)+2] = val * multiplier;
+			sourceImageCurrent[(k*imageDepth)+3] = INT_MAX;
+
+			// sourceImage[(k*imageDepth)] = val * multiplier;
+			// sourceImage[(k*imageDepth)+1] = val * multiplier;
+			// sourceImage[(k*imageDepth)+2] = val * multiplier;
+
+			// sourceImageCurrent[(k*imageDepth)] = sourceImage[(k*imageDepth)] + sourceImageLast[(k*imageDepth)];
+			// sourceImageCurrent[(k*imageDepth)+1] = sourceImage[(k*imageDepth)+1] + sourceImageLast[(k*imageDepth)+1];
+			// sourceImageCurrent[(k*imageDepth)+2] = sourceImage[(k*imageDepth)+2] + sourceImageLast[(k*imageDepth)+2];
+			// sourceImageCurrent[(k*imageDepth)+3] = INT_MAX;
+
+			// sourceImageLast[(k*imageDepth)] = sourceImage[(k*imageDepth)];
+			// sourceImageLast[(k*imageDepth)+1] = sourceImage[(k*imageDepth)+1];
+			// sourceImageLast[(k*imageDepth)+2] = sourceImage[(k*imageDepth)+2];
+
 			++k;
 		}
 
-		int currentPixel = 0;
-		for (int j = 0; j < imageHeight; ++j) {
-			for (int i = 0; i < imageWidth; ++i) {
-				currentPixel = (j * imageDepth * imageWidth) + (i * imageDepth);
-				// edgeImage[currentPixel] = getPixelEnergySobel(sourceImage, imageWidth, imageHeight, imageDepth, currentPixel);
-				edgeImage[currentPixel] = sourceImage[currentPixel] * 8;
-				edgeImage[currentPixel+1] = edgeImage[currentPixel];
-				edgeImage[currentPixel+2] = edgeImage[currentPixel];
-				edgeImage[currentPixel+3] = INT_MAX;
-			}
-		}
+		// newImageVector = seamCarve(sourceImageCurrent, imageWidth, imageHeight, imageDepth, 6, 0, 3, 7, 1);
+		newImageVector = seamCarve(sourceImageCurrent, imageWidth, imageHeight, imageDepth, 6, 0, 50, 7, 1);
 
-		double (*ins)(const void *, size_t I, double v);
-		ins = nrrdDInsert[nin->type];
-		k = 0;
-		for(int i = startPixel; i < endPixel; ++i) {
-			val = sourceImage[(k*imageDepth)];
-			ins(nin->data, i, val);
-			++k;
-		}
-
-		newImageVector = seamCarve(edgeImage, imageWidth, imageHeight, imageDepth, 6, 0, 3, 7, 1);
+		// double (*ins)(const void *, size_t I, double v);
+		// ins = nrrdDInsert[nin->type];
+		// k = 0;
+		// for(int i = startPixel; i < endPixel; ++i) {
+		// 	val = sourceImageCurrent[(k*imageDepth)];
+		// 	ins(nin->data, i, val);
+		// 	++k;
+		// }
 
 		sprintf(outfile, "out/headsq/sc3d-%02d.png", (slice + 1));
 		write_png_file(newImageVector, imageWidth, imageHeight, outfile);
