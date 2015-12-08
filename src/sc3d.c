@@ -60,7 +60,6 @@ static void sc3d(char *sourceFile, char *resultFile, int verbose)
 	int imageHeight = (int)dimSizes[1];
 	int imageDepth = 4;
 	int pixelsPerSlice = imageWidth * imageHeight;
-	int multiplier = 8;
 
 	int *sourceImage = (int*)malloc((unsigned long)pixelsPerSlice * (unsigned long)imageDepth * sizeof(int));
 	int *sourceImageLast = (int*)malloc((unsigned long)pixelsPerSlice * (unsigned long)imageDepth * sizeof(int));
@@ -69,24 +68,46 @@ static void sc3d(char *sourceFile, char *resultFile, int verbose)
 
 	char outfile[24];
 
-	for(int slice = 0; slice < 93; ++slice) {
-		int startPixel = pixelsPerSlice * slice;
-		int endPixel = startPixel + pixelsPerSlice;
+	int startPixel = 0;
+	int endPixel = 0;
+	int val = 0;
+	int valmin = INT_MAX;
+	int valmax = 0;
 
-		double (*lup)(const void *, size_t I);
+	double (*lup)(const void *, size_t I);
+	for(int slice = 0; slice < 93; ++slice) {
+		startPixel = pixelsPerSlice * slice;
+		endPixel = startPixel + pixelsPerSlice;
 		lup = nrrdDLookup[nin->type];
-		int val;
+		for(int i = startPixel; i < endPixel; ++i) {
+			val = lup(nin->data, i);
+
+			if (val > valmax) {
+				valmax = val;
+			}
+			if (val < valmin) {
+				valmin = val;
+			}
+		}
+	}
+	int scalefactor = (int)(pow(2, 16) / (valmax - valmin));
+
+	for(int slice = 0; slice < 93; ++slice) {
+		startPixel = pixelsPerSlice * slice;
+		endPixel = startPixel + pixelsPerSlice;
+
+		lup = nrrdDLookup[nin->type];
 		int k = 0;
 		for(int i = startPixel; i < endPixel; ++i) {
 			val = lup(nin->data, i);
-			sourceImageCurrent[(k*imageDepth)] = val * multiplier;
-			sourceImageCurrent[(k*imageDepth)+1] = val * multiplier;
-			sourceImageCurrent[(k*imageDepth)+2] = val * multiplier;
+			sourceImageCurrent[(k*imageDepth)] = val * scalefactor;
+			sourceImageCurrent[(k*imageDepth)+1] = val * scalefactor;
+			sourceImageCurrent[(k*imageDepth)+2] = val * scalefactor;
 			sourceImageCurrent[(k*imageDepth)+3] = INT_MAX;
 
-			// sourceImage[(k*imageDepth)] = val * multiplier;
-			// sourceImage[(k*imageDepth)+1] = val * multiplier;
-			// sourceImage[(k*imageDepth)+2] = val * multiplier;
+			// sourceImage[(k*imageDepth)] = val * scalefactor;
+			// sourceImage[(k*imageDepth)+1] = val * scalefactor;
+			// sourceImage[(k*imageDepth)+2] = val * scalefactor;
 
 			// sourceImageCurrent[(k*imageDepth)] = sourceImage[(k*imageDepth)] + sourceImageLast[(k*imageDepth)];
 			// sourceImageCurrent[(k*imageDepth)+1] = sourceImage[(k*imageDepth)+1] + sourceImageLast[(k*imageDepth)+1];
@@ -121,6 +142,7 @@ static void sc3d(char *sourceFile, char *resultFile, int verbose)
 
 	printf(": \"%s\" is a %d-dimensional nrrd of type %d (%s)\n", sourceFile, nin->dim, nin->type, airEnumStr(nrrdType, nin->type));
 	printf(": the array contains %d elements, each %d bytes in size\n", (int)nrrdElementNumber(nin), (int)nrrdElementSize(nin));
+	printf(": valmin= %d / valmax= %d (%d)\n", valmin, valmax, scalefactor);
 
 	// if (nrrdSave(resultFile, nin, NULL)) {
 	// 	char *err = biffGetDone(NRRD);
