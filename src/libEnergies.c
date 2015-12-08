@@ -10,10 +10,12 @@
 #include "libMinMax.c"
 #include "libColorConv.c"
 
+#ifndef PNG_MAX
 #ifdef PNG16BIT
-#define PNG_MAX INT_MAX
+#define PNG_MAX 65535
 #else
 #define PNG_MAX 255
+#endif
 #endif
 
 // Simple energy function, basically a gradient magnitude calculation

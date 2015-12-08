@@ -27,10 +27,12 @@
 #define DIRECTION_VERTICAL 0
 #define DIRECTION_HORIZONTAL 1
 
+#ifndef PNG_MAX
 #ifdef PNG16BIT
-#define PNG_MAX INT_MAX
+#define PNG_MAX 65535
 #else
 #define PNG_MAX 255
+#endif
 #endif
 
 #define DEFAULT_CLIP_AREA_BOUND 1
