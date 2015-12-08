@@ -1554,6 +1554,44 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				}
 			}
 		}
+
+	// resultDirection 6 and 7 combined
+	} else if (resultDirection == 53) {
+		int scaleFactor = SCALE_FACTOR;
+		int useCountLimitV = SEAM_TRACE_INCREMENT * (imageWidth / 5);
+		int useCountLimitH = SEAM_TRACE_INCREMENT * (imageHeight / 5);
+		int currentUseCountV = 0;
+		int currentUseCountH = 0;
+		for (int j = 0; j < imageHeight; ++j) {
+			for (int i = 0; i < imageWidth; ++i) {
+				currentPixel = (j * imageWidth) + i;
+				outputPixel = currentPixel * imageDepth;
+
+				currentUseCountV = workingImage[currentPixel].usecountV;
+				currentUseCountH = workingImage[currentPixel].usecountH;
+				if ((currentUseCountV > useCountLimitV) && (currentUseCountH > useCountLimitH)) {
+					resultImage[outputPixel] = 0;
+					resultImage[outputPixel+1] = PNG_MAX;
+					resultImage[outputPixel+2] = 0;
+					resultImage[outputPixel+3] = PNG_MAX;
+				} else if (currentUseCountV > useCountLimitV) {
+					resultImage[outputPixel] = 0;
+					resultImage[outputPixel+1] = 0;
+					resultImage[outputPixel+2] = PNG_MAX;
+					resultImage[outputPixel+3] = PNG_MAX;
+				} else if (currentUseCountH > useCountLimitH) {
+					resultImage[outputPixel] = PNG_MAX;
+					resultImage[outputPixel+1] = 0;
+					resultImage[outputPixel+2] = 0;
+					resultImage[outputPixel+3] = PNG_MAX;
+				} else {
+					resultImage[outputPixel] = min(max(workingImage[currentPixel].bright, 0), PNG_MAX) * scaleFactor;
+					resultImage[outputPixel+1] = min(max(workingImage[currentPixel].bright, 0), PNG_MAX) * scaleFactor;
+					resultImage[outputPixel+2] = min(max(workingImage[currentPixel].bright, 0), PNG_MAX) * scaleFactor;
+					resultImage[outputPixel+3] = PNG_MAX;
+				}
+			}
+		}
 	}
 
 	return resultImage;

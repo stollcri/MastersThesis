@@ -1,6 +1,6 @@
 /**
  * sc.c
- * 
+ *
  * Masters Thesis Work
  * Christopher Stoll, 2014
  */
