@@ -1054,7 +1054,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 	} else if (contrastMode == 5) {
 		// TODO: merge with above loops and below loops (split)
 
-		int bins[256];
+		int bins[PNG_MAX];
 		int currentBrightness = 0;
 
 		// get historgram
@@ -1066,7 +1066,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 			}
 		}
 
-		int threshold = otsuBinarization(bins, (imageWidth * imageHeight));
+		int threshold = otsuBinarization(bins, (imageWidth * imageHeight), PNG_MAX);
 
 		// apply threshold
 		for (int j = 0; j < imageHeight; ++j) {
