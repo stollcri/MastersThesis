@@ -37,6 +37,8 @@
 
 #define DEFAULT_CLIP_AREA_BOUND 1
 
+#define SCALE_FACTOR 1
+
 /*
  * Trace all the seams
  * The least signifigant pixels will be traced multiple times and have a higher value (whiter)
@@ -1234,6 +1236,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 		}
 
 	} else if (resultDirection == 3) {
+		int scaleFactor = SCALE_FACTOR;
 		int currentUseCount = 0;
 		for (int j = 0; j < imageHeight; ++j) {
 			for (int i = 0; i < imageWidth; ++i) {
@@ -1247,16 +1250,16 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 					resultImage[outputPixel+2] = 0;
 					resultImage[outputPixel+3] = PNG_MAX;
 				} else {
-					resultImage[outputPixel] = workingImage[currentPixel].r / 2;
-					resultImage[outputPixel+1] = workingImage[currentPixel].g / 2;
-					resultImage[outputPixel+2] = workingImage[currentPixel].b / 2;
+					resultImage[outputPixel] = workingImage[currentPixel].r * scaleFactor;
+					resultImage[outputPixel+1] = workingImage[currentPixel].g * scaleFactor;
+					resultImage[outputPixel+2] = workingImage[currentPixel].b * scaleFactor;
 					resultImage[outputPixel+3] = PNG_MAX;
 				}
 			}
 		}
 
 	} else if (resultDirection == 4) {
-		int scaleFactor = 32;
+		int scaleFactor = SCALE_FACTOR;
 		int currentUseCount = 0;
 		for (int j = 0; j < imageHeight; ++j) {
 			for (int i = 0; i < imageWidth; ++i) {
@@ -1272,7 +1275,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 
 	} else if (resultDirection == 5) {
 		int energyScale = 16;
-		int scaleFactor = 32;
+		int scaleFactor = SCALE_FACTOR;
 		int currentUseCount = 0;
 		for (int j = 0; j < imageHeight; ++j) {
 			for (int i = 0; i < imageWidth; ++i) {
