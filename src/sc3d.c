@@ -19,6 +19,14 @@
 #define PROGRAM_VERS "0.1"
 #define PROGRAM_COPY "Copyright 2015, Christopher Stoll"
 
+#ifndef PNG_MAX
+#ifdef PNG16BIT
+#define PNG_MAX 65535
+#else
+#define PNG_MAX 255
+#endif
+#endif
+
 // void loopAll(Nrrd *nrrd) {
 // 	double (*lup)(const void *, size_t I);
 // 	// double (*ins)(void *, size_t I, double v);
@@ -61,10 +69,13 @@ static void sc3d(char *sourceFile, char *resultFile, int verbose)
 	int imageDepth = 4;
 	int pixelsPerSlice = imageWidth * imageHeight;
 
-	int *sourceImage = (int*)malloc((unsigned long)pixelsPerSlice * (unsigned long)imageDepth * sizeof(int));
-	int *sourceImageLast = (int*)malloc((unsigned long)pixelsPerSlice * (unsigned long)imageDepth * sizeof(int));
+	// int *sourceImage = (int*)malloc((unsigned long)pixelsPerSlice * (unsigned long)imageDepth * sizeof(int));
+	// int *sourceImageLast = (int*)malloc((unsigned long)pixelsPerSlice * (unsigned long)imageDepth * sizeof(int));
 	int *sourceImageCurrent = (int*)malloc((unsigned long)pixelsPerSlice * (unsigned long)imageDepth * sizeof(int));
+
 	int *newImageVector = NULL;
+	int *oldImageVector = (int*)malloc((unsigned long)pixelsPerSlice * (unsigned long)imageDepth * sizeof(int));
+	int *outImageVector = (int*)malloc((unsigned long)pixelsPerSlice * (unsigned long)imageDepth * sizeof(int));
 
 	char outfile[24];
 
@@ -125,6 +136,58 @@ static void sc3d(char *sourceFile, char *resultFile, int verbose)
 		// TODO: 49 (and thus 51) are seg faulting, find the problem
 		// newImageVector = seamCarve(sourceImageCurrent, imageWidth, imageHeight, imageDepth, 6, 0, 50, 7, 1);
 		newImageVector = seamCarve(sourceImageCurrent, imageWidth, imageHeight, imageDepth, 0, 2, 53, 4, 0);
+
+
+		// newImageVector = seamCarve(sourceImageCurrent, imageWidth, imageHeight, imageDepth, 0, 2, 53, 0, 0);
+		// int currentPixel = 0;
+		// int inputPixel = 0;
+		// for (int j = 0; j < imageHeight; ++j) {
+		// 	for (int i = 0; i < imageWidth; ++i) {
+		// 		currentPixel = (j * imageWidth) + i;
+		// 		inputPixel = currentPixel * imageDepth;
+
+		// 		if(1) {
+		// 			outImageVector[inputPixel]   = newImageVector[inputPixel];
+		// 			outImageVector[inputPixel+1] = newImageVector[inputPixel+1];
+		// 			outImageVector[inputPixel+2] = newImageVector[inputPixel+2];
+		// 			outImageVector[inputPixel+3] = newImageVector[inputPixel+3];
+		// 		} else {
+		// 			if (slice) {
+		// 				if ((oldImageVector[inputPixel] == PNG_MAX) && (newImageVector[inputPixel] == PNG_MAX)) {
+		// 					outImageVector[inputPixel]   = PNG_MAX;
+		// 					outImageVector[inputPixel+1] = PNG_MAX;
+		// 					outImageVector[inputPixel+2] = PNG_MAX;
+		// 					outImageVector[inputPixel+3] = PNG_MAX;
+		// 				} else if ((oldImageVector[inputPixel+1] == PNG_MAX) && (newImageVector[inputPixel+1] == PNG_MAX)) {
+		// 					outImageVector[inputPixel]   = PNG_MAX;
+		// 					outImageVector[inputPixel+1] = PNG_MAX;
+		// 					outImageVector[inputPixel+2] = PNG_MAX;
+		// 					outImageVector[inputPixel+3] = PNG_MAX;
+		// 				} else if ((oldImageVector[inputPixel+2] == PNG_MAX) && (newImageVector[inputPixel+2] == PNG_MAX)) {
+		// 					outImageVector[inputPixel]   = PNG_MAX;
+		// 					outImageVector[inputPixel+1] = PNG_MAX;
+		// 					outImageVector[inputPixel+2] = PNG_MAX;
+		// 					outImageVector[inputPixel+3] = PNG_MAX;
+		// 				} else {
+		// 					outImageVector[inputPixel]   = newImageVector[inputPixel];
+		// 					outImageVector[inputPixel+1] = newImageVector[inputPixel+1];
+		// 					outImageVector[inputPixel+2] = newImageVector[inputPixel+2];
+		// 					outImageVector[inputPixel+3] = newImageVector[inputPixel+3];
+		// 				}
+		// 			} else {
+		// 				outImageVector[inputPixel]   = newImageVector[inputPixel];
+		// 				outImageVector[inputPixel+1] = newImageVector[inputPixel+1];
+		// 				outImageVector[inputPixel+2] = newImageVector[inputPixel+2];
+		// 				outImageVector[inputPixel+3] = newImageVector[inputPixel+3];
+		// 			}
+
+		// 			oldImageVector[inputPixel]   = newImageVector[inputPixel];
+		// 			oldImageVector[inputPixel+1] = newImageVector[inputPixel+1];
+		// 			oldImageVector[inputPixel+2] = newImageVector[inputPixel+2];
+		// 			oldImageVector[inputPixel+3] = newImageVector[inputPixel+3];
+		// 		}
+		// 	}
+		// }
 
 		// double (*ins)(const void *, size_t I, double v);
 		// ins = nrrdDInsert[nin->type];
