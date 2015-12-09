@@ -1195,6 +1195,8 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 	}
 
 	// prepare results for output
+
+	// horizontal direction seams
 	if (resultDirection == 1) {
 		for (int j = 0; j < imageHeight; ++j) {
 			for (int i = 0; i < imageWidth; ++i) {
@@ -1215,6 +1217,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 			}
 		}
 
+	// vertical direction seams
 	} else if (resultDirection == 2) {
 		for (int j = 0; j < imageHeight; ++j) {
 			for (int i = 0; i < imageWidth; ++i) {
@@ -1235,6 +1238,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 			}
 		}
 
+	// both direction seams
 	} else if (resultDirection == 3) {
 		int scaleFactor = SCALE_FACTOR;
 		int currentUseCount = 0;
@@ -1258,6 +1262,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 			}
 		}
 
+	// brightness values
 	} else if (resultDirection == 4) {
 		int scaleFactor = SCALE_FACTOR;
 		int currentUseCount = 0;
@@ -1273,6 +1278,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 			}
 		}
 
+	// energy values
 	} else if (resultDirection == 5) {
 		int energyScale = 16;
 		int scaleFactor = SCALE_FACTOR;
@@ -1289,6 +1295,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 			}
 		}
 
+	// horizontal seam values
 	} else if (resultDirection == 6) {
 		int seamValueScale = 16;
 		int currentUseCount = 0;
@@ -1312,6 +1319,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 			}
 		}
 
+	// vertical seam values
 	} else if (resultDirection == 7) {
 		int seamValueScale = 16;
 		int currentUseCount = 0;
@@ -1335,6 +1343,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 			}
 		}
 
+	// horizontal seams
 	} else if (resultDirection == 8) {
 		int seamValueScale = 4;
 		int currentUseCount = 0;
@@ -1366,6 +1375,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 			}
 		}
 
+	// vertical seams
 	} else if (resultDirection == 9) {
 		int seamValueScale = 4;
 		int currentUseCount = 0;
@@ -1397,6 +1407,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 			}
 		}
 
+	// horizontal areas
 	} else if (resultDirection == 49) {
 		int seamValueScale = 4;
 		int currentUseCount = 0;
@@ -1430,6 +1441,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 			}
 		}
 
+	// vertical areas
 	} else if (resultDirection == 50) {
 		int seamValueScale = 4;
 		int currentUseCount = 0;
@@ -1463,6 +1475,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 			}
 		}
 
+	// horizontal and vertical areas
 	} else if (resultDirection == 51) {
 		int seamValueScale = 4;
 		int currentUseCount = 0;
@@ -1511,6 +1524,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 			}
 		}
 
+	// ???
 	} else if (resultDirection == 52) {
 		int seamValueScale = 4;
 		int currentUseCountH = 0;
@@ -1555,7 +1569,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 			}
 		}
 
-	// resultDirection 6 and 7 combined
+	// resultDirection 6 and 7 combined -- colored bounding lines (red = v&h, green = v, blue = h)
 	} else if (resultDirection == 53) {
 		int scaleFactor = SCALE_FACTOR;
 		int useCountLimitV = SEAM_TRACE_INCREMENT * (imageWidth / 5);
