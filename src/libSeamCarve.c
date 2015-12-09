@@ -1606,6 +1606,66 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				}
 			}
 		}
+
+	// resultDirection 8 and 9 combined -- binarized (mask) seam carved areas black, seam-free areas white
+	} else if (resultDirection == 54) {
+		int seamValueScale = 4;
+		int currentUseCount = 0;
+
+		for (int j = 0; j < imageHeight; ++j) {
+			for (int i = 0; i < imageWidth; ++i) {
+				currentPixel = (j * imageWidth) + i;
+				outputPixel = currentPixel * imageDepth;
+
+				currentUseCount = workingImage[currentPixel].usecountH + workingImage[currentPixel].usecountV;
+
+				// resultImage[outputPixel] = currentUseCount * 64;
+				// resultImage[outputPixel+1] = currentUseCount * 64;
+				// resultImage[outputPixel+2] = currentUseCount * 64;
+				// resultImage[outputPixel+3] = PNG_MAX;
+
+				// if (currentUseCount > SEAM_TRACE_INCREMENT) {
+				if (currentUseCount > 0) {
+					resultImage[outputPixel] = 0;
+					resultImage[outputPixel+1] = 0;
+					resultImage[outputPixel+2] = 0;
+					resultImage[outputPixel+3] = PNG_MAX;
+				} else {
+					resultImage[outputPixel] = PNG_MAX;
+					resultImage[outputPixel+1] = PNG_MAX;
+					resultImage[outputPixel+2] = PNG_MAX;
+					resultImage[outputPixel+3] = PNG_MAX;
+				}
+			}
+		}
+
+	// resultDirection 8 and 9 combined -- cut out seam carved areas, leave seam-free areas
+	} else if (resultDirection == 55) {
+		int seamValueScale = 4;
+		int useCountLimitV = SEAM_TRACE_INCREMENT * (imageWidth / 5);
+		int useCountLimitH = SEAM_TRACE_INCREMENT * (imageHeight / 5);
+		int currentUseCount = 0;
+
+		for (int j = 0; j < imageHeight; ++j) {
+			for (int i = 0; i < imageWidth; ++i) {
+				currentPixel = (j * imageWidth) + i;
+				outputPixel = currentPixel * imageDepth;
+
+				currentUseCount = workingImage[currentPixel].usecountH + workingImage[currentPixel].usecountV;
+				if (currentUseCount > 0) {
+					resultImage[outputPixel] = 0;
+					resultImage[outputPixel+1] = PNG_MAX;
+					resultImage[outputPixel+2] = 0;
+					resultImage[outputPixel+3] = PNG_MAX;
+				} else {
+					resultImage[outputPixel] = min(max(workingImage[currentPixel].bright, 0), PNG_MAX);
+					resultImage[outputPixel+1] = min(max(workingImage[currentPixel].bright, 0), PNG_MAX);
+					resultImage[outputPixel+2] = min(max(workingImage[currentPixel].bright, 0), PNG_MAX);
+					resultImage[outputPixel+3] = PNG_MAX;
+				}
+			}
+		}
+
 	}
 
 	return resultImage;

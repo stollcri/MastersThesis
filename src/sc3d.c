@@ -135,7 +135,7 @@ static void sc3d(char *sourceFile, char *resultFile, int verbose)
 		// newImageVector = seamCarve(sourceImageCurrent, imageWidth, imageHeight, imageDepth, 6, 0, 3, 7, 1);
 		// TODO: 49 (and thus 51) are seg faulting, find the problem
 		// newImageVector = seamCarve(sourceImageCurrent, imageWidth, imageHeight, imageDepth, 6, 0, 50, 7, 1);
-		newImageVector = seamCarve(sourceImageCurrent, imageWidth, imageHeight, imageDepth, 0, 2, 53, 4, 0);
+		newImageVector = seamCarve(sourceImageCurrent, imageWidth, imageHeight, imageDepth, 0, 2, 55, 0, 0);
 
 
 		// newImageVector = seamCarve(sourceImageCurrent, imageWidth, imageHeight, imageDepth, 0, 2, 53, 0, 0);
