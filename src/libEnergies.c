@@ -482,7 +482,7 @@ static int getPixelEnergyStoll(struct pixel *imageVector, int imageWidth, int im
 		if (points[i] < 0) {
 			points[i] = 0;
 		} else if (points[i] >= (imageHeight * imageWidth * pixelDepth)) {
-			points[i] = (imageHeight * imageWidth * pixelDepth);
+			points[i] = (imageHeight * imageWidth * pixelDepth) - 1;
 		}
 	}
 

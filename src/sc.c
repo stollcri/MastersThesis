@@ -142,6 +142,7 @@ int main(int argc, char const *argv[])
 				printf("         '-e 6' use Simple Gradient \n");
 				printf("         '-e 7' use DoG + Sobel \n");
 				printf("         '-e 8' use LoG (sigma=8) AND Sobel \n");
+				printf("         '-e 9' experimental (Stoll) \n");
 				printf("          \n");
 				printf("       Pre-processing Options \n");
 				printf("         '-g 0' none (default) \n");
