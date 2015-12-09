@@ -1584,19 +1584,19 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				currentUseCountV = workingImage[currentPixel].usecountV;
 				currentUseCountH = workingImage[currentPixel].usecountH;
 				if ((currentUseCountV > useCountLimitV) && (currentUseCountH > useCountLimitH)) {
-					resultImage[outputPixel] = 0;
-					resultImage[outputPixel+1] = PNG_MAX;
+					resultImage[outputPixel] = PNG_MAX;
+					resultImage[outputPixel+1] = 0;
 					resultImage[outputPixel+2] = 0;
 					resultImage[outputPixel+3] = PNG_MAX;
 				} else if (currentUseCountV > useCountLimitV) {
 					resultImage[outputPixel] = 0;
-					resultImage[outputPixel+1] = 0;
-					resultImage[outputPixel+2] = PNG_MAX;
+					resultImage[outputPixel+1] = PNG_MAX;
+					resultImage[outputPixel+2] = 0;
 					resultImage[outputPixel+3] = PNG_MAX;
 				} else if (currentUseCountH > useCountLimitH) {
-					resultImage[outputPixel] = PNG_MAX;
+					resultImage[outputPixel] = 0;
 					resultImage[outputPixel+1] = 0;
-					resultImage[outputPixel+2] = 0;
+					resultImage[outputPixel+2] = PNG_MAX;
 					resultImage[outputPixel+3] = PNG_MAX;
 				} else {
 					resultImage[outputPixel] = min(max(workingImage[currentPixel].bright, 0), PNG_MAX) * scaleFactor;
