@@ -1656,7 +1656,7 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 					resultImage[outputPixel] = 0;
 					resultImage[outputPixel+1] = PNG_MAX;
 					resultImage[outputPixel+2] = 0;
-					resultImage[outputPixel+3] = PNG_MAX;
+					resultImage[outputPixel+3] = (PNG_MAX - 1);
 				} else {
 					resultImage[outputPixel] = min(max(workingImage[currentPixel].bright, 0), PNG_MAX);
 					resultImage[outputPixel+1] = min(max(workingImage[currentPixel].bright, 0), PNG_MAX);

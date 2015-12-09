@@ -189,14 +189,19 @@ static void sc3d(char *sourceFile, char *resultFile, int verbose)
 		// 	}
 		// }
 
-		// double (*ins)(const void *, size_t I, double v);
-		// ins = nrrdDInsert[nin->type];
-		// k = 0;
-		// for(int i = startPixel; i < endPixel; ++i) {
-		// 	val = sourceImageCurrent[(k*imageDepth)];
-		// 	ins(nin->data, i, val);
-		// 	++k;
-		// }
+		double (*ins)(void *, size_t I, double v);
+		ins = nrrdDInsert[nin->type];
+		k = 0;
+		for(int i = startPixel; i < endPixel; ++i) {
+			if (newImageVector[(k*imageDepth)+3] == PNG_MAX) {
+				val = (int)(sourceImageCurrent[(k*imageDepth)] / scalefactor);
+			} else {
+				val = 0;
+			}
+
+			ins(nin->data, i, val);
+			++k;
+		}
 
 		sprintf(outfile, "out/headsq/sc3d-%02d.png", (slice + 1));
 		write_png_file(newImageVector, imageWidth, imageHeight, outfile);
@@ -209,12 +214,11 @@ static void sc3d(char *sourceFile, char *resultFile, int verbose)
 	printf(": the array contains %d elements, each %d bytes in size\n", (int)nrrdElementNumber(nin), (int)nrrdElementSize(nin));
 	printf(": valmin= %d / valmax= %d (%d)\n", valmin, valmax, scalefactor);
 
-	// if (nrrdSave(resultFile, nin, NULL)) {
-	// 	char *err = biffGetDone(NRRD);
-	// 	fprintf(stderr, "Trouble writing \"%s\":\n%s", resultFile, err);
-	// 	free(err);
-	// }
-	// write_png_file(newImageVector, imageWidth, imageHeight, resultFile);
+	if (nrrdSave(resultFile, nin, NULL)) {
+		char *err = biffGetDone(NRRD);
+		fprintf(stderr, "Trouble writing \"%s\":\n%s", resultFile, err);
+		free(err);
+	}
 	nrrdNuke(nin);
 }
 
