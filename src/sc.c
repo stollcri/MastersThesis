@@ -135,6 +135,11 @@ int main(int argc, char const *argv[])
 				printf("         '-d 9' output seams (vertical) \n");
 				printf("         '-d a' output areas (horizontal) \n");
 				printf("         '-d b' output areas (vertical) \n");
+				printf("         '-d c' output areas (both) \n");
+				printf("         '-d d' \n");
+				printf("         '-d e' 6 and 7 combined \n");
+				printf("         '-d f' 8 and 9 combined \n");
+				printf("         '-d g' 8 and 9 combined (mask utput) \n");
 				printf("          \n");
 				printf("       Energy Calculation Method \n");
 				printf("         '-e 0' use Difference of Gaussian (default) \n");
@@ -156,6 +161,7 @@ int main(int argc, char const *argv[])
 				printf("          \n");
 				printf("        Other Options\n");
 				printf("         '-s'   Skip seams that touch the edge (do not back track them)\n");
+				printf("         '-v'   Verbose mode\n");
 				printf("          \n");
 				return 1;
 			default:
