@@ -36,7 +36,7 @@
 #endif
 
 #define DEFAULT_CLIP_AREA_BOUND 1
-
+#define SKIP_SEAMS_THAT_TOUCH_EDGE 1
 #define SCALE_FACTOR 1
 
 /*
@@ -128,6 +128,20 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 		minValueLocation = k;
 		countGoR = 0;
 		countGoL = 0;
+
+		if (SKIP_SEAMS_THAT_TOUCH_EDGE) {
+			if (direction == DIRECTION_VERTICAL) {
+				if (imageVector[minValueLocation].seamvalV > 255) {
+					k += loopInc;
+					continue;
+				}
+			} else {
+				if (imageVector[minValueLocation].seamvalH > 255) {
+					k += loopInc;
+					continue;
+				}
+			}
+		}
 
 		// v5 experiemnts (based upon v2)
 		if (findAreas) {
