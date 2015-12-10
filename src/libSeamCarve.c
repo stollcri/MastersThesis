@@ -1055,6 +1055,9 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 		// TODO: merge with above loops and below loops (split)
 
 		int bins[PNG_MAX];
+		for (int j = 0; j < PNG_MAX; ++j) {
+			bins[j] = 0;
+		}
 		int currentBrightness = 0;
 
 		// get historgram
