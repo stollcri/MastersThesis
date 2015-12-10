@@ -1117,7 +1117,8 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 				workingImage[currentPixel].bright = getPixelGaussian(workingImage, imageWidth, imageHeight, 1, currentPixel, 20);
 				workingImage[currentPixel].energy = sqrt(getPixelEnergyLaplacian(workingImage, imageWidth, imageHeight, currentPixel));
 			} else if (forceEdge == 4) {
-				workingImage[currentPixel].energy = sqrt(getPixelEnergySobel(workingImage, imageWidth, imageHeight, currentPixel) / 2.4);
+				// workingImage[currentPixel].energy = sqrt(getPixelEnergySobel(workingImage, imageWidth, imageHeight, currentPixel) / 2.4);
+				workingImage[currentPixel].energy = getPixelEnergySobel(workingImage, imageWidth, imageHeight, currentPixel);
 				//if(workingImage[currentPixel].energy > 20) printf("%d\n", workingImage[currentPixel].energy);
 			} else if (forceEdge == 5) {
 				workingImage[currentPixel].energy = getPixelGaussian(workingImage, imageWidth, imageHeight, 1, currentPixel, 9999);

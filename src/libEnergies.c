@@ -102,10 +102,21 @@ static int getPixelEnergySobel(struct pixel *imageVector, int imageWidth, int im
 	// bounded gradient magnitude
 	//
 	// to get the proper range
+	//
 	// (255 * 4) - (0 * 4) = 1024
 	// (1024 * 1024) + (1024 * 1024) = 2,097,152
 	// srt(2,097,152) = 1448.154687870049
 	// 1448.154687870049 / 255 = 5.67903799164725 ~= 5.679
+	//
+	// (65,536 * 4) - (0 * 4) = 262,144
+	// (262,144 * 262,144) + (262,144 * 262,144) = 137,438,953,472
+	// srt(2,097,152) = 370,727.6001
+	// 370,727.6001 / 65,536 = 5.65685424965 ~= 5.657
+	int result = (int)sqrt((sobelX * sobelX) + (sobelY * sobelY));
+	if (result < 0) {
+		result = PNG_MAX;
+	}
+	return min(max(result, 0), PNG_MAX);
 	return min(max((int)(sqrt((sobelX * sobelX) + (sobelY * sobelY))/5.679), 0), PNG_MAX);
 
 	// alt method - laplacian
