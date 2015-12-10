@@ -15,7 +15,7 @@
 #define PROGRAM_VERS "0.4"
 #define PROGRAM_COPY "Copyright 201-2015, Christopher Stoll"
 
-static void carve(char *sourceFile, char *resultFile, int forceBrt, int forceClr, int forceDir, int forceEdge, int forceGauss, int verbose)
+static void carve(char *sourceFile, char *resultFile, int forceBrt, int forceClr, int forceDir, int forceEdge, int forceGauss, int skipEdge, int verbose)
 {
 	int *imageVector;
 	int imageWidth = 0;
@@ -28,7 +28,7 @@ static void carve(char *sourceFile, char *resultFile, int forceBrt, int forceClr
 	}
 
 	int *newImageVector;
-	newImageVector = seamCarve(imageVector, imageWidth, imageHeight, imageDepth, forceBrt, forceClr, forceDir, forceEdge, forceGauss);
+	newImageVector = seamCarve(imageVector, imageWidth, imageHeight, imageDepth, forceBrt, forceClr, forceDir, forceEdge, forceGauss, skipEdge);
 
 	/*
 	double imageScale = 1;//0.125;
@@ -54,6 +54,7 @@ int main(int argc, char const *argv[])
 	int forceDir = 0;
 	int forceEdge = 0;
 	int forceGauss = 0;
+	int skipEdge = 0;
 	int verboseFlag = 0;
 	char *sourceFile = 0;
 	char *resultFile = 0;
@@ -90,13 +91,16 @@ int main(int argc, char const *argv[])
 				gvalue = optarg;
 				forceGauss = (int)gvalue[0] - 48;
 				break;
+			case 's':
+				skipEdge = 1;
+				break;
 			case 'v':
 				verboseFlag = 1;
 				break;
 			case '?':
 				printf(PROGRAM_NAME " v" PROGRAM_VERS "\n");
 				printf(PROGRAM_COPY "\n\n");
-				printf("usage: sc [-b 0-8] [-c 0-5] [-d 0-9] [-e 0-8] [-g 0-3] [-v] source_PNG_file result_PNG_file \n");
+				printf("usage: sc [-b 0-8] [-c 0-5] [-d 0-9] [-e 0-8] [-g 0-3] [-s] [-v] source_PNG_file result_PNG_file \n");
 				printf("       \n");
 				printf("       Brightness Calculation Method \n");
 				printf("         '-b 0' Average Intensity / Brightness (default) \n");
@@ -149,6 +153,10 @@ int main(int argc, char const *argv[])
 				printf("         '-g 1' pre-Gaussian blur (sigma=2) \n");
 				printf("         '-g 2' pre-Gaussian blur (sigma=4) \n");
 				printf("         '-g 3' pre-Gaussian blur (sigma=8) \n");
+				printf("          \n");
+				printf("        Other Options\n");
+				printf("         '-s'   Skip seams that touch the edge (do not back track them)\n");
+				printf("          \n");
 				return 1;
 			default:
 				fprintf(stderr, "Unexpected argument character code: %c (0x%04x)\n", (char)c, c);
@@ -178,7 +186,7 @@ int main(int argc, char const *argv[])
 
 	// Go ahead if the source file exists
 	if (access(sourceFile, R_OK) != -1) {
-		carve(sourceFile, resultFile, forceBrt, forceClr, forceDir, forceEdge, forceGauss, verboseFlag);
+		carve(sourceFile, resultFile, forceBrt, forceClr, forceDir, forceEdge, forceGauss, skipEdge, verboseFlag);
 	} else {
 		fprintf(stderr, "Error reading file %s\n", sourceFile);
 		return 1;

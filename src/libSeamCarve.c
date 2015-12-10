@@ -36,7 +36,6 @@
 #endif
 
 #define DEFAULT_CLIP_AREA_BOUND 1
-#define SKIP_SEAMS_THAT_TOUCH_EDGE 1
 #define SCALE_FACTOR 1
 
 /*
@@ -44,7 +43,7 @@
  * The least signifigant pixels will be traced multiple times and have a higher value (whiter)
  * The most signifigant pixels will not be traced at all and have a value of zero (black)
  */
-static void findSeams(struct pixel *imageVector, struct window *imageWindow, int direction, int findAreas)
+static void findSeams(struct pixel *imageVector, struct window *imageWindow, int direction, int findAreas, int skipEdge)
 {
 	if ((direction != DIRECTION_VERTICAL) && (direction != DIRECTION_HORIZONTAL)) {
 		return;
@@ -129,7 +128,7 @@ static void findSeams(struct pixel *imageVector, struct window *imageWindow, int
 		countGoR = 0;
 		countGoL = 0;
 
-		if (SKIP_SEAMS_THAT_TOUCH_EDGE) {
+		if (skipEdge) {
 			if (direction == DIRECTION_VERTICAL) {
 				if (imageVector[minValueLocation].seamvalV > 255) {
 					k += loopInc;
@@ -538,9 +537,9 @@ static int fillSeamMatrixVertical(struct pixel *imageVector, struct window *imag
 	return result;
 }
 
-static void findSeamsVertical(struct pixel *imageVector, struct window *imageWindow, int findAreas)
+static void findSeamsVertical(struct pixel *imageVector, struct window *imageWindow, int findAreas, int skipEdge)
 {
-	findSeams(imageVector, imageWindow, 0, findAreas);
+	findSeams(imageVector, imageWindow, 0, findAreas, skipEdge);
 }
 
 static void setPixelPathHorizontal(struct pixel *imageVector, struct window *imageWindow, int currentPixel, int currentCol)
@@ -605,15 +604,15 @@ static int fillSeamMatrixHorizontal(struct pixel *imageVector, struct window *im
 	return result;
 }
 
-static void findSeamsHorizontal(struct pixel *imageVector, struct window *imageWindow, int findAreas)
+static void findSeamsHorizontal(struct pixel *imageVector, struct window *imageWindow, int findAreas, int skipEdge)
 {
-	findSeams(imageVector, imageWindow, 1, findAreas);
+	findSeams(imageVector, imageWindow, 1, findAreas, skipEdge);
 }
 
 /*
  * The main function
  */
-static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int imageDepth, int brightnessMode, int contrastMode, int forceDirection, int forceEdge, int preGauss)
+static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int imageDepth, int brightnessMode, int contrastMode, int forceDirection, int forceEdge, int preGauss, int skipEdge)
 {
 	struct pixel *workingImage = (struct pixel*)xmalloc((unsigned long)imageWidth * (unsigned long)imageHeight * sizeof(struct pixel));
 	int *resultImage = (int*)xmalloc((unsigned long)imageWidth * (unsigned long)imageHeight * (unsigned long)imageDepth * sizeof(int));
@@ -1173,8 +1172,8 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 		int verticalSeamCost = fillSeamMatrixVertical(workingImage, currentWindow);
 		//printf("Sum traversal cost of all seams: horizontal = %d, vertical = %d \n", verticalSeamCost, horizontalSeamCost);
 
-		findSeamsHorizontal(workingImage, currentWindow, 0);
-		findSeamsVertical(workingImage, currentWindow, 0);
+		findSeamsHorizontal(workingImage, currentWindow, 0, skipEdge);
+		findSeamsVertical(workingImage, currentWindow, 0, skipEdge);
 
 		if (horizontalSeamCost < verticalSeamCost) {
 			printf("Horizontal \n");
@@ -1186,30 +1185,30 @@ static int *seamCarve(int *imageVector, int imageWidth, int imageHeight, int ima
 	} else if ((forceDirection == 1) || (forceDirection == 6) || (forceDirection == 8) || (forceDirection == 49)) {
 		fillSeamMatrixHorizontal(workingImage, currentWindow);
 		if (forceDirection == 49) {
-			findSeamsHorizontal(workingImage, currentWindow, 1);
+			findSeamsHorizontal(workingImage, currentWindow, 1, skipEdge);
 		} else {
-			findSeamsHorizontal(workingImage, currentWindow, 0);
+			findSeamsHorizontal(workingImage, currentWindow, 0, skipEdge);
 		}
 	} else if ((forceDirection == 2) || (forceDirection == 7) || (forceDirection == 9) || (forceDirection == 50)) {
 		fillSeamMatrixVertical(workingImage, currentWindow);
 		if (forceDirection == 50) {
-			findSeamsVertical(workingImage, currentWindow, 1);
+			findSeamsVertical(workingImage, currentWindow, 1, skipEdge);
 		} else {
-			findSeamsVertical(workingImage, currentWindow, 0);
+			findSeamsVertical(workingImage, currentWindow, 0, skipEdge);
 		}
 	} else if (forceDirection == 51) {
 		fillSeamMatrixHorizontal(workingImage, currentWindow);
-		findSeamsHorizontal(workingImage, currentWindow, 1);
+		findSeamsHorizontal(workingImage, currentWindow, 1, skipEdge);
 		fillSeamMatrixVertical(workingImage, currentWindow);
-		findSeamsVertical(workingImage, currentWindow, 1);
+		findSeamsVertical(workingImage, currentWindow, 1, skipEdge);
 	} else if ((forceDirection == 4) || (forceDirection == 5)) {
 		// pass
 	} else {
 		fillSeamMatrixHorizontal(workingImage, currentWindow);
 		fillSeamMatrixVertical(workingImage, currentWindow);
 
-		findSeamsHorizontal(workingImage, currentWindow, 0);
-		findSeamsVertical(workingImage, currentWindow, 0);
+		findSeamsHorizontal(workingImage, currentWindow, 0, skipEdge);
+		findSeamsVertical(workingImage, currentWindow, 0, skipEdge);
 	}
 
 	// prepare results for output
