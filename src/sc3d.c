@@ -66,16 +66,17 @@ static void sc3d(char *sourceFile, char *resultFile, int verbose)
 	nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, dimSizes);
 	int imageWidth = (int)dimSizes[0];
 	int imageHeight = (int)dimSizes[1];
-	int imageDepth = 4;
+	int imageDepth = (int)dimSizes[2];
+	int imagePixelDepth = 4;
 	int pixelsPerSlice = imageWidth * imageHeight;
 
-	// int *sourceImage = (int*)malloc((unsigned long)pixelsPerSlice * (unsigned long)imageDepth * sizeof(int));
-	// int *sourceImageLast = (int*)malloc((unsigned long)pixelsPerSlice * (unsigned long)imageDepth * sizeof(int));
-	int *sourceImageCurrent = (int*)malloc((unsigned long)pixelsPerSlice * (unsigned long)imageDepth * sizeof(int));
+	// int *sourceImage = (int*)malloc((unsigned long)pixelsPerSlice * (unsigned long)imagePixelDepth * sizeof(int));
+	// int *sourceImageLast = (int*)malloc((unsigned long)pixelsPerSlice * (unsigned long)imagePixelDepth * sizeof(int));
+	int *sourceImageCurrent = (int*)malloc((unsigned long)pixelsPerSlice * (unsigned long)imagePixelDepth * sizeof(int));
 
 	int *newImageVector = NULL;
-	int *oldImageVector = (int*)malloc((unsigned long)pixelsPerSlice * (unsigned long)imageDepth * sizeof(int));
-	int *outImageVector = (int*)malloc((unsigned long)pixelsPerSlice * (unsigned long)imageDepth * sizeof(int));
+	int *oldImageVector = (int*)malloc((unsigned long)pixelsPerSlice * (unsigned long)imagePixelDepth * sizeof(int));
+	int *outImageVector = (int*)malloc((unsigned long)pixelsPerSlice * (unsigned long)imagePixelDepth * sizeof(int));
 
 	char outfile[24];
 
@@ -86,7 +87,7 @@ static void sc3d(char *sourceFile, char *resultFile, int verbose)
 	int valmax = 0;
 
 	double (*lup)(const void *, size_t I);
-	for(int slice = 0; slice < 93; ++slice) {
+	for(int slice = 0; slice < imageDepth; ++slice) {
 		startPixel = pixelsPerSlice * slice;
 		endPixel = startPixel + pixelsPerSlice;
 		lup = nrrdDLookup[nin->type];
@@ -103,7 +104,7 @@ static void sc3d(char *sourceFile, char *resultFile, int verbose)
 	}
 	int scalefactor = (int)(pow(2, 16) / (valmax - valmin));
 
-	for(int slice = 0; slice < 93; ++slice) {
+	for(int slice = 0; slice < imageDepth; ++slice) {
 		startPixel = pixelsPerSlice * slice;
 		endPixel = startPixel + pixelsPerSlice;
 
@@ -111,43 +112,43 @@ static void sc3d(char *sourceFile, char *resultFile, int verbose)
 		int k = 0;
 		for(int i = startPixel; i < endPixel; ++i) {
 			val = lup(nin->data, i);
-			sourceImageCurrent[(k*imageDepth)] = val * scalefactor;
-			sourceImageCurrent[(k*imageDepth)+1] = val * scalefactor;
-			sourceImageCurrent[(k*imageDepth)+2] = val * scalefactor;
-			sourceImageCurrent[(k*imageDepth)+3] = INT_MAX;
+			sourceImageCurrent[(k*imagePixelDepth)] = val * scalefactor;
+			sourceImageCurrent[(k*imagePixelDepth)+1] = val * scalefactor;
+			sourceImageCurrent[(k*imagePixelDepth)+2] = val * scalefactor;
+			sourceImageCurrent[(k*imagePixelDepth)+3] = INT_MAX;
 
-			// sourceImage[(k*imageDepth)] = val * scalefactor;
-			// sourceImage[(k*imageDepth)+1] = val * scalefactor;
-			// sourceImage[(k*imageDepth)+2] = val * scalefactor;
+			// sourceImage[(k*imagePixelDepth)] = val * scalefactor;
+			// sourceImage[(k*imagePixelDepth)+1] = val * scalefactor;
+			// sourceImage[(k*imagePixelDepth)+2] = val * scalefactor;
 
-			// sourceImageCurrent[(k*imageDepth)] = sourceImage[(k*imageDepth)] + sourceImageLast[(k*imageDepth)];
-			// sourceImageCurrent[(k*imageDepth)+1] = sourceImage[(k*imageDepth)+1] + sourceImageLast[(k*imageDepth)+1];
-			// sourceImageCurrent[(k*imageDepth)+2] = sourceImage[(k*imageDepth)+2] + sourceImageLast[(k*imageDepth)+2];
-			// sourceImageCurrent[(k*imageDepth)+3] = INT_MAX;
+			// sourceImageCurrent[(k*imagePixelDepth)] = sourceImage[(k*imagePixelDepth)] + sourceImageLast[(k*imagePixelDepth)];
+			// sourceImageCurrent[(k*imagePixelDepth)+1] = sourceImage[(k*imagePixelDepth)+1] + sourceImageLast[(k*imagePixelDepth)+1];
+			// sourceImageCurrent[(k*imagePixelDepth)+2] = sourceImage[(k*imagePixelDepth)+2] + sourceImageLast[(k*imagePixelDepth)+2];
+			// sourceImageCurrent[(k*imagePixelDepth)+3] = INT_MAX;
 
-			// sourceImageLast[(k*imageDepth)] = sourceImage[(k*imageDepth)];
-			// sourceImageLast[(k*imageDepth)+1] = sourceImage[(k*imageDepth)+1];
-			// sourceImageLast[(k*imageDepth)+2] = sourceImage[(k*imageDepth)+2];
+			// sourceImageLast[(k*imagePixelDepth)] = sourceImage[(k*imagePixelDepth)];
+			// sourceImageLast[(k*imagePixelDepth)+1] = sourceImage[(k*imagePixelDepth)+1];
+			// sourceImageLast[(k*imagePixelDepth)+2] = sourceImage[(k*imagePixelDepth)+2];
 
 			++k;
 		}
 
 		// cut to the bone
-		// newImageVector = seamCarve(sourceImageCurrent, imageWidth, imageHeight, imageDepth, 0, 4, 55, 0, 0, 1);
+		// newImageVector = seamCarve(sourceImageCurrent, imageWidth, imageHeight, imagePixelDepth, 0, 4, 55, 0, 0, 1);
 
 		// cut to the flesh
-		newImageVector = seamCarve(sourceImageCurrent, imageWidth, imageHeight, imageDepth, 0, 5, 55, 4, 0, 1);
+		newImageVector = seamCarve(sourceImageCurrent, imageWidth, imageHeight, imagePixelDepth, 0, 5, 55, 4, 0, 1);
 
 		// TODO: 49 (and thus 51) are seg faulting, find the problem
-		// newImageVector = seamCarve(sourceImageCurrent, imageWidth, imageHeight, imageDepth, 6, 0, 50, 7, 1, 1);
+		// newImageVector = seamCarve(sourceImageCurrent, imageWidth, imageHeight, imagePixelDepth, 6, 0, 50, 7, 1, 1);
 
-		// newImageVector = seamCarve(sourceImageCurrent, imageWidth, imageHeight, imageDepth, 0, 2, 53, 0, 0, 1);
+		// newImageVector = seamCarve(sourceImageCurrent, imageWidth, imageHeight, imagePixelDepth, 0, 2, 53, 0, 0, 1);
 		// int currentPixel = 0;
 		// int inputPixel = 0;
 		// for (int j = 0; j < imageHeight; ++j) {
 		// 	for (int i = 0; i < imageWidth; ++i) {
 		// 		currentPixel = (j * imageWidth) + i;
-		// 		inputPixel = currentPixel * imageDepth;
+		// 		inputPixel = currentPixel * imagePixelDepth;
 
 		// 		if(1) {
 		// 			outImageVector[inputPixel]   = newImageVector[inputPixel];
@@ -196,8 +197,8 @@ static void sc3d(char *sourceFile, char *resultFile, int verbose)
 		ins = nrrdDInsert[nin->type];
 		k = 0;
 		for(int i = startPixel; i < endPixel; ++i) {
-			if (newImageVector[(k*imageDepth)+3] == PNG_MAX) {
-				val = (int)(sourceImageCurrent[(k*imageDepth)] / scalefactor);
+			if (newImageVector[(k*imagePixelDepth)+3] == PNG_MAX) {
+				val = (int)(sourceImageCurrent[(k*imagePixelDepth)] / scalefactor);
 			} else {
 				val = 0;
 			}
@@ -207,7 +208,7 @@ static void sc3d(char *sourceFile, char *resultFile, int verbose)
 		}
 
 		sprintf(outfile, "out/headsq/sc3d-%02d.png", (slice + 1));
-		write_png_file(newImageVector, imageWidth, imageHeight, outfile);
+		// write_png_file(newImageVector, imageWidth, imageHeight, outfile);
 
 		free(newImageVector);
 		newImageVector = NULL;
