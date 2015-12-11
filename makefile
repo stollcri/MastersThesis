@@ -29,8 +29,9 @@ build:
 	$(CC) $(CFLAGS) $(LFLAGS) -o $(AOFILE) $(CFILES)
 
 run:
-	$(AOFILE_DBG) tst/sc3d/headsq/quarter.nhdr out/headsq/sc3d.vtk
-	# $(AOFILE_DBG) tst/sc3d/headsq/quarter.nhdr out/headsq/sc3d.png
+	$(AOFILE_DBG) tst/sc3d/chest.vtk out/headsq/sc3d.vtk
+	# $(AOFILE_DBG) tst/sc3d/head.vtk out/headsq/sc3d.vtk
+	# $(AOFILE_DBG) tst/sc3d/headsq/quarter.nhdr out/headsq/sc3d.vtk
 
 .PHONY: default test testbuild build run all sc test-sc test-sc-all clean-sc
 
