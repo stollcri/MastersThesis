@@ -51,7 +51,7 @@ sc:
 	${CC} ${CFLAGS_SC} -o ./bin/sc ./src/sc.c
 
 test-sc:
-	./bin/sc -b 8 -c 2 -d 4 -e 0 -g 0 tst/sc/Fig2a.png out/sc.png
+	./bin/sc -b 0 -c 4 -d 5 -e 4 -g 0 tst/sc/Fig2a.png out/sc.png
 	# ./bin/sc -b 9 -c 0 -d a -e 4 -g 0 ./tst/sc/BPD-01c.png ./tst/sc/out.png
 	# ./bin/sc -b 9 -c 0 -d c -e 4 -g 0 ./tst/sc/Broadway_tower_edit_small.png ./tst/sc/out-00.png
 	# ./bin/sc -b 9 -c 0 -d c -e 4 -g 0 ./tst/sc/Fig2a.png ./tst/sc/out-01.png
