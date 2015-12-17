@@ -69,7 +69,7 @@ int main(int argc, char const *argv[])
 	 *  source_file -- the PNG image file to open
 	 *  result_file -- the PNG file to save results to
 	 */
-	while ((c = getopt (argc, argumentVector, "b:c:d:e:g:v")) != -1) {
+	while ((c = getopt (argc, argumentVector, "b:c:d:e:g:sv")) != -1) {
 		switch (c) {
 			case 'b':
 				bvalue = optarg;
