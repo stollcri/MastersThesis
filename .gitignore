@@ -26,4 +26,9 @@ bin/
 .DS_Store
 *.xcuserstate
 
+
 tst/sc/test/
+tst/sc3d/src_vhp/*.vtk
+
+out/tmp/*
+out/src_vhp/*.vtk
