@@ -8,28 +8,33 @@
 
 static int otsuBinarization(int *histogram, int pixelCount, int pixelDepth)
 {
-	int sum = 0;
-	for (int i = 1; i < pixelDepth; ++i) {
+	unsigned long long sum = 0;
+	unsigned long long oldsum = 0;
+	for(int i = 1; i < pixelDepth; ++i) {
+		oldsum = sum;
 		sum += i * histogram[i];
+		if(oldsum > sum) {
+			printf("ERROR: Integer Overflow (%llu + n => %llu)\n", oldsum, sum);
+		}
 	}
 
-	int sumB = 0;
-	int wB = 0;
-	int wF = 0;
-	int mB;
-	int mF;
-	double max = 0.0;
-	double between = 0.0;
-	double threshold1 = 0.0;
-	double threshold2 = 0.0;
+	unsigned long long sumB = 0;
+	unsigned long long wB = 0;
+	unsigned long long wF = 0;
+	unsigned long long mB;
+	unsigned long long mF;
+	long double max = 0.0;
+	long double between = 0.0;
+	long double threshold1 = 0.0;
+	long double threshold2 = 0.0;
 
-	for (int i = 0; i < pixelDepth; ++i) {
+	for(int i = 0; i < pixelDepth; ++i) {
 		wB += histogram[i];
 
-		if (wB) {
+		if(wB) {
 			wF = pixelCount - wB;
 
-			if (wF == 0) {
+			if(wF == 0) {
 				break;
 			}
 
@@ -37,18 +42,18 @@ static int otsuBinarization(int *histogram, int pixelCount, int pixelDepth)
 
 			mB = sumB / wB;
 			mF = (sum - sumB) / wF;
-			between = wB * wF * pow(mB - mF, 2);
+			between = wB * wF * ((mB - mF) * (mB - mF));
 
-			if ( between >= max ) {
+			if(between >= max) {
 				threshold1 = i;
-				if ( between > max ) {
+				if(between > max) {
 					threshold2 = i;
 				}
 				max = between;
 			}
 		}
 	}
-	return ( threshold1 + threshold2 ) / 2.0;
+	return (int)((threshold1 + threshold2) / 2.0);
 }
 
 #endif
