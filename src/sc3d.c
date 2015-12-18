@@ -85,6 +85,7 @@ static void sc3d(char *sourceFile, char *resultFile, int verbose)
 	int val = 0;
 	int valmin = INT_MAX;
 	int valmax = 0;
+	int valoffset = 0;
 
 	double (*lup)(const void *, size_t I);
 	for(int slice = 0; slice < imageDepth; ++slice) {
@@ -94,15 +95,23 @@ static void sc3d(char *sourceFile, char *resultFile, int verbose)
 		for(int i = startPixel; i < endPixel; ++i) {
 			val = lup(nin->data, i);
 
-			if (val > valmax) {
+			if(val > valmax) {
 				valmax = val;
 			}
-			if (val < valmin) {
+			if(val < valmin) {
 				valmin = val;
 			}
 		}
 	}
 	int scalefactor = (int)(pow(2, 16) / (valmax - valmin));
+	if(valmin < 0) {
+		valoffset = valmin * -1;
+	}
+
+	printf(": \"%s\" is a %d-dimensional nrrd of type %d (%s)\n", sourceFile, nin->dim, nin->type, airEnumStr(nrrdType, nin->type));
+	printf(": the array contains %d elements, each %d bytes in size\n", (int)nrrdElementNumber(nin), (int)nrrdElementSize(nin));
+	printf(":  valmin= %d / valmax= %d (range = %d)\n", valmin, valmax, (valmax - valmin));
+	printf(":  scalefactor= %d / valoffset= %d\n", scalefactor, valoffset);
 
 	for(int slice = 0; slice < imageDepth; ++slice) {
 		startPixel = pixelsPerSlice * slice;
@@ -112,9 +121,9 @@ static void sc3d(char *sourceFile, char *resultFile, int verbose)
 		int k = 0;
 		for(int i = startPixel; i < endPixel; ++i) {
 			val = lup(nin->data, i);
-			sourceImageCurrent[(k*imagePixelDepth)] = val * scalefactor;
-			sourceImageCurrent[(k*imagePixelDepth)+1] = val * scalefactor;
-			sourceImageCurrent[(k*imagePixelDepth)+2] = val * scalefactor;
+			sourceImageCurrent[(k*imagePixelDepth)] = ((val + valoffset) * scalefactor);
+			sourceImageCurrent[(k*imagePixelDepth)+1] = ((val + valoffset) * scalefactor);
+			sourceImageCurrent[(k*imagePixelDepth)+2] = ((val + valoffset) * scalefactor);
 			sourceImageCurrent[(k*imagePixelDepth)+3] = INT_MAX;
 
 			// sourceImage[(k*imagePixelDepth)] = val * scalefactor;
@@ -132,6 +141,9 @@ static void sc3d(char *sourceFile, char *resultFile, int verbose)
 
 			++k;
 		}
+
+		// save slices as png
+		// newImageVector = seamCarve(sourceImageCurrent, imageWidth, imageHeight, imagePixelDepth, 0, 5, 4, 4, 0, 1);
 
 		// cut to the bone
 		// newImageVector = seamCarve(sourceImageCurrent, imageWidth, imageHeight, imagePixelDepth, 0, 4, 55, 0, 0, 1);
@@ -199,6 +211,7 @@ static void sc3d(char *sourceFile, char *resultFile, int verbose)
 		for(int i = startPixel; i < endPixel; ++i) {
 			if (newImageVector[(k*imagePixelDepth)+3] == PNG_MAX) {
 				val = (int)(sourceImageCurrent[(k*imagePixelDepth)] / scalefactor);
+				// val = (int)((sourceImageCurrent[(k*imagePixelDepth)] / scalefactor) - valoffset);
 			} else {
 				val = 0;
 			}
@@ -207,16 +220,12 @@ static void sc3d(char *sourceFile, char *resultFile, int verbose)
 			++k;
 		}
 
-		sprintf(outfile, "out/headsq/sc3d-%02d.png", (slice + 1));
-		// write_png_file(newImageVector, imageWidth, imageHeight, outfile);
+		sprintf(outfile, "out/tmp/sc3d-%04d.png", (slice + 1));
+		write_png_file(newImageVector, imageWidth, imageHeight, outfile);
 
 		free(newImageVector);
 		newImageVector = NULL;
 	}
-
-	printf(": \"%s\" is a %d-dimensional nrrd of type %d (%s)\n", sourceFile, nin->dim, nin->type, airEnumStr(nrrdType, nin->type));
-	printf(": the array contains %d elements, each %d bytes in size\n", (int)nrrdElementNumber(nin), (int)nrrdElementSize(nin));
-	printf(": valmin= %d / valmax= %d (%d)\n", valmin, valmax, scalefactor);
 
 	if (nrrdSave(resultFile, nin, NULL)) {
 		char *err = biffGetDone(NRRD);
